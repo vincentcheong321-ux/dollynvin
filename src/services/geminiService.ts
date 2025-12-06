@@ -1,5 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Trip, Activity, DailyPlan, TripVibe } from '../types';
+import { Trip, TripVibe } from '../types';
+
+declare const process: { env: { API_KEY: string } };
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 

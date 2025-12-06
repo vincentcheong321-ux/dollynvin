@@ -17,7 +17,6 @@ import {
   CheckIcon,
   NoteIcon,
   CloseIcon,
-  HomeIcon,
   BedIcon,
   CoffeeIcon,
   CameraIcon,
