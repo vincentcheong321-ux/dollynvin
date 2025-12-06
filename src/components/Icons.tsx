@@ -11,7 +11,7 @@ import {
   MessageCircle, 
   ArrowRight,
   Sparkles,
-  ChevronLeft,
+  ChevronLeft, 
   Menu,
   X,
   Plus,
