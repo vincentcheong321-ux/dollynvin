@@ -17,5 +17,13 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src", "vite.config.ts"],
-  "exclude": ["node_modules", "dist", "App.tsx", "index.tsx", "types.ts", "services", "components"]
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "./App.tsx", 
+    "./index.tsx", 
+    "./types.ts", 
+    "./services", 
+    "./components"
+  ]
 }
