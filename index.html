@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OurJourney</title>
-    <!-- Note: For local dev/Vercel, the Tailwind CDN can be removed if you use the npm packages. -->
+    <!-- Tailwind CDN for simple styling config access, though postcss is also used -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script>
@@ -70,8 +70,8 @@
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "vite": "https://aistudiocdn.com/vite@^7.2.6",
     "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
@@ -80,10 +80,6 @@
 </head>
   <body class="sakura-bg text-slate-800 antialiased">
     <div id="root"></div>
-    <!-- 
-      IMPORTANT FOR VERCEL/GITHUB SYNC:
-      If you move your files to a 'src/' folder, change the src below to "/src/index.tsx"
-    -->
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

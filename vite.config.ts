@@ -8,7 +8,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      'process.env.API_KEY': JSON.stringify(env.API_KEY)
+      'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      // Define process.env to prevent "process is not defined" errors in some environments
+      'process.env': JSON.stringify({})
     }
   };
 });
