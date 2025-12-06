@@ -1,0 +1,7 @@
+{
+  "name": "OurJourney - Couple Trip Planner",
+  "description": "A romantic, AI-powered trip itinerary planner designed specifically for couples to plan their perfect getaway.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
