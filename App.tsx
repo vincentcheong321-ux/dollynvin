@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Trip, TripVibe, ChatMessage, Activity, ActivityType, DailyPlan } from './types';
-import { generateItinerary, sendChatMessage } from './services/geminiService';
+import { Trip, ChatMessage, Activity, ActivityType, DailyPlan, TripVibe } from './types';
+import { sendChatMessage } from './services/geminiService';
 import { 
   HeartIcon, 
   MapPinIcon, 
@@ -26,7 +26,6 @@ import {
   PieChartIcon,
   ShoppingBagIcon
 } from './components/Icons';
-import LoadingOverlay from './components/LoadingOverlay';
 
 // --- Utilities ---
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -398,91 +397,6 @@ const BudgetModal = ({
   );
 };
 
-// --- Dashboard Component ---
-const Dashboard = ({ trips, onCreateClick, onTripSelect, onDeleteTrip }: { trips: Trip[], onCreateClick: () => void, onTripSelect: (id: string) => void, onDeleteTrip: (id: string) => void }) => (
-  <div className="min-h-screen p-6 sm:p-8">
-    <header className="max-w-5xl mx-auto mb-12 flex justify-between items-end">
-      <div>
-        <h1 className="text-5xl font-serif font-bold text-rose-950 mb-2 tracking-tight">Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-600">Journeys</span></h1>
-        <p className="text-rose-900/60 font-medium text-lg">Capture every moment of your adventures together.</p>
-      </div>
-      <button 
-        onClick={onCreateClick}
-        className="hidden sm:flex bg-gradient-to-r from-rose-500 to-pink-600 text-white px-8 py-4 rounded-full font-bold shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all items-center space-x-2"
-      >
-        <PlusIcon className="w-5 h-5" />
-        <span>Plan New Trip</span>
-      </button>
-    </header>
-
-    <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Create Card Mobile */}
-      <button 
-        onClick={onCreateClick} 
-        className="sm:hidden w-full py-4 border-2 border-dashed border-rose-300 rounded-2xl text-rose-600 font-bold bg-rose-50/50 flex items-center justify-center space-x-2"
-      >
-        <PlusIcon className="w-5 h-5" />
-        <span>Start New Adventure</span>
-      </button>
-
-      {trips.length === 0 ? (
-        <div className="col-span-full text-center py-32 bg-white/60 backdrop-blur-md rounded-[2.5rem] border border-white/50 shadow-sm">
-          <div className="bg-gradient-to-br from-rose-100 to-pink-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-            <HeartIcon className="w-10 h-10 text-rose-400" />
-          </div>
-          <h3 className="text-2xl font-serif text-rose-950 mb-3 font-bold">Your journal is empty</h3>
-          <p className="text-rose-800/60 mb-8 max-w-md mx-auto">Start planning your first romantic getaway. We'll help you organize every detail.</p>
-          <button onClick={onCreateClick} className="text-rose-600 font-bold hover:underline text-lg">Create your first itinerary &rarr;</button>
-        </div>
-      ) : (
-        trips.map(trip => (
-          <div 
-            key={trip.id} 
-            className="group bg-white rounded-[2.5rem] p-0 shadow-lg shadow-rose-100/50 border border-white hover:shadow-2xl hover:shadow-rose-200 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden flex flex-col h-72"
-            onClick={() => onTripSelect(trip.id)}
-          >
-             {/* Cover Image Background */}
-             <div className="absolute inset-0 bg-slate-200">
-                {trip.coverImage ? (
-                  <img src={trip.coverImage} alt={trip.destination} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-rose-200 to-pink-100" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-rose-950/80 via-transparent to-transparent" />
-             </div>
-
-             <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-              <button 
-                onClick={(e) => { e.stopPropagation(); if(confirm('Delete this trip?')) onDeleteTrip(trip.id); }}
-                className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-red-500 hover:text-white transition-colors"
-              >
-                <TrashIcon className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="mt-auto relative z-10 p-8">
-              <span className="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold uppercase tracking-wider mb-2 border border-white/20">
-                {trip.duration} Days
-              </span>
-              <h3 className="text-4xl font-serif font-bold text-white leading-tight drop-shadow-md">
-                {trip.destination}
-              </h3>
-              <div className="flex items-center text-white/90 text-sm mt-2 font-medium">
-                 <CalendarIcon className="w-4 h-4 mr-2" />
-                 {trip.startDate ? (
-                    <span>
-                      {new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                 ) : 'Planned Trip'}
-              </div>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  </div>
-);
-
 // --- Trip Editor Component ---
 const TripEditor = ({ 
   trip, 
@@ -603,9 +517,8 @@ const TripEditor = ({
          <div className="max-w-4xl mx-auto">
            {/* Top Bar: Back, Title, Actions */}
            <div className="px-4 py-3 flex items-center justify-between border-b border-rose-50/50">
-             <button onClick={onBack} className="p-2 -ml-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors">
-               <BackIcon className="w-5 h-5" />
-             </button>
+             {/* Back Button Removed as per single trip design */}
+             <div className="w-5"></div> 
              
              {/* Title */}
              <div className="flex-1 mx-4 text-center group cursor-pointer" onClick={() => setEditingTitle(true)}>
@@ -1056,135 +969,523 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
   );
 };
 
-// --- New Trip Modal ---
-const NewTripModal = ({ isOpen, onClose, onCreate }: { isOpen: boolean, onClose: () => void, onCreate: (data: { dest: string, dur: number, vibe: TripVibe, notes: string }) => void }) => {
-  const [dest, setDest] = useState('');
-  const [dur, setDur] = useState(3);
-  const [vibe, setVibe] = useState(TripVibe.ROMANTIC);
-  const [notes, setNotes] = useState('');
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-rose-900/40 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
-      <div className="bg-white/95 w-full max-w-md rounded-3xl p-8 z-10 animate-slideUp shadow-2xl border border-white/50">
-        <h2 className="text-3xl font-serif font-bold text-rose-950 mb-2">New Journey</h2>
-        <p className="text-rose-900/60 mb-8 font-medium">Tell us where you want to go.</p>
-        
-        <div className="space-y-5">
-          <div>
-            <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Destination</label>
-            <input type="text" className="w-full p-4 bg-rose-50/50 rounded-xl border border-rose-100 outline-none focus:ring-2 focus:ring-rose-400 font-medium text-slate-700" placeholder="e.g. Kyoto, Japan" value={dest} onChange={e => setDest(e.target.value)} />
-          </div>
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Days</label>
-              <input type="number" min="1" max="30" className="w-full p-4 bg-rose-50/50 rounded-xl border border-rose-100 outline-none focus:ring-2 focus:ring-rose-400 font-medium text-slate-700" value={dur} onChange={e => setDur(parseInt(e.target.value))} />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Vibe</label>
-              <select className="w-full p-4 bg-rose-50/50 rounded-xl border border-rose-100 outline-none focus:ring-2 focus:ring-rose-400 font-medium appearance-none text-slate-700" value={vibe} onChange={e => setVibe(e.target.value as TripVibe)}>
-                {Object.values(TripVibe).map(v => <option key={v} value={v}>{v}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Special Requests</label>
-            <textarea className="w-full p-4 bg-rose-50/50 rounded-xl border border-rose-100 outline-none focus:ring-2 focus:ring-rose-400 resize-none text-slate-700" rows={3} placeholder="Vegetarian options, avoid hiking..." value={notes} onChange={e => setNotes(e.target.value)} />
-          </div>
-          
-          <div className="pt-4">
-             <button onClick={() => onCreate({dest, dur, vibe, notes})} className="w-full py-4 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-xl font-bold hover:shadow-xl hover:shadow-rose-200/50 hover:-translate-y-0.5 transition-all flex items-center justify-center space-x-2">
-               <SparklesIcon className="w-5 h-5" />
-               <span>Create Itinerary</span>
-             </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // --- Main App ---
 const App = () => {
-  const [trips, setTrips] = useState<Trip[]>(() => {
-    const saved = localStorage.getItem('oj_trips');
-    return saved ? JSON.parse(saved) : [];
-  });
-  
-  const [activeTripId, setActiveTripId] = useState<string | null>(null);
-  const [view, setView] = useState<'dashboard' | 'editor'>('dashboard');
-  const [isNewTripOpen, setIsNewTripOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // Hardcoded preset trip data for root file backup/preview
+  const getPresetJapanTrip = (): Trip => {
+    return {
+      id: generateId(),
+      title: "Sakura Road Trip: Tokyo & Hokkaido",
+      destination: "Japan",
+      startDate: "2025-04-25",
+      duration: 13,
+      vibe: TripVibe.ROMANTIC,
+      notes: "Flight Details:\n\n25 Apr: KUL (14:15) -> HND (22:15)\n01 May: HND (06:20) -> CTS (07:50)\n07 May: CTS (20:30) -> KUL (06:00 +1)\n\nFocus: Driving in Hokkaido for Sakura hunting.",
+      coverImage: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?q=80&w=2070&auto=format&fit=crop",
+      createdAt: Date.now(),
+      dailyPlans: [
+        // --- TOKYO LEG ---
+        {
+          id: generateId(),
+          dayNumber: 1,
+          date: "2025-04-25",
+          theme: "Arrival in Tokyo",
+          activities: [
+            {
+              id: generateId(),
+              time: "14:15",
+              title: "Depart Malaysia",
+              description: "Flight to Tokyo Haneda.",
+              location: "KLIA",
+              type: "travel",
+              cost: 0,
+              isBooked: true
+            },
+            {
+              id: generateId(),
+              time: "22:15",
+              title: "Arrive at Haneda",
+              description: "Land in Tokyo (10:15 PM). Clear immigration, collect wifi/sim cards.",
+              location: "Haneda Airport (HND)",
+              type: "travel",
+              cost: 0,
+              isBooked: true
+            },
+            {
+              id: generateId(),
+              time: "23:30",
+              title: "Hotel Check-in",
+              description: "Late check-in. Grab convenience store snacks (Konbini) for late dinner.",
+              location: "Tokyo Hotel",
+              type: "stay",
+              cost: 15000,
+              isBooked: true
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 2,
+          date: "2025-04-26",
+          theme: "Cultural Tokyo",
+          activities: [
+            {
+              id: generateId(),
+              time: "09:30",
+              title: "Senso-ji Temple",
+              description: "Visit the oldest temple in Tokyo and walk through Nakamise-dori.",
+              location: "Asakusa",
+              type: "sightseeing",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "12:00",
+              title: "Sushi Lunch",
+              description: "Fresh sushi near the market area.",
+              location: "Tsukiji Outer Market",
+              type: "food",
+              cost: 8000
+            },
+            {
+              id: generateId(),
+              time: "15:00",
+              title: "Shopping in Ginza",
+              description: "Walk through the high-end shopping district.",
+              location: "Ginza",
+              type: "shopping",
+              cost: 20000
+            },
+            {
+              id: generateId(),
+              time: "19:00",
+              title: "Dinner at Izakaya",
+              description: "Casual drinking and dining experience.",
+              location: "Shinjuku Omoide Yokocho",
+              type: "food",
+              cost: 6000
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 3,
+          date: "2025-04-27",
+          theme: "Modern Vibes",
+          activities: [
+            {
+              id: generateId(),
+              time: "10:00",
+              title: "Shibuya Crossing",
+              description: "See the famous scramble crossing and Hachiko statue.",
+              location: "Shibuya",
+              type: "sightseeing",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "11:30",
+              title: "Shibuya Sky",
+              description: "Observation deck with stunning views of the city.",
+              location: "Scramble Square",
+              type: "sightseeing",
+              cost: 4400,
+              isBooked: false
+            },
+            {
+              id: generateId(),
+              time: "15:00",
+              title: "Harajuku & Omotesando",
+              description: "Explore youth fashion and upscale architecture.",
+              location: "Harajuku",
+              type: "shopping",
+              cost: 5000
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 4,
+          date: "2025-04-28",
+          theme: "Art & Bay Views",
+          activities: [
+            {
+              id: generateId(),
+              time: "10:00",
+              title: "teamLab Planets",
+              description: "Immersive digital art museum.",
+              location: "Toyosu",
+              type: "sightseeing",
+              cost: 7600,
+              isBooked: false
+            },
+            {
+              id: generateId(),
+              time: "13:00",
+              title: "Lunch at Odaiba",
+              description: "Lunch with view of Rainbow Bridge.",
+              location: "Aqua City Odaiba",
+              type: "food",
+              cost: 4000
+            },
+            {
+              id: generateId(),
+              time: "15:00",
+              title: "Unicorn Gundam",
+              description: "See the giant transforming statue.",
+              location: "DiverCity Tokyo Plaza",
+              type: "sightseeing",
+              cost: 0
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 5,
+          date: "2025-04-29",
+          theme: "Relax & Pack",
+          activities: [
+            {
+              id: generateId(),
+              time: "10:00",
+              title: "Meiji Jingu",
+              description: "Peaceful forest shrine walk.",
+              location: "Yoyogi Park",
+              type: "sightseeing",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "14:00",
+              title: "Last Minute Shopping",
+              description: "Don Quijote for snacks/supplies.",
+              location: "Shinjuku",
+              type: "shopping",
+              cost: 15000
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 6,
+          date: "2025-04-30",
+          theme: "Free Day in Tokyo",
+          activities: [
+            {
+              id: generateId(),
+              time: "10:00",
+              title: "Free Day / Rest",
+              description: "Easy day to explore missed spots.",
+              location: "Tokyo",
+              type: "relaxation",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "20:00",
+              title: "Pack for Hokkaido",
+              description: "Prepare for early morning flight (6:20 AM tomorrow).",
+              location: "Hotel",
+              type: "relaxation",
+              cost: 0
+            }
+          ]
+        },
 
-  useEffect(() => {
-    localStorage.setItem('oj_trips', JSON.stringify(trips));
-  }, [trips]);
-
-  const handleCreateTrip = async (data: { dest: string, dur: number, vibe: TripVibe, notes: string }) => {
-    setIsNewTripOpen(false);
-    setIsLoading(true);
-    try {
-      const newTrip = await generateItinerary(data.dest, data.dur, data.vibe, data.notes);
-      setTrips(prev => [newTrip, ...prev]);
-      setActiveTripId(newTrip.id);
-      setView('editor');
-    } catch (e) {
-      alert("Could not generate trip. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+        // --- HOKKAIDO LEG ---
+        {
+          id: generateId(),
+          dayNumber: 7,
+          date: "2025-05-01",
+          theme: "Fly to Hokkaido & Drive",
+          activities: [
+            {
+              id: generateId(),
+              time: "06:20",
+              title: "Flight to Sapporo",
+              description: "Depart Haneda (HND) to New Chitose (CTS).",
+              location: "Haneda Airport",
+              type: "travel",
+              cost: 20000,
+              isBooked: true
+            },
+            {
+              id: generateId(),
+              time: "07:50",
+              title: "Arrive Hokkaido",
+              description: "Land at New Chitose. Pick up rental car.",
+              location: "New Chitose Airport",
+              type: "travel",
+              cost: 60000,
+              notes: "Car Rental Booking #HOK-123",
+              isBooked: true
+            },
+            {
+              id: generateId(),
+              time: "10:30",
+              title: "Drive to Matsumae Park",
+              description: "Drive south to see the famous Sakura castle park.",
+              location: "Matsumae Park",
+              type: "sightseeing",
+              cost: 1000
+            },
+            {
+              id: generateId(),
+              time: "18:00",
+              title: "Check-in Hakodate",
+              description: "Stay overnight in Hakodate area.",
+              location: "Hakodate Hotel",
+              type: "stay",
+              cost: 18000,
+              isBooked: false
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 8,
+          date: "2025-05-02",
+          theme: "Hakodate & Sakura",
+          activities: [
+            {
+              id: generateId(),
+              time: "09:00",
+              title: "Fort Goryokaku",
+              description: "Star-shaped fort filled with cherry blossoms.",
+              location: "Goryokaku Tower",
+              type: "sightseeing",
+              cost: 2000
+            },
+            {
+              id: generateId(),
+              time: "12:00",
+              title: "Lucky Pierrot Burger",
+              description: "Famous local burger chain only in Hakodate.",
+              location: "Hakodate",
+              type: "food",
+              cost: 2500
+            },
+            {
+              id: generateId(),
+              time: "18:00",
+              title: "Mt. Hakodate Night View",
+              description: "One of the best three night views in Japan.",
+              location: "Mt. Hakodate",
+              type: "sightseeing",
+              cost: 3000
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 9,
+          date: "2025-05-03",
+          theme: "Drive to Lake Toya",
+          activities: [
+            {
+              id: generateId(),
+              time: "10:00",
+              title: "Drive North",
+              description: "Scenic drive towards Lake Toya.",
+              location: "Hokkaido Expressway",
+              type: "travel",
+              cost: 3000
+            },
+            {
+              id: generateId(),
+              time: "14:00",
+              title: "Lake Toya",
+              description: "Relax by the caldera lake.",
+              location: "Lake Toya",
+              type: "sightseeing",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "19:00",
+              title: "Onsen Hotel",
+              description: "Relax in hot springs with lake view.",
+              location: "Toya Onsen",
+              type: "stay",
+              cost: 25000,
+              isBooked: false
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 10,
+          date: "2025-05-04",
+          theme: "Noboribetsu & Sapporo",
+          activities: [
+            {
+              id: generateId(),
+              time: "10:00",
+              title: "Jigokudani (Hell Valley)",
+              description: "Steam vents and sulfur streams.",
+              location: "Noboribetsu",
+              type: "sightseeing",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "14:00",
+              title: "Drive to Sapporo",
+              description: "Head to the capital city.",
+              location: "Sapporo",
+              type: "travel",
+              cost: 2000
+            },
+            {
+              id: generateId(),
+              time: "18:00",
+              title: "Genghis Khan Dinner",
+              description: "Famous Hokkaido grilled lamb BBQ.",
+              location: "Susukino",
+              type: "food",
+              cost: 8000
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 11,
+          date: "2025-05-05",
+          theme: "Otaru Day Trip",
+          activities: [
+            {
+              id: generateId(),
+              time: "10:00",
+              title: "Drive to Otaru",
+              description: "Short drive to the port city.",
+              location: "Otaru",
+              type: "travel",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "11:00",
+              title: "Otaru Canal",
+              description: "Walk along the historic canal and glass shops.",
+              location: "Otaru Canal",
+              type: "sightseeing",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "13:00",
+              title: "Kaisendon Lunch",
+              description: "Fresh seafood bowl at Sankaku Market.",
+              location: "Otaru Station",
+              type: "food",
+              cost: 6000
+            },
+            {
+              id: generateId(),
+              time: "15:00",
+              title: "LeTAO Cheesecake",
+              description: "Dessert break.",
+              location: "Otaru",
+              type: "food",
+              cost: 2000
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 12,
+          date: "2025-05-06",
+          theme: "Sapporo City",
+          activities: [
+            {
+              id: generateId(),
+              time: "10:00",
+              title: "Odori Park",
+              description: "Walk through the park, see TV Tower.",
+              location: "Odori",
+              type: "sightseeing",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "13:00",
+              title: "Soup Curry",
+              description: "Try the local specialty spicy soup curry.",
+              location: "Suage+",
+              type: "food",
+              cost: 3000
+            },
+            {
+              id: generateId(),
+              time: "15:00",
+              title: "Shiroi Koibito Park",
+              description: "Chocolate factory tour.",
+              location: "Nishi-ku",
+              type: "sightseeing",
+              cost: 1600
+            }
+          ]
+        },
+        {
+          id: generateId(),
+          dayNumber: 13,
+          date: "2025-05-07",
+          theme: "Departure",
+          activities: [
+            {
+              id: generateId(),
+              time: "10:00",
+              title: "Rera Outlet Mall",
+              description: "Last minute shopping near airport.",
+              location: "Chitose",
+              type: "shopping",
+              cost: 20000
+            },
+            {
+              id: generateId(),
+              time: "17:00",
+              title: "Return Rental Car",
+              description: "Drop off vehicle at rental branch. Shuttle to terminal.",
+              location: "CTS Rental Branch",
+              type: "travel",
+              cost: 0
+            },
+            {
+              id: generateId(),
+              time: "20:30",
+              title: "Flight Home",
+              description: "Depart for Kuala Lumpur (8:30 PM).",
+              location: "New Chitose Airport",
+              type: "travel",
+              cost: 0,
+              isBooked: true
+            }
+          ]
+        }
+      ]
+    };
   };
+
+  // Always initialize with the preset trip
+  const [trip, setTrip] = useState<Trip>(getPresetJapanTrip());
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleUpdateTrip = (updatedTrip: Trip) => {
-    setTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+    setTrip(updatedTrip);
   };
-
-  const handleDeleteTrip = (id: string) => {
-    setTrips(prev => prev.filter(t => t.id !== id));
-    if (activeTripId === id) {
-      setActiveTripId(null);
-      setView('dashboard');
-    }
-  };
-
-  const activeTrip = trips.find(t => t.id === activeTripId);
 
   return (
     <>
-      {isLoading && <LoadingOverlay message="Crafting your itinerary..." />}
-
-      {view === 'dashboard' && (
-        <Dashboard 
-          trips={trips} 
-          onCreateClick={() => setIsNewTripOpen(true)}
-          onTripSelect={(id) => { setActiveTripId(id); setView('editor'); }}
-          onDeleteTrip={handleDeleteTrip}
-        />
-      )}
-
-      {view === 'editor' && activeTrip && (
-        <>
-          <TripEditor 
-            trip={activeTrip} 
-            onBack={() => setView('dashboard')}
-            onUpdate={handleUpdateTrip}
-            onOpenChat={() => setIsChatOpen(true)}
-          />
-          <ChatAssistant 
-            isOpen={isChatOpen} 
-            onClose={() => setIsChatOpen(false)}
-            currentTrip={activeTrip}
-          />
-        </>
-      )}
-
-      <NewTripModal 
-        isOpen={isNewTripOpen} 
-        onClose={() => setIsNewTripOpen(false)}
-        onCreate={handleCreateTrip}
+      <TripEditor 
+        trip={trip} 
+        onBack={() => {}} // No back navigation
+        onUpdate={handleUpdateTrip}
+        onOpenChat={() => setIsChatOpen(true)}
+      />
+      <ChatAssistant 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)}
+        currentTrip={trip}
       />
     </>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Trip, TripVibe, ChatMessage, Activity, ActivityType, DailyPlan } from './types';
-import { generateItinerary, sendChatMessage } from './services/geminiService';
+import { Trip, ChatMessage, Activity, ActivityType, DailyPlan, TripVibe } from './types';
+import { sendChatMessage } from './services/geminiService';
+import { getPresetJapanTrip } from './services/presetTrip';
 import { 
   HeartIcon, 
   MapPinIcon, 
@@ -26,7 +27,6 @@ import {
   PieChartIcon,
   ShoppingBagIcon
 } from './components/Icons';
-import LoadingOverlay from './components/LoadingOverlay';
 
 // --- Utilities ---
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -398,91 +398,6 @@ const BudgetModal = ({
   );
 };
 
-// --- Dashboard Component ---
-const Dashboard = ({ trips, onCreateClick, onTripSelect, onDeleteTrip }: { trips: Trip[], onCreateClick: () => void, onTripSelect: (id: string) => void, onDeleteTrip: (id: string) => void }) => (
-  <div className="min-h-screen p-6 sm:p-8">
-    <header className="max-w-5xl mx-auto mb-12 flex justify-between items-end">
-      <div>
-        <h1 className="text-5xl font-serif font-bold text-rose-950 mb-2 tracking-tight">Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-600">Journeys</span></h1>
-        <p className="text-rose-900/60 font-medium text-lg">Capture every moment of your adventures together.</p>
-      </div>
-      <button 
-        onClick={onCreateClick}
-        className="hidden sm:flex bg-gradient-to-r from-rose-500 to-pink-600 text-white px-8 py-4 rounded-full font-bold shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all items-center space-x-2"
-      >
-        <PlusIcon className="w-5 h-5" />
-        <span>Plan New Trip</span>
-      </button>
-    </header>
-
-    <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Create Card Mobile */}
-      <button 
-        onClick={onCreateClick} 
-        className="sm:hidden w-full py-4 border-2 border-dashed border-rose-300 rounded-2xl text-rose-600 font-bold bg-rose-50/50 flex items-center justify-center space-x-2"
-      >
-        <PlusIcon className="w-5 h-5" />
-        <span>Start New Adventure</span>
-      </button>
-
-      {trips.length === 0 ? (
-        <div className="col-span-full text-center py-32 bg-white/60 backdrop-blur-md rounded-[2.5rem] border border-white/50 shadow-sm">
-          <div className="bg-gradient-to-br from-rose-100 to-pink-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-            <HeartIcon className="w-10 h-10 text-rose-400" />
-          </div>
-          <h3 className="text-2xl font-serif text-rose-950 mb-3 font-bold">Your journal is empty</h3>
-          <p className="text-rose-800/60 mb-8 max-w-md mx-auto">Start planning your first romantic getaway. We'll help you organize every detail.</p>
-          <button onClick={onCreateClick} className="text-rose-600 font-bold hover:underline text-lg">Create your first itinerary &rarr;</button>
-        </div>
-      ) : (
-        trips.map(trip => (
-          <div 
-            key={trip.id} 
-            className="group bg-white rounded-[2.5rem] p-0 shadow-lg shadow-rose-100/50 border border-white hover:shadow-2xl hover:shadow-rose-200 hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden flex flex-col h-72"
-            onClick={() => onTripSelect(trip.id)}
-          >
-             {/* Cover Image Background */}
-             <div className="absolute inset-0 bg-slate-200">
-                {trip.coverImage ? (
-                  <img src={trip.coverImage} alt={trip.destination} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-rose-200 to-pink-100" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-rose-950/80 via-transparent to-transparent" />
-             </div>
-
-             <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-              <button 
-                onClick={(e) => { e.stopPropagation(); if(confirm('Delete this trip?')) onDeleteTrip(trip.id); }}
-                className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-red-500 hover:text-white transition-colors"
-              >
-                <TrashIcon className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="mt-auto relative z-10 p-8">
-              <span className="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold uppercase tracking-wider mb-2 border border-white/20">
-                {trip.duration} Days
-              </span>
-              <h3 className="text-4xl font-serif font-bold text-white leading-tight drop-shadow-md">
-                {trip.destination}
-              </h3>
-              <div className="flex items-center text-white/90 text-sm mt-2 font-medium">
-                 <CalendarIcon className="w-4 h-4 mr-2" />
-                 {trip.startDate ? (
-                    <span>
-                      {new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                 ) : 'Planned Trip'}
-              </div>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  </div>
-);
-
 // --- Trip Editor Component ---
 const TripEditor = ({ 
   trip, 
@@ -603,9 +518,8 @@ const TripEditor = ({
          <div className="max-w-4xl mx-auto">
            {/* Top Bar: Back, Title, Actions */}
            <div className="px-4 py-3 flex items-center justify-between border-b border-rose-50/50">
-             <button onClick={onBack} className="p-2 -ml-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors">
-               <BackIcon className="w-5 h-5" />
-             </button>
+             {/* Back Button Removed as per single trip design */}
+             <div className="w-5"></div> 
              
              {/* Title */}
              <div className="flex-1 mx-4 text-center group cursor-pointer" onClick={() => setEditingTitle(true)}>
@@ -1056,135 +970,28 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
   );
 };
 
-// --- New Trip Modal ---
-const NewTripModal = ({ isOpen, onClose, onCreate }: { isOpen: boolean, onClose: () => void, onCreate: (data: { dest: string, dur: number, vibe: TripVibe, notes: string }) => void }) => {
-  const [dest, setDest] = useState('');
-  const [dur, setDur] = useState(3);
-  const [vibe, setVibe] = useState(TripVibe.ROMANTIC);
-  const [notes, setNotes] = useState('');
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-rose-900/40 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
-      <div className="bg-white/95 w-full max-w-md rounded-3xl p-8 z-10 animate-slideUp shadow-2xl border border-white/50">
-        <h2 className="text-3xl font-serif font-bold text-rose-950 mb-2">New Journey</h2>
-        <p className="text-rose-900/60 mb-8 font-medium">Tell us where you want to go.</p>
-        
-        <div className="space-y-5">
-          <div>
-            <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Destination</label>
-            <input type="text" className="w-full p-4 bg-rose-50/50 rounded-xl border border-rose-100 outline-none focus:ring-2 focus:ring-rose-400 font-medium text-slate-700" placeholder="e.g. Kyoto, Japan" value={dest} onChange={e => setDest(e.target.value)} />
-          </div>
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Days</label>
-              <input type="number" min="1" max="30" className="w-full p-4 bg-rose-50/50 rounded-xl border border-rose-100 outline-none focus:ring-2 focus:ring-rose-400 font-medium text-slate-700" value={dur} onChange={e => setDur(parseInt(e.target.value))} />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Vibe</label>
-              <select className="w-full p-4 bg-rose-50/50 rounded-xl border border-rose-100 outline-none focus:ring-2 focus:ring-rose-400 font-medium appearance-none text-slate-700" value={vibe} onChange={e => setVibe(e.target.value as TripVibe)}>
-                {Object.values(TripVibe).map(v => <option key={v} value={v}>{v}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Special Requests</label>
-            <textarea className="w-full p-4 bg-rose-50/50 rounded-xl border border-rose-100 outline-none focus:ring-2 focus:ring-rose-400 resize-none text-slate-700" rows={3} placeholder="Vegetarian options, avoid hiking..." value={notes} onChange={e => setNotes(e.target.value)} />
-          </div>
-          
-          <div className="pt-4">
-             <button onClick={() => onCreate({dest, dur, vibe, notes})} className="w-full py-4 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-xl font-bold hover:shadow-xl hover:shadow-rose-200/50 hover:-translate-y-0.5 transition-all flex items-center justify-center space-x-2">
-               <SparklesIcon className="w-5 h-5" />
-               <span>Create Itinerary</span>
-             </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // --- Main App ---
 const App = () => {
-  const [trips, setTrips] = useState<Trip[]>(() => {
-    const saved = localStorage.getItem('oj_trips');
-    return saved ? JSON.parse(saved) : [];
-  });
-  
-  const [activeTripId, setActiveTripId] = useState<string | null>(null);
-  const [view, setView] = useState<'dashboard' | 'editor'>('dashboard');
-  const [isNewTripOpen, setIsNewTripOpen] = useState(false);
+  // Always initialize with the preset trip
+  const [trip, setTrip] = useState<Trip>(getPresetJapanTrip());
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem('oj_trips', JSON.stringify(trips));
-  }, [trips]);
-
-  const handleCreateTrip = async (data: { dest: string, dur: number, vibe: TripVibe, notes: string }) => {
-    setIsNewTripOpen(false);
-    setIsLoading(true);
-    try {
-      const newTrip = await generateItinerary(data.dest, data.dur, data.vibe, data.notes);
-      setTrips(prev => [newTrip, ...prev]);
-      setActiveTripId(newTrip.id);
-      setView('editor');
-    } catch (e) {
-      alert("Could not generate trip. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleUpdateTrip = (updatedTrip: Trip) => {
-    setTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+    setTrip(updatedTrip);
   };
-
-  const handleDeleteTrip = (id: string) => {
-    setTrips(prev => prev.filter(t => t.id !== id));
-    if (activeTripId === id) {
-      setActiveTripId(null);
-      setView('dashboard');
-    }
-  };
-
-  const activeTrip = trips.find(t => t.id === activeTripId);
 
   return (
     <>
-      {isLoading && <LoadingOverlay message="Crafting your itinerary..." />}
-
-      {view === 'dashboard' && (
-        <Dashboard 
-          trips={trips} 
-          onCreateClick={() => setIsNewTripOpen(true)}
-          onTripSelect={(id) => { setActiveTripId(id); setView('editor'); }}
-          onDeleteTrip={handleDeleteTrip}
-        />
-      )}
-
-      {view === 'editor' && activeTrip && (
-        <>
-          <TripEditor 
-            trip={activeTrip} 
-            onBack={() => setView('dashboard')}
-            onUpdate={handleUpdateTrip}
-            onOpenChat={() => setIsChatOpen(true)}
-          />
-          <ChatAssistant 
-            isOpen={isChatOpen} 
-            onClose={() => setIsChatOpen(false)}
-            currentTrip={activeTrip}
-          />
-        </>
-      )}
-
-      <NewTripModal 
-        isOpen={isNewTripOpen} 
-        onClose={() => setIsNewTripOpen(false)}
-        onCreate={handleCreateTrip}
+      <TripEditor 
+        trip={trip} 
+        onBack={() => {}} // No back navigation
+        onUpdate={handleUpdateTrip}
+        onOpenChat={() => setIsChatOpen(true)}
+      />
+      <ChatAssistant 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)}
+        currentTrip={trip}
       />
     </>
   );
