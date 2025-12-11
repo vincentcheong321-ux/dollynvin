@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Trip, ChatMessage, Activity, ActivityType, DailyPlan, TripVibe } from './types';
 import { sendChatMessage } from './services/geminiService';
 import { 
-  HeartIcon, 
   MapPinIcon, 
   CalendarIcon, 
   ActivityIcon,
@@ -400,12 +399,10 @@ const BudgetModal = ({
 // --- Trip Editor Component ---
 const TripEditor = ({ 
   trip, 
-  onBack, 
   onUpdate, 
   onOpenChat 
 }: { 
   trip: Trip, 
-  onBack: () => void, 
   onUpdate: (t: Trip) => void,
   onOpenChat: () => void
 }) => {
@@ -1478,7 +1475,6 @@ const App = () => {
     <>
       <TripEditor 
         trip={trip} 
-        onBack={() => {}} // No back navigation
         onUpdate={handleUpdateTrip}
         onOpenChat={() => setIsChatOpen(true)}
       />
