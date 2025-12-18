@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Trip, ChatMessage, Activity, ActivityType, DailyPlan } from './types';
 import { sendChatMessage } from './services/geminiService';
 import { getPresetJapanTrip } from './services/presetTrip';
+import { supabase } from './lib/supabase';
 import { 
   MapPinIcon, 
   CalendarIcon, 
   ActivityIcon,
   ChatIcon,
-  BackIcon,
   SparklesIcon,
   ArrowRightIcon,
   PlusIcon,
@@ -24,7 +25,8 @@ import {
   MapIcon,
   WalletIcon,
   PieChartIcon,
-  ShoppingBagIcon
+  ShoppingBagIcon,
+  BackIcon
 } from './components/Icons';
 
 // --- Utilities ---
@@ -65,7 +67,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
     if (initialData) {
       setFormData({
         ...initialData,
-        // Ensure cost is a number when editing, handling legacy data
         cost: typeof initialData.cost === 'number' ? initialData.cost : 0
       });
     } else {
@@ -94,8 +95,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl z-10 p-6 sm:p-8 animate-fadeIn flex flex-col max-h-[90vh] border border-slate-100">
-        
-        {/* Header */}
         <div className="flex justify-between items-start mb-6 flex-shrink-0 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-2xl font-serif font-bold text-slate-800">
@@ -111,8 +110,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
         </div>
 
         <div className="space-y-6 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-slate-200">
-          
-          {/* Row 1: Time, Type, Status */}
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-5 sm:col-span-3">
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Time</label>
@@ -157,7 +154,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
             </div>
           </div>
 
-          {/* Row 2: Title & Location */}
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">What are we doing?</label>
@@ -196,7 +192,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
             </div>
           </div>
 
-          {/* Row 3: Description & Cost */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
              <div className="sm:col-span-2">
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Notes / Description</label>
@@ -229,7 +224,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
              </div>
           </div>
 
-          {/* Row 4: Important Data */}
           <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 mt-4">
             <div className="flex items-center space-x-2 text-amber-600 mb-2">
               <NoteIcon className="w-4 h-4" />
@@ -274,10 +268,7 @@ const BudgetModal = ({
 }) => {
   if (!isOpen) return null;
 
-  // Safe Exchange Rate
   const safeRate = isNaN(exchangeRate) ? 0 : exchangeRate;
-
-  // Calculations
   let totalJPY = 0;
   const categoryTotals: Record<string, number> = {
     food: 0, sightseeing: 0, relaxation: 0, travel: 0, stay: 0, shopping: 0, other: 0
@@ -287,7 +278,6 @@ const BudgetModal = ({
   trip.dailyPlans.forEach(plan => {
     let dTotal = 0;
     plan.activities.forEach(act => {
-      // Ensure cost is a number. If undefined or NaN, treat as 0.
       const c = (act.cost && !isNaN(act.cost)) ? act.cost : 0;
       totalJPY += c;
       dTotal += c;
@@ -301,7 +291,7 @@ const BudgetModal = ({
   });
 
   const totalMYR = totalJPY * safeRate;
-  const maxCategoryCost = Math.max(...Object.values(categoryTotals), 1); // Avoid div by zero
+  const maxCategoryCost = Math.max(...Object.values(categoryTotals), 1);
 
   const formatMoney = (amount: number) => {
     return isNaN(amount) ? "0.00" : amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -324,7 +314,6 @@ const BudgetModal = ({
          </div>
 
          <div className="overflow-y-auto pr-2 space-y-8 flex-1 scrollbar-thin scrollbar-thumb-rose-200">
-            {/* Hero Total */}
             <div className="bg-gradient-to-br from-rose-600 to-pink-700 rounded-2xl p-6 text-white text-center shadow-lg shadow-rose-200 relative overflow-hidden">
                <div className="absolute top-0 right-0 p-4 opacity-10">
                  <PieChartIcon className="w-32 h-32" />
@@ -336,7 +325,6 @@ const BudgetModal = ({
                </div>
             </div>
 
-            {/* Breakdown by Category */}
             <div>
               <h4 className="font-bold text-rose-900 mb-4 flex items-center gap-2">
                 <PieChartIcon className="w-4 h-4 text-rose-400" />
@@ -376,7 +364,6 @@ const BudgetModal = ({
               </div>
             </div>
 
-            {/* Breakdown by Day */}
             <div>
                <h4 className="font-bold text-rose-900 mb-4 flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4 text-rose-400" />
@@ -418,19 +405,16 @@ const TripEditor = ({
   const [editingTheme, setEditingTheme] = useState(false); 
   const [exchangeRate, setExchangeRate] = useState(0.03);
 
-  // Sorting
   const currentDayPlan = trip.dailyPlans.find(d => d.dayNumber === activeDay);
   const sortedActivities = currentDayPlan 
     ? [...currentDayPlan.activities].sort((a, b) => a.time.localeCompare(b.time))
     : [];
 
-  // Stats Calculation
   const safeRate = isNaN(exchangeRate) ? 0 : exchangeRate;
   const dayTotalJPY = sortedActivities.reduce((sum, act) => sum + ((act.cost && !isNaN(act.cost)) ? act.cost : 0), 0);
   const dayTotalMYR = dayTotalJPY * safeRate;
 
   const handleSaveActivity = (activity: Activity) => {
-    // Sanitize cost on save
     const sanitizedActivity = {
       ...activity,
       cost: (activity.cost && !isNaN(activity.cost)) ? activity.cost : 0
@@ -510,15 +494,10 @@ const TripEditor = ({
 
   return (
     <div className="min-h-screen flex flex-col">
-       {/* Sticky Header */}
        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-rose-100/50">
          <div className="max-w-4xl mx-auto">
-           {/* Top Bar: Back, Title, Actions */}
            <div className="px-4 py-3 flex items-center justify-between border-b border-rose-50/50">
-             {/* Back Button Removed as per single trip design */}
              <div className="w-5"></div> 
-             
-             {/* Title */}
              <div className="flex-1 mx-4 text-center group cursor-pointer" onClick={() => setEditingTitle(true)}>
                {editingTitle ? (
                  <input 
@@ -562,7 +541,6 @@ const TripEditor = ({
              </div>
            </div>
            
-           {/* Day Navigator - Wrapping Layout */}
            <div className="w-full bg-white/50 backdrop-blur-sm py-3 px-4 flex flex-wrap justify-center gap-2 border-t border-rose-50">
               {trip.dailyPlans.map(plan => (
                 <button
@@ -592,9 +570,7 @@ const TripEditor = ({
          </div>
        </header>
 
-       {/* Content Area */}
        <main className="flex-1 max-w-3xl mx-auto w-full p-4 pb-32">
-         
          {isNotesOpen ? (
            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white space-y-8 animate-fadeIn">
               <div className="flex items-center space-x-3 text-rose-600 border-b border-rose-50 pb-4">
@@ -657,8 +633,6 @@ const TripEditor = ({
            </div>
          ) : (
            <div className="space-y-6 animate-fadeIn">
-             
-             {/* Daily Stats Summary */}
              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-sm border border-white flex items-center justify-between">
                 <div>
                   <div className="text-xs font-bold text-rose-400 uppercase tracking-wider mb-1">
@@ -691,7 +665,6 @@ const TripEditor = ({
                 </div>
              </div>
 
-             {/* Activity List */}
              <div className="relative border-l-2 border-rose-200/50 ml-4 sm:ml-6 space-y-8 pb-4 pl-6 sm:pl-8">
                {sortedActivities.length === 0 && (
                  <div className="py-12 text-center">
@@ -702,12 +675,10 @@ const TripEditor = ({
                {sortedActivities.map((activity) => (
                  <div key={activity.id} className="relative group">
                    <div className={`absolute -left-[33px] sm:-left-[41px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-colors ${activity.isBooked ? 'border-green-500' : 'border-rose-300'}`}></div>
-                   
                    <div 
                      onClick={() => { setEditingActivity(activity); setIsActivityModalOpen(true); }}
                      className={`bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-sm border transition-all cursor-pointer hover:shadow-lg hover:shadow-rose-100 hover:-translate-y-0.5 duration-200 ${activity.isBooked ? 'border-l-4 border-l-green-500 border-y-white border-r-white' : 'border-white hover:border-rose-100'}`}
                    >
-                     {/* Row 1: Time & Title */}
                      <div className="flex items-start justify-between mb-2">
                        <div className="flex items-center gap-3">
                          <span className="text-sm font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-md">{activity.time}</span>
@@ -721,7 +692,6 @@ const TripEditor = ({
                        </button>
                      </div>
 
-                     {/* Row 2: Location & Type */}
                      <div className="flex flex-wrap items-center gap-2 mb-3">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${
                             activity.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' :
@@ -742,7 +712,6 @@ const TripEditor = ({
                         )}
                      </div>
 
-                     {/* Row 3: Description & Map */}
                      <div className="flex items-end justify-between">
                         <div className="text-sm text-slate-600 leading-relaxed max-w-[80%]">
                            {activity.description && <p className="line-clamp-2">{activity.description}</p>}
@@ -774,7 +743,6 @@ const TripEditor = ({
          )}
        </main>
 
-       {/* Quick Add Bottom Bar */}
        {!isNotesOpen && (
          <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-rose-100 p-4 pb-6 z-30">
             <div className="max-w-3xl mx-auto flex items-center justify-center space-x-2 sm:space-x-4 overflow-x-auto">
@@ -820,7 +788,6 @@ const TripEditor = ({
          </div>
        )}
 
-       {/* Modal */}
        <ActivityModal 
          isOpen={isActivityModalOpen} 
          onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); }}
@@ -880,7 +847,7 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
 
       const result = await sendChatMessage(input, history, currentTrip);
       
-      const groundingChunks = result.candidates?.[0]?.groundingMetadata?.groundingChunks;
+      const groundingChunks = result.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
       const text = result.text || "I found some info for you.";
 
       setMessages(prev => [...prev, {
@@ -895,6 +862,48 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const renderGroundingLinks = (chunks: any[]) => {
+    if (!chunks || chunks.length === 0) return null;
+    
+    // Extract unique links from grounding chunks
+    const links: { uri: string; title: string }[] = [];
+    chunks.forEach(chunk => {
+      if (chunk.web?.uri) {
+        links.push({ uri: chunk.web.uri, title: chunk.web.title || 'Source' });
+      }
+      if (chunk.maps?.uri) {
+        links.push({ uri: chunk.maps.uri, title: chunk.maps.title || 'Place on Maps' });
+      }
+    });
+
+    if (links.length === 0) return null;
+
+    return (
+      <div className="mt-4 pt-3 border-t border-slate-100">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+          <MapIcon className="w-3 h-3" />
+          Sources & Locations
+        </p>
+        <div className="flex flex-col gap-1.5">
+          {links.map((link, i) => (
+            <a 
+              key={i} 
+              href={link.uri} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-rose-500 hover:text-rose-700 hover:underline flex items-center gap-2 truncate font-medium bg-rose-50/50 p-2 rounded-lg border border-rose-100"
+            >
+              <div className="bg-white p-1 rounded border border-rose-100">
+                <ArrowRightIcon className="w-2.5 h-2.5" />
+              </div>
+              {link.title}
+            </a>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   if (!isOpen) return null;
@@ -913,7 +922,7 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
           </button>
         </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 no-scrollbar">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
@@ -922,11 +931,7 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
                   : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'
               }`}>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</div>
-                {msg.groundingMetadata && (
-                   <div className="mt-2 text-xs opacity-80 border-t border-white/20 pt-2 font-mono">
-                     Sources found via Google
-                   </div>
-                )}
+                {msg.groundingMetadata && renderGroundingLinks(msg.groundingMetadata)}
               </div>
             </div>
           ))}
@@ -969,13 +974,59 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
 
 // --- Main App ---
 const App = () => {
-  // Always initialize with the preset trip
   const [trip, setTrip] = useState<Trip>(getPresetJapanTrip());
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleUpdateTrip = (updatedTrip: Trip) => {
+  // Initialize and load from Supabase
+  useEffect(() => {
+    const loadTrip = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('trips')
+          .select('data')
+          .eq('id', 'default-couple-trip')
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error("Supabase load error:", error);
+        } else if (data) {
+          setTrip(data.data as Trip);
+        } else {
+          // No trip found, initial save of preset
+          await supabase.from('trips').upsert({ id: 'default-couple-trip', data: getPresetJapanTrip() });
+        }
+      } catch (err) {
+        console.error("Error loading trip:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadTrip();
+  }, []);
+
+  const handleUpdateTrip = async (updatedTrip: Trip) => {
     setTrip(updatedTrip);
+    // Persist to Supabase
+    try {
+      await supabase
+        .from('trips')
+        .upsert({ id: 'default-couple-trip', data: updatedTrip });
+    } catch (err) {
+      console.error("Error saving trip:", err);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-rose-50">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 bg-rose-200 rounded-full mb-4"></div>
+          <p className="text-rose-400 font-serif italic">Loading our journey...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

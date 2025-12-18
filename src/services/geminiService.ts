@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { Trip, TripVibe } from '../types';
 
@@ -8,8 +9,6 @@ const getAiClient = () => {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
     console.warn("API Key is missing. AI features will not work.");
-    // Return a dummy object or throw a controlled error when used, not when loaded.
-    // For now, we still instantiate but we catch errors at call site or let SDK throw.
     return new GoogleGenAI({ apiKey: "" });
   }
   return new GoogleGenAI({ apiKey });
@@ -36,7 +35,7 @@ export const generateItinerary = async (destination: string, duration: number, v
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -83,7 +82,6 @@ export const generateItinerary = async (destination: string, duration: number, v
 
     const data = JSON.parse(response.text);
     
-    // Transform into our internal Trip structure with IDs and Sanitize Data
     const trip: Trip = {
       id: generateId(),
       title: data.title,
@@ -97,12 +95,10 @@ export const generateItinerary = async (destination: string, duration: number, v
         dayNumber: dp.dayNumber,
         theme: dp.theme,
         activities: dp.activities.map((act: any) => {
-          // Double-check cost sanitization
           let safeCost = 0;
           if (typeof act.cost === 'number') {
             safeCost = act.cost;
           } else if (typeof act.cost === 'string') {
-            // Attempt to strip non-numeric chars if the model hallucinates a string
             const num = parseInt(act.cost.replace(/[^0-9]/g, ''));
             safeCost = isNaN(num) ? 0 : num;
           }
@@ -143,7 +139,7 @@ export const sendChatMessage = async (
       notes: currentTripContext.notes
     });
     
-    systemInstruction += `\n\nHere is the user's current planned itinerary data: ${contextSummary}.\n\nWhen they ask questions, refer to this specific itinerary if relevant (e.g., "How far is that from my dinner?").`;
+    systemInstruction += `\n\nHere is the user's current planned itinerary data: ${contextSummary}.\n\nWhen they ask questions, refer to this specific itinerary if relevant.`;
   }
 
   try {
