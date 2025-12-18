@@ -267,31 +267,30 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     setGuide('');
     setImageUrl('');
     try {
-      // Re-init with provided key for safety
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       // Step 1: Wayfinding Protocol Instructions
       const textResponse = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `You are a Tokyo Wayfinding Expert. Provide a clear, step-by-step navigation guide for ${target} station. 
+        contents: `Provide a detailed station navigation and transfer guide for ${target} station in Japan. 
         Focus on:
-        1. High-level station overview.
-        2. Transfers between major lines (e.g. JR to Subway).
-        3. Strategic Exit choices (Which exit for which landmark).
-        4. Unique station features (Easy landmarks for meeting up).
-        Use bolding and bullet points. Make it easy to read on a phone screen while walking.`,
+        1. Major line transfers (e.g. JR to Metro).
+        2. Specific platform navigation (e.g. Yamanote line to Chuo line).
+        3. Strategic exit choice for major landmarks.
+        4. Helpful landmarks inside the station.
+        Use clear, step-by-step instructions.`,
         config: {
-          systemInstruction: "You provide on-point, clear, and easy-to-understand station transfer instructions."
+          systemInstruction: "You are a Japanese transport expert. Provide concise, clear wayfinding instructions with bold headers."
         }
       });
-      setGuide(textResponse.text || "Station details unavailable.");
+      setGuide(textResponse.text || "Sorry, I couldn't find details for that station.");
 
-      // Step 2: Visual Map Generation (Schematic Diagram)
+      // Step 2: 2D Schematic Map Generation
       const imgResponse = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: `A minimalist 2D schematic diagram showing the platform levels and main exit routes for ${target} station in Japan. 
-        Style: Professional transit infographic, clear colored lines representing different train lines, large clear icons for exits, white background, high contrast. 
-        Goal: Show a tourist the general layout of the station levels at a glance.`,
+        contents: `Create a professional 2D minimalist schematic diagram/infographic for ${target} station's main platforms and exits. 
+        Style: Modern transit map style, clean white background, high contrast, colored lines representing different train lines (use official colors like green for Yamanote, orange for Chuo), clear icons for exits and toilets. 
+        Goal: A bird's eye view or simplified layout showing the relationship between levels and major exits.`,
       });
       
       for (const part of imgResponse.candidates[0].content.parts) {
@@ -302,7 +301,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 
     } catch (err) {
       console.error('Metro Guide Error:', err);
-      setGuide("Navigation service temporarily unavailable. Please try again later.");
+      setGuide("An error occurred while fetching the guide. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -318,7 +317,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
+      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
@@ -349,30 +348,22 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             </div>
           )}
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 space-y-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-30"></div>
-                <SparklesIcon className="w-12 h-12 text-rose-400" />
-              </div>
-              <p className="text-rose-500 font-serif italic text-center animate-pulse text-lg">Generating visual navigation for {stationName}...</p>
+            <div className="flex flex-col items-center justify-center py-20 space-y-4">
+              <SparklesIcon className="w-8 h-8 text-rose-400 animate-pulse" />
+              <p className="text-rose-400 font-serif italic animate-pulse text-center">Generating 2D maps and directions...</p>
             </div>
           ) : (guide || imageUrl) && (
-            <div className="space-y-8 animate-fadeIn pb-12">
+            <div className="space-y-6 animate-fadeIn pb-8">
                {imageUrl && (
-                 <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Visual Schematic</p>
-                    <div className="rounded-[2rem] overflow-hidden border border-slate-100 shadow-xl bg-white p-2">
-                      <img src={imageUrl} alt="Station Layout" className="w-full h-auto object-cover rounded-[1.5rem]" />
-                    </div>
+                 <div className="rounded-3xl overflow-hidden border border-slate-100 shadow-xl bg-white p-2">
+                   <img src={imageUrl} alt="Station Map" className="w-full h-auto object-cover rounded-2xl" />
+                   <p className="text-[10px] text-center text-slate-400 mt-2 font-bold uppercase tracking-widest">AI Generated Schematic</p>
                  </div>
                )}
                {guide && (
-                 <div className="space-y-3">
-                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Step-by-Step Directions</p>
-                   <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 leading-relaxed animate-fadeIn whitespace-pre-wrap text-slate-700">
-                      <h4 className="font-serif font-bold text-xl text-rose-950 mb-4 border-b border-rose-100 pb-2">{stationName} Station</h4>
-                      {guide}
-                   </div>
+                 <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 leading-relaxed animate-fadeIn whitespace-pre-wrap text-slate-700">
+                    <h4 className="font-serif font-bold text-xl text-rose-950 mb-4 border-b border-rose-100 pb-2">{stationName} Station Wayfinding</h4>
+                    {guide}
                  </div>
                )}
             </div>
@@ -731,8 +722,9 @@ const App = () => {
                   <button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><WalletIcon className="w-5 h-5" /></button>
                </div>
             </div>
-            {/* FIXED DAY SELECTOR SCROLL: removed justify-center, added px-4 */}
-            <div className="flex gap-2 no-scrollbar overflow-x-auto pb-1 items-center px-4">
+            
+            {/* FIXED DAY SELECTOR SCROLL: Ensure flex-nowrap and remove centering constraints */}
+            <div className="flex gap-2 no-scrollbar overflow-x-auto pb-1 items-center px-4 flex-nowrap min-h-[44px]">
                {trip.dailyPlans.map(p => (
                  <button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'min-w-[2.8rem] py-1 px-1.5' : 'min-w-[3.2rem] py-1.5 px-2'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}>
                     <span className="text-[7px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
