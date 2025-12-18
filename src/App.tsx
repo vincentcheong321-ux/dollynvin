@@ -81,105 +81,32 @@ const isActivityOngoing = (activityTime: string, nextActivityTime?: string): boo
 // --- Metro Data ---
 const METRO_LINES = [
   { 
-    name: 'Ginza Line', 
-    id: 'ginza', 
-    color: '#FF9500', 
-    letter: 'G',
+    name: 'Ginza Line', id: 'ginza', color: '#FF9500', letter: 'G',
     stations: [
-      { name: 'Shibuya', id: 'shibuya' },
-      { name: 'Omotesando', id: 'omotesando' },
-      { name: 'Aoyama-itchome', id: 'aoyama_itchome' },
-      { name: 'Akasaka-mitsuke', id: 'akasakamitsuke' },
-      { name: 'Tameike-sanno', id: 'tameikesanno' },
-      { name: 'Toranomon', id: 'toranomon' },
-      { name: 'Shimbashi', id: 'shimbashi' },
-      { name: 'Ginza', id: 'ginza' },
-      { name: 'Kyobashi', id: 'kyobashi' },
-      { name: 'Nihombashi', id: 'nihombashi' },
-      { name: 'Mitsukoshimae', id: 'mitsukoshimae' },
-      { name: 'Kanda', id: 'kanda' },
-      { name: 'Suehirocho', id: 'suehirocho' },
-      { name: 'Ueno-hirokoji', id: 'uenohirokoji' },
-      { name: 'Ueno', id: 'ueno' },
-      { name: 'Inaricho', id: 'inaricho' },
-      { name: 'Tawaramachi', id: 'tawaramachi' },
-      { name: 'Asakusa', id: 'asakusa' }
+      { name: 'Shibuya', id: 'shibuya' }, { name: 'Omotesando', id: 'omotesando' }, { name: 'Aoyama-itchome', id: 'aoyama-itchome' },
+      { name: 'Akasaka-mitsuke', id: 'akasaka-mitsuke' }, { name: 'Ginza', id: 'ginza' }, { name: 'Nihombashi', id: 'nihombashi' },
+      { name: 'Ueno', id: 'ueno' }, { name: 'Asakusa', id: 'asakusa' }
     ]
   },
   { 
-    name: 'Marunouchi Line', 
-    id: 'marunouchi', 
-    color: '#F62E36', 
-    letter: 'M',
+    name: 'Marunouchi Line', id: 'marunouchi', color: '#F62E36', letter: 'M',
     stations: [
-      { name: 'Shinjuku', id: 'shinjuku' },
-      { name: 'Shinjuku-sanchome', id: 'shinjukusanchome' },
-      { name: 'Shinjuku-gyoemmae', id: 'shinjukugyoemmae' },
-      { name: 'Yotsuya-sanchome', id: 'yotsuyasanchome' },
-      { name: 'Yotsuya', id: 'yotsuya' },
-      { name: 'Akasaka-mitsuke', id: 'akasakamitsuke' },
-      { name: 'Kokkai-gijidomae', id: 'kokkaigijidomae' },
-      { name: 'Kasumigaseki', id: 'kasumigaseki' },
-      { name: 'Ginza', id: 'ginza' },
-      { name: 'Tokyo', id: 'tokyo' },
-      { name: 'Otemachi', id: 'otemachi' },
-      { name: 'Ikebukuro', id: 'ikebukuro' }
+      { name: 'Shinjuku', id: 'shinjuku' }, { name: 'Shinjuku-sanchome', id: 'shinjuku-sanchome' }, { name: 'Tokyo', id: 'tokyo' },
+      { name: 'Ginza', id: 'ginza' }, { name: 'Otemachi', id: 'otemachi' }, { name: 'Ikebukuro', id: 'ikebukuro' }
     ]
   },
   { 
-    name: 'Hibiya Line', 
-    id: 'hibiya', 
-    color: '#B5B5AC', 
-    letter: 'H',
+    name: 'Hibiya Line', id: 'hibiya', color: '#B5B5AC', letter: 'H',
     stations: [
-      { name: 'Naka-meguro', id: 'nakameguro' },
-      { name: 'Ebisu', id: 'ebisu' },
-      { name: 'Hiro-o', id: 'hiroo' },
-      { name: 'Roppongi', id: 'roppongi' },
-      { name: 'Kamiyacho', id: 'kamiyacho' },
-      { name: 'Toranomon Hills', id: 'toranomonhills' },
-      { name: 'Kasumigaseki', id: 'kasumigaseki' },
-      { name: 'Hibiya', id: 'hibiya' },
-      { name: 'Ginza', id: 'ginza' },
-      { name: 'Higashi-ginza', id: 'higashiginza' },
-      { name: 'Tsukiji', id: 'tsukiji' },
-      { name: 'Hatchobori', id: 'hatchobori' },
-      { name: 'Kayabacho', id: 'kayabacho' },
-      { name: 'Ningyocho', id: 'ningyocho' },
-      { name: 'Kodemmacho', id: 'kodemmacho' },
-      { name: 'Akihabara', id: 'akihabara' },
-      { name: 'Ueno', id: 'ueno' }
+      { name: 'Naka-meguro', id: 'naka-meguro' }, { name: 'Ebisu', id: 'ebisu' }, { name: 'Roppongi', id: 'roppongi' },
+      { name: 'Ginza', id: 'ginza' }, { name: 'Akihabara', id: 'akihabara' }, { name: 'Ueno', id: 'ueno' }
     ]
   },
   { 
-    name: 'Tozai Line', 
-    id: 'tozai', 
-    color: '#009BBF', 
-    letter: 'T',
+    name: 'Tozai Line', id: 'tozai', color: '#009BBF', letter: 'T',
     stations: [
-      { name: 'Nakano', id: 'nakano' },
-      { name: 'Takadanobaba', id: 'takadanobaba' },
-      { name: 'Waseda', id: 'waseda' },
-      { name: 'Kagurazaka', id: 'kagurazaka' },
-      { name: 'Iidabashi', id: 'iidabashi' },
-      { name: 'Kudanshita', id: 'kudanshita' },
-      { name: 'Takebashi', id: 'takebashi' },
-      { name: 'Otemachi', id: 'otemachi' },
-      { name: 'Nihombashi', id: 'nihombashi' }
-    ]
-  },
-  { 
-    name: 'Chiyoda Line', 
-    id: 'chiyoda', 
-    color: '#00BB85', 
-    letter: 'C',
-    stations: [
-      { name: 'Yoyogi-uehara', id: 'yoyogiuehara' },
-      { name: 'Yoyogi-koen', id: 'yoyogikoen' },
-      { name: 'Meiji-jingumae', id: 'meijijingumae' },
-      { name: 'Omotesando', id: 'omotesando' },
-      { name: 'Akasaka', id: 'akasaka' },
-      { name: 'Otemachi', id: 'otemachi' }
+      { name: 'Nakano', id: 'nakano' }, { name: 'Takadanobaba', id: 'takadanobaba' }, { name: 'Iidabashi', id: 'iidabashi' },
+      { name: 'Otemachi', id: 'otemachi' }, { name: 'Nihombashi', id: 'nihombashi' }
     ]
   }
 ];
@@ -355,7 +282,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
   );
 };
 
-// --- Metro Station Assistant Modal ---
+// --- Metro Assistant Modal ---
 const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedLine, setExpandedLine] = useState<string | null>('ginza');
@@ -379,32 +306,32 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
-              <h3 className="text-2xl font-serif font-bold text-rose-950">Tokyo Subway</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Route & Station Info</p>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Navigator</h3>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Official Tokyo Guide</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
         </div>
 
-        {/* Tab Selector */}
-        <div className="flex bg-rose-50/50 p-1 rounded-2xl mb-6 flex-shrink-0">
+        {/* Tab Switcher */}
+        <div className="flex bg-rose-50/50 p-1 rounded-2xl mb-6">
           <button 
             onClick={() => setActiveTab('directory')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'directory' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
           >
-            Line Directory
+            Station Directory
           </button>
           <button 
             onClick={() => setActiveTab('map')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'map' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
           >
-            Subway Map
+            Full Subway Map
           </button>
         </div>
 
         {activeTab === 'directory' ? (
           <>
-            <div className="mb-6 flex-shrink-0">
+            <div className="mb-6">
               <div className="relative">
                 <input 
                   type="text" 
@@ -427,40 +354,28 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                     className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
                   >
                     <div className="flex items-center space-x-4">
-                      <div 
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
-                        style={{ backgroundColor: line.color }}
-                      >
-                        {line.letter}
-                      </div>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm" style={{ backgroundColor: line.color }}>{line.letter}</div>
                       <div className="text-left">
                         <h4 className="font-serif font-bold text-slate-800">{line.name}</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Major Stations</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Official Stations</p>
                       </div>
                     </div>
-                    <div className={`transform transition-transform ${expandedLine === line.id ? 'rotate-90' : ''}`}>
-                       <ArrowRightIcon className="w-5 h-5 text-slate-300" />
-                    </div>
+                    <div className={`transform transition-transform ${expandedLine === line.id ? 'rotate-90' : ''}`}><ArrowRightIcon className="w-5 h-5 text-slate-300" /></div>
                   </button>
-
                   {expandedLine === line.id && (
                     <div className="p-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fadeIn">
                       {line.stations.map(station => (
                         <a 
                           key={station.id}
                           href={`https://www.tokyometro.jp/lang_en/station/${station.id}/index.html`}
-                          target="_blank"
-                          rel="noreferrer"
+                          target="_blank" rel="noreferrer"
                           className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50/30 transition-all group"
                         >
                           <div className="flex items-center space-x-3">
                             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: line.color }}></div>
                             <span className="font-medium text-slate-700 text-sm">{station.name}</span>
                           </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <span className="text-[10px] font-bold text-rose-400 uppercase">View Page</span>
-                             <ArrowRightIcon className="w-3.5 h-3.5 text-rose-400" />
-                          </div>
+                          <ArrowRightIcon className="w-3.5 h-3.5 text-slate-300 group-hover:text-rose-400" />
                         </a>
                       ))}
                     </div>
@@ -471,12 +386,12 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           </>
         ) : (
           <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
-            <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-50 relative group">
-               <div className="absolute inset-0 overflow-auto scrollbar-thin scrollbar-thumb-rose-200 flex items-start justify-center p-4 cursor-zoom-in">
+            <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-100 relative group">
+               <div className="absolute inset-0 overflow-auto scrollbar-thin scrollbar-thumb-rose-200 p-4 cursor-grab active:cursor-grabbing">
                   <img 
                     src="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map_l.png" 
-                    alt="Tokyo Subway Route Map" 
-                    className="max-w-none w-[200%] md:w-[150%] h-auto rounded-lg shadow-2xl"
+                    alt="Subway Route Map" 
+                    className="max-w-none w-[300%] md:w-[150%] h-auto rounded-lg shadow-2xl"
                   />
                </div>
                <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-2 rounded-xl shadow-lg border border-slate-100 text-[9px] font-bold uppercase tracking-widest text-slate-500 pointer-events-none">
@@ -485,34 +400,26 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             </div>
             <div className="bg-rose-600 p-4 rounded-2xl text-white flex items-center justify-between shadow-lg">
                <div className="flex items-center space-x-3">
-                  <PlaneIcon className="w-5 h-5 rotate-45" />
+                  <MapIcon className="w-5 h-5" />
                   <div>
-                    <h4 className="font-bold text-sm">High-Res Map PDF</h4>
-                    <p className="text-[10px] opacity-80 uppercase tracking-widest">Official Tokyo Metro PDF</p>
+                    <h4 className="font-bold text-sm">Official Map PDF</h4>
+                    <p className="text-[10px] opacity-80 uppercase tracking-widest">Official Tokyo Metro High-Res</p>
                   </div>
                </div>
                <a 
                 href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
-                target="_blank" 
-                rel="noreferrer"
+                target="_blank" rel="noreferrer"
                 className="px-4 py-2 bg-white text-rose-600 rounded-xl font-bold text-xs hover:bg-rose-50 transition-colors shadow-sm"
                >
-                 Download
+                 View PDF
                </a>
             </div>
           </div>
         )}
         
-        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center gap-2 flex-shrink-0">
-           <a 
-              href="https://www.tokyometro.jp/en/route_station/index.html" 
-              target="_blank" 
-              rel="noreferrer"
-              className="text-[10px] font-bold text-rose-400 hover:text-rose-600 uppercase tracking-widest underline decoration-dotted underline-offset-4"
-            >
-              Full Official Directory
-            </a>
-           <p className="text-[9px] text-slate-300 uppercase tracking-tighter text-center">Stations & Links provided by Tokyo Metro lang_en service.</p>
+        <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col items-center gap-2">
+           <a href="https://www.tokyometro.jp/en/index.html" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-rose-400 hover:text-rose-600 uppercase tracking-widest underline decoration-dotted underline-offset-4">Tokyo Metro Official</a>
+           <p className="text-[9px] text-slate-300 uppercase tracking-tighter">Station data based on Tokyo Metro Official Network.</p>
         </div>
       </div>
     </div>
@@ -534,46 +441,26 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      setMessages([{ 
-        id: 'init', 
-        role: 'model', 
-        text: currentTrip 
-          ? `Hi! I'm ready to help with your trip to ${currentTrip.destination}. Need suggestions for a specific day or help finding a restaurant nearby?`
-          : `Hi! I'm your travel assistant. Start by creating a trip!`
-      }]);
+      setMessages([{ id: 'init', role: 'model', text: currentTrip ? `Hi! I'm ready to help with your trip to ${currentTrip.destination}. Ask me about anything!` : `Hi! I'm your travel assistant!` }]);
     }
   }, [isOpen, currentTrip]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, isOpen]);
 
   const handleSend = async () => {
     if (!input.trim() || !currentTrip) return;
-
     const userMsg: ChatMessageProps = { id: Date.now().toString(), role: 'user', text: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
-
     try {
-      const history = messages.filter(m => m.id !== 'init').map(m => ({
-        role: m.role,
-        parts: [{ text: m.text }]
-      }));
-
+      const history = messages.filter(m => m.id !== 'init').map(m => ({ role: m.role, parts: [{ text: m.text }] }));
       const result = await sendChatMessage(input, history, currentTrip);
-      
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'model',
-        text: result.text || "I found some info for you."
-      }]);
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: result.text || "I found some info for you." }]);
     } catch (e) {
-      console.error(e);
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Sorry, connection error." }]);
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Connection error." }]);
     } finally {
       setIsTyping(false);
     }
@@ -586,57 +473,23 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={onClose}></div>
       <div className="bg-white/95 w-full h-[85vh] sm:h-[600px] sm:max-w-md sm:rounded-3xl shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-slideUp border border-white/50">
         <div className="bg-rose-600 p-4 flex items-center justify-between text-white shadow-md">
-          <div className="flex items-center space-x-2">
-            <SparklesIcon className="w-5 h-5" />
-            <span className="font-bold">Trip Assistant</span>
-          </div>
-          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">
-            <CloseIcon className="w-6 h-6" />
-          </button>
+          <div className="flex items-center space-x-2"><SparklesIcon className="w-5 h-5" /><span className="font-bold">Trip Assistant</span></div>
+          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors"><CloseIcon className="w-6 h-6" /></button>
         </div>
-
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 no-scrollbar">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
-                msg.role === 'user' 
-                  ? 'bg-rose-600 text-white rounded-br-none' 
-                  : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'
-              }`}>
+              <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${msg.role === 'user' ? 'bg-rose-600 text-white rounded-br-none' : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'}`}>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</div>
               </div>
             </div>
           ))}
-          {isTyping && (
-             <div className="flex justify-start">
-               <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-slate-100 shadow-sm">
-                 <div className="flex space-x-1">
-                   <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce"></div>
-                   <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce delay-75"></div>
-                   <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce delay-150"></div>
-                 </div>
-               </div>
-             </div>
-          )}
+          {isTyping && <div className="flex justify-start"><div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-pulse">...</div></div>}
         </div>
-
         <div className="p-4 bg-white border-t border-slate-100">
-          <div className="flex items-center space-x-2 bg-slate-50 rounded-full px-4 py-2 border border-slate-200 focus-within:border-rose-400 transition-all">
-            <input
-              type="text"
-              placeholder="Ask about your trip..."
-              className="flex-1 bg-transparent outline-none text-slate-700 placeholder-slate-400"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            />
-            <button 
-              onClick={handleSend}
-              disabled={!input.trim() || isTyping}
-              className="p-2 bg-rose-600 text-white rounded-full hover:bg-rose-700 disabled:opacity-50 transition-colors"
-            >
-              <ArrowRightIcon className="w-4 h-4" />
-            </button>
+          <div className="flex items-center space-x-2 bg-slate-50 rounded-full px-4 py-2 border border-slate-200">
+            <input type="text" placeholder="Ask about your trip..." className="flex-1 bg-transparent outline-none text-slate-700" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend()} />
+            <button onClick={handleSend} disabled={!input.trim() || isTyping} className="p-2 bg-rose-600 text-white rounded-full"><ArrowRightIcon className="w-4 h-4" /></button>
           </div>
         </div>
       </div>
@@ -681,9 +534,7 @@ const App = () => {
 
   useEffect(() => {
     if (!trip || isLoading) return;
-    const saveTrip = async () => {
-      await supabase.from('trips').upsert({ id: 'our-trip-id', data: trip });
-    };
+    const saveTrip = async () => { await supabase.from('trips').upsert({ id: 'our-trip-id', data: trip }); };
     const timer = setTimeout(saveTrip, 1000);
     return () => clearTimeout(timer);
   }, [trip, isLoading]);
@@ -693,19 +544,16 @@ const App = () => {
   
   const totalBudgetJPY = useMemo(() => {
     if (!trip) return 0;
-    return trip.dailyPlans.reduce((sum, plan) => 
-      sum + plan.activities.reduce((s, a) => s + (a.cost ?? 0), 0)
-    , 0);
+    return trip.dailyPlans.reduce((sum, plan) => sum + plan.activities.reduce((s, a) => s + (a.cost ?? 0), 0), 0);
   }, [trip]);
   
   const dayTotalJPY = useMemo(() => sortedActivities.reduce((sum, act) => sum + (act.cost ?? 0), 0), [sortedActivities]);
   const dayTotalMYR = dayTotalJPY * exchangeRate;
   const isSelectedDayToday = useMemo(() => isToday(trip?.startDate, activeDay), [trip?.startDate, activeDay]);
 
-  if (!trip || isLoading) return <div className="min-h-screen flex items-center justify-center font-serif text-rose-400 animate-pulse text-xl">Creating our map...</div>;
+  if (!trip || isLoading) return <div className="min-h-screen flex items-center justify-center font-serif text-rose-400 animate-pulse text-xl italic">Setting up our romance...</div>;
 
   const handleUpdate = (t: Trip) => setTrip({ ...t });
-  
   const handleSaveActivity = (activity: Activity) => {
     const updatedPlans = trip.dailyPlans.map(plan => {
       if (plan.dayNumber === activeDay) {
@@ -736,105 +584,46 @@ const App = () => {
     setActiveDay(newDayNum);
   };
 
-  const resetTrip = () => {
-    if (confirm('Reset everything? This cannot be undone.')) {
-      handleUpdate(createBlankTrip());
-      setActiveDay(1);
-      setView('dashboard');
-      setIsNotesOpen(false);
-    }
-  };
-
-  // DASHBOARD VIEW
   if (view === 'dashboard') {
     const daysUntil = getDaysUntil(trip.startDate);
     return (
       <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn">
         <header className="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-rose-100 p-4">
            <div className="max-w-3xl mx-auto flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                 <HeartIcon className="w-5 h-5 text-rose-500" />
-                 <h1 className="text-xl font-serif font-bold text-rose-950">Our Journey</h1>
-              </div>
+              <div className="flex items-center gap-2"><HeartIcon className="w-5 h-5 text-rose-500" /><h1 className="text-xl font-serif font-bold text-rose-950">Our Journey</h1></div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setIsChatOpen(true)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-full"><SparklesIcon className="w-5 h-5" /></button>
                 <button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><NoteIcon className="w-5 h-5" /></button>
               </div>
            </div>
         </header>
-
         <main className="flex-1 max-w-3xl mx-auto w-full p-6 space-y-8 pb-32">
            <section className="text-center py-10 space-y-4">
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-20"></div>
-                <div className="relative bg-white p-6 rounded-full shadow-xl border border-rose-100">
-                   <HeartIcon className="w-10 h-10 text-rose-500" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-4xl font-serif font-bold text-slate-800">{trip.destination}</h2>
-                <p className="text-rose-400 font-bold tracking-widest uppercase text-xs">Adventure for Two</p>
-              </div>
-              {daysUntil !== null && (
-                <div className="bg-rose-50 inline-block px-6 py-2 rounded-full border border-rose-100 shadow-sm">
-                   <span className="text-rose-600 font-bold text-sm">
-                     {daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}
-                   </span>
-                </div>
-              )}
+              <div className="relative inline-block"><div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-20"></div><div className="relative bg-white p-6 rounded-full shadow-xl border border-rose-100"><HeartIcon className="w-10 h-10 text-rose-500" /></div></div>
+              <div className="space-y-1"><h2 className="text-4xl font-serif font-bold text-slate-800">{trip.destination}</h2><p className="text-rose-400 font-bold tracking-widest uppercase text-xs">Adventure for Two</p></div>
+              {daysUntil !== null && <div className="bg-rose-50 inline-block px-6 py-2 rounded-full border border-rose-100 shadow-sm"><span className="text-rose-600 font-bold text-sm">{daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}</span></div>}
            </section>
-
            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 text-center space-y-2">
-                 <CalendarIcon className="w-8 h-8 text-orange-400 mx-auto" />
-                 <div>
-                    <h4 className="font-bold text-slate-800 text-lg">{trip.duration} Days</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">Trip Length</p>
-                 </div>
-              </div>
-              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 text-center space-y-2">
-                 <WalletIcon className="w-8 h-8 text-rose-400 mx-auto" />
-                 <div>
-                    <h4 className="font-bold text-slate-800 text-lg">¥{totalBudgetJPY.toLocaleString()}</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">Est. Total (RM {(totalBudgetJPY * exchangeRate).toFixed(0)})</p>
-                 </div>
-              </div>
+              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 text-center space-y-2"><CalendarIcon className="w-8 h-8 text-orange-400 mx-auto" /><h4 className="font-bold text-slate-800 text-lg">{trip.duration} Days</h4></div>
+              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 text-center space-y-2"><WalletIcon className="w-8 h-8 text-rose-400 mx-auto" /><h4 className="font-bold text-slate-800 text-lg">¥{totalBudgetJPY.toLocaleString()}</h4></div>
            </div>
-
            <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-rose-50 p-8 space-y-6">
-              <div className="flex items-center gap-3 text-rose-950 font-serif font-bold text-xl">
-                 <SparklesIcon className="w-5 h-5 text-rose-400" />
-                 <h3>Quick Actions</h3>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                 <button onClick={() => setView('itinerary')} className="w-full py-5 bg-rose-600 text-white rounded-3xl font-bold flex items-center justify-center gap-3 hover:bg-rose-700 transition-all shadow-lg active:scale-95">
-                    <CalendarIcon className="w-5 h-5" /> Open Itinerary
-                 </button>
-                 <div className="grid grid-cols-2 gap-3">
-                    <button onClick={() => { setIsMetroGuideOpen(true); }} className="py-4 bg-slate-900 text-white rounded-3xl font-bold flex items-center justify-center gap-2 text-sm hover:bg-slate-800 transition-all active:scale-95">
-                       <MapIcon className="w-4 h-4" /> Metro Guide
-                    </button>
-                    <button onClick={() => { setIsBudgetOpen(true); }} className="py-4 bg-white text-rose-600 border border-rose-100 rounded-3xl font-bold flex items-center justify-center gap-2 text-sm hover:bg-rose-50 transition-all active:scale-95">
-                       <WalletIcon className="w-4 h-4" /> Full Budget
-                    </button>
-                 </div>
+              <div className="flex items-center gap-3 text-rose-950 font-serif font-bold text-xl"><SparklesIcon className="w-5 h-5 text-rose-400" /><h3>Quick Actions</h3></div>
+              <button onClick={() => setView('itinerary')} className="w-full py-5 bg-rose-600 text-white rounded-3xl font-bold shadow-lg">Open Itinerary</button>
+              <div className="grid grid-cols-2 gap-3">
+                 <button onClick={() => setIsMetroGuideOpen(true)} className="py-4 bg-slate-900 text-white rounded-3xl font-bold flex items-center justify-center gap-2"><MapIcon className="w-4 h-4" /> Metro Map</button>
+                 <button onClick={() => setIsBudgetOpen(true)} className="py-4 bg-white text-rose-600 border border-rose-100 rounded-3xl font-bold flex items-center justify-center gap-2"><WalletIcon className="w-4 h-4" /> Budget</button>
               </div>
            </div>
         </main>
-
         {isNotesOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsNotesOpen(false)}></div>
              <div className="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl z-10 animate-slideUp text-slate-800 max-h-[85vh] overflow-y-auto no-scrollbar">
-                <div className="flex justify-between items-center mb-6 border-b pb-4">
-                   <h3 className="font-serif font-bold text-2xl text-rose-950">Trip Settings</h3>
-                   <button onClick={() => setIsNotesOpen(false)}><CloseIcon className="w-6 h-6 text-slate-400" /></button>
-                </div>
+                <div className="flex justify-between items-center mb-6 border-b pb-4"><h3 className="font-serif font-bold text-2xl text-rose-950">Settings</h3><button onClick={() => setIsNotesOpen(false)}><CloseIcon className="w-6 h-6 text-slate-400" /></button></div>
                 <div className="space-y-6">
                   <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">Trip Start Date</label><input type="date" className="w-full p-4 bg-rose-50 rounded-2xl outline-none" value={trip.startDate || ''} onChange={e => handleUpdate({...trip, startDate: e.target.value})} /></div>
-                  <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">Exchange Rate (100 JPY to MYR)</label><div className="flex items-center gap-2 bg-rose-50 p-4 rounded-2xl"><input type="number" step="0.01" className="bg-transparent border-b border-rose-200 outline-none w-20 text-center font-bold" value={(exchangeRate * 100).toFixed(2)} onChange={e => setExchangeRate((parseFloat(e.target.value) || 0) / 100)} /><span className="text-xs font-bold">MYR</span></div></div>
-                  <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">General Notes</label><textarea className="w-full h-40 p-4 bg-rose-50 rounded-2xl outline-none resize-none" value={trip.notes} onChange={e => handleUpdate({...trip, notes: e.target.value})} /></div>
-                  <button onClick={resetTrip} className="w-full py-4 text-red-500 font-bold bg-red-50 rounded-2xl hover:bg-red-500 hover:text-white transition-all">Reset Entire Trip</button>
+                  <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">Exchange Rate (100 JPY to MYR)</label><div className="flex items-center gap-2 bg-rose-50 p-4 rounded-2xl"><input type="number" step="0.01" className="bg-transparent border-b border-rose-300 outline-none w-20 text-center font-bold" value={(exchangeRate * 100).toFixed(2)} onChange={e => setExchangeRate((parseFloat(e.target.value) || 0) / 100)} /><span className="text-xs font-bold">MYR</span></div></div>
                 </div>
              </div>
           </div>
@@ -844,7 +633,6 @@ const App = () => {
     );
   }
 
-  // ITINERARY VIEW
   return (
     <div className="min-h-screen flex flex-col sakura-bg">
        <header className={`bg-white/95 backdrop-blur-md sticky top-0 z-[60] border-b border-rose-100 transition-all duration-300 ${isScrolled ? 'py-1 shadow-md' : 'py-3'}`}>
@@ -855,10 +643,7 @@ const App = () => {
                   {editingTitle ? (
                     <input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center text-slate-800" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />
                   ) : (
-                    <div className="flex flex-col items-center">
-                      <h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>{trip.destination}</h2>
-                      {!isScrolled && <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">{trip.duration} Day Trip</p>}
-                    </div>
+                    <div className="flex flex-col items-center"><h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>{trip.destination}</h2></div>
                   )}
                </div>
                <div className="flex items-center gap-1">
@@ -868,22 +653,20 @@ const App = () => {
                </div>
             </div>
             
-            {/* DAY SELECTOR SCROLL FIX: Applied flex-nowrap, w-max, and flex-shrink-0 to items */}
-            <div className="w-full overflow-x-auto no-scrollbar py-2 -mx-4 px-4 touch-pan-x">
-              <div className="flex gap-2 w-max min-w-full justify-start items-center flex-nowrap">
+            {/* FIXED DAY SELECTOR SCROLL: Added w-max and flex-nowrap to the inner container */}
+            <div className="overflow-x-auto no-scrollbar -mx-4 px-4 py-2 touch-pan-x">
+              <div className="flex gap-2 w-max items-center flex-nowrap min-w-full">
                  {trip.dailyPlans.map(p => (
                    <button 
                      key={p.id} 
                      onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} 
-                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.2rem] h-10' : 'w-[3.8rem] h-12'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300 hover:border-rose-300'}`}
+                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.2rem] h-10' : 'w-[3.8rem] h-12'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}
                    >
-                      <span className="text-[8px] font-bold uppercase opacity-70 pointer-events-none">Day {p.dayNumber}</span>
-                      <span className="text-xs font-bold pointer-events-none">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
+                      <span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
+                      <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
                    </button>
                  ))}
-                 <button onClick={addDay} className={`flex-shrink-0 flex items-center justify-center text-rose-300 hover:text-rose-500 transition-colors bg-white border border-dashed border-rose-200 rounded-2xl ${isScrolled ? 'w-[3.2rem] h-10' : 'w-[3.8rem] h-12'}`}>
-                   <PlusIcon className="w-5 h-5" />
-                 </button>
+                 <button onClick={addDay} className="w-[2.5rem] h-10 sm:h-12 flex items-center justify-center text-rose-200 flex-shrink-0 bg-white border border-dashed border-rose-200 rounded-2xl"><PlusIcon className="w-5 h-5" /></button>
               </div>
             </div>
          </div>
@@ -897,15 +680,12 @@ const App = () => {
                   {editingTheme ? (
                     <input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} />
                   ) : (
-                    <h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate">
-                      <span className="text-rose-500">Day {activeDay}:</span> <span className="truncate">{currentDayPlan?.theme}</span> <EditIcon className="w-3 h-3 text-rose-200" />
-                    </h2>
+                    <h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate">Day {activeDay}: {currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200" /></h2>
                   )}
                 </div>
                 <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800">
-                   <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter">Est. Spend</div>
+                   <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic">Total for Day</div>
                    <div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div>
-                   <div className="text-[9px] font-bold text-rose-400">≈ RM {dayTotalMYR.toFixed(2)}</div>
                 </div>
              </div>
 
@@ -916,35 +696,19 @@ const App = () => {
                  return (
                    <div key={act.id} className="relative group">
                       <div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : (act.isBooked ? 'border-green-500' : 'border-rose-300')}`}></div>
-                      
-                      {ongoing && <div className="absolute -left-5 -top-1.5 text-[8px] font-black text-white uppercase tracking-tighter bg-rose-600 px-1.5 py-0.5 rounded shadow-sm animate-pulse z-20">Ongoing</div>}
-                      
-                      <div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${ongoing ? 'border-rose-300 ring-2 ring-rose-50 bg-rose-50/10' : (act.isBooked ? 'border-l-8 border-l-green-400 border-y-white border-r-white' : 'border-white hover:border-rose-100')}`}>
+                      <div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${act.isBooked ? 'border-l-8 border-l-green-400' : 'border-white hover:border-rose-100'}`}>
                           <div className="flex justify-between items-start mb-2 gap-2 text-slate-800">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className={`text-[10px] font-bold px-2 py-1 rounded-xl flex-shrink-0 ${ongoing ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600'}`}>{act.time}</span>
+                              <span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span>
                               <h4 className="font-bold text-sm truncate">{act.title}</h4>
                             </div>
                             <button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button>
                           </div>
-                          
                           <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3">
-                            <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">
-                               <ActivityIcon type={act.type} className="w-3 h-3 text-slate-500" />
-                               <span className="uppercase font-bold tracking-widest">{act.type}</span>
-                            </div>
+                            <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100"><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>
                             {(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">¥{(act.cost ?? 0).toLocaleString()}</span>}
-                            {act.isBooked && <span className="text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-lg border border-green-100 flex items-center gap-1"><CheckIcon className="w-2.5 h-2.5" /> Booked</span>}
                           </div>
-                          
-                          <div className="flex items-end justify-between gap-4">
-                            <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed flex-1">{act.description}</p>
-                            {(act.customMapLink || act.location) && (
-                              <a href={act.customMapLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-2.5 bg-rose-50 text-rose-400 rounded-2xl border border-rose-100 flex-shrink-0 hover:bg-rose-100 transition-colors">
-                                <MapIcon className="w-4 h-4" />
-                              </a>
-                            )}
-                          </div>
+                          <div className="flex items-end justify-between gap-4"><p className="text-xs text-slate-600 line-clamp-2 flex-1">{act.description}</p><MapIcon className="w-4 h-4 text-rose-200" /></div>
                       </div>
                    </div>
                  );
@@ -961,10 +725,10 @@ const App = () => {
                  {t:'sightseeing', l:'Place', i:<CameraIcon className="w-5 h-5" />, c:'blue'}, 
                  {t:'food', l:'Food', i:<CoffeeIcon className="w-5 h-5" />, c:'orange'}, 
                  {t:'stay', l:'Stay', i:<BedIcon className="w-5 h-5" />, c:'emerald'}, 
-                 {t:'travel', l:'Transit', i:<PlaneIcon className="w-5 h-5" />, c:'sky'} 
+                 {t:'shopping', l:'Shop', i:<ShoppingBagIcon className="w-5 h-5" />, c:'rose'} 
                ].map(btn => (
                  <button key={btn.t} onClick={() => { setEditingActivity(null); setAddingType(btn.t as ActivityType); setIsActivityModalOpen(true); }} className="flex flex-col items-center p-2 rounded-2xl hover:bg-rose-50 group min-w-[3.5rem] sm:min-w-[4rem]">
-                    <div className={`w-9 h-9 rounded-2xl bg-${btn.c}-50 text-${btn.c}-500 flex items-center justify-center mb-1 shadow-sm border border-${btn.c}-50 transition-transform group-active:scale-90`}>{btn.i}</div>
+                    <div className={`w-9 h-9 rounded-2xl bg-${btn.c}-50 text-${btn.c}-500 flex items-center justify-center mb-1 shadow-sm transition-transform group-active:scale-90`}>{btn.i}</div>
                     <span className="text-[8px] font-bold text-slate-500 uppercase">{btn.l}</span>
                  </button>
                ))}
