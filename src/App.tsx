@@ -22,7 +22,8 @@ import {
   HomeIcon,
   CalendarIcon,
   HeartIcon,
-  ShoppingBagIcon
+  ShoppingBagIcon,
+  PlaneIcon
 } from './components/Icons';
 import { sendChatMessage } from './services/geminiService';
 
@@ -285,7 +286,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
 const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedLine, setExpandedLine] = useState<string | null>('ginza');
-  const [activeTab, setActiveTab] = useState<'directory' | 'map'>('directory');
+  const [activeTab, setActiveTab] = useState<'directory' | 'map'>('map');
 
   const filteredLines = useMemo(() => {
     if (!searchTerm) return METRO_LINES;
@@ -305,8 +306,8 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
-              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Navigator</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Official Tokyo Guide</p>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Guide</h3>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Tokyo Subway Access</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
@@ -318,13 +319,13 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             onClick={() => setActiveTab('directory')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'directory' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
           >
-            Station Directory
+            Lines & Stations
           </button>
           <button 
             onClick={() => setActiveTab('map')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'map' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
           >
-            Full Subway Map
+            Route Map
           </button>
         </div>
 
@@ -356,7 +357,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                       <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm" style={{ backgroundColor: line.color }}>{line.letter}</div>
                       <div className="text-left">
                         <h4 className="font-serif font-bold text-slate-800">{line.name}</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Official Stations</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Key Stations</p>
                       </div>
                     </div>
                     <div className={`transform transition-transform ${expandedLine === line.id ? 'rotate-90' : ''}`}><ArrowRightIcon className="w-5 h-5 text-slate-300" /></div>
@@ -385,40 +386,44 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           </>
         ) : (
           <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
-            <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-100 relative group">
-               <div className="absolute inset-0 overflow-auto scrollbar-thin scrollbar-thumb-rose-200 p-4 cursor-grab active:cursor-grabbing">
+            <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-100 relative">
+               <div className="absolute inset-0 overflow-auto scrollbar-thin scrollbar-thumb-rose-200 p-2 cursor-grab active:cursor-grabbing">
                   <img 
                     src="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map_l.png" 
-                    alt="Subway Route Map" 
-                    className="max-w-none w-[300%] md:w-[150%] h-auto rounded-lg shadow-2xl"
+                    alt="Tokyo Subway Map" 
+                    className="max-w-none h-auto w-[250%] md:w-[150%] rounded-lg shadow-2xl"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Tokyo_Metro_Subway_Map.svg/2560px-Tokyo_Metro_Subway_Map.svg.png';
+                    }}
                   />
                </div>
-               <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-2 rounded-xl shadow-lg border border-slate-100 text-[9px] font-bold uppercase tracking-widest text-slate-500 pointer-events-none">
-                  Scroll / Pinch to see full map
+               <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-xl shadow-lg border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600 pointer-events-none">
+                  Scroll / Pinch to Explore
                </div>
             </div>
-            <div className="bg-rose-600 p-4 rounded-2xl text-white flex items-center justify-between shadow-lg">
-               <div className="flex items-center space-x-3">
-                  <MapIcon className="w-5 h-5" />
-                  <div>
-                    <h4 className="font-bold text-sm">Official Map PDF</h4>
-                    <p className="text-[10px] opacity-80 uppercase tracking-widest">Official Tokyo Metro High-Res</p>
-                  </div>
-               </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                <a 
                 href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
                 target="_blank" rel="noreferrer"
-                className="px-4 py-2 bg-white text-rose-600 rounded-xl font-bold text-xs hover:bg-rose-50 transition-colors shadow-sm"
+                className="flex items-center justify-center gap-3 p-4 bg-rose-600 text-white rounded-2xl font-bold shadow-lg hover:bg-rose-700 transition-colors"
                >
-                 View PDF
+                 <MapIcon className="w-5 h-5" />
+                 <span>Open Official PDF</span>
+               </a>
+               <a 
+                href="https://www.tokyometro.jp/en/subwaymap/index.html" 
+                target="_blank" rel="noreferrer"
+                className="flex items-center justify-center gap-3 p-4 bg-white text-rose-600 border border-rose-100 rounded-2xl font-bold hover:bg-rose-50 transition-colors"
+               >
+                 <span>Full Web Guide</span>
+                 <ArrowRightIcon className="w-4 h-4" />
                </a>
             </div>
           </div>
         )}
         
-        <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col items-center gap-2">
-           <a href="https://www.tokyometro.jp/en/index.html" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-rose-400 hover:text-rose-600 uppercase tracking-widest underline decoration-dotted underline-offset-4">Tokyo Metro Official</a>
-           <p className="text-[9px] text-slate-300 uppercase tracking-tighter">Station data based on Tokyo Metro Official Network.</p>
+        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center gap-2">
+           <p className="text-[9px] text-slate-300 uppercase tracking-tighter text-center">Images & Station Links provided by Tokyo Metro Co., Ltd.</p>
         </div>
       </div>
     </div>
@@ -652,20 +657,20 @@ const App = () => {
                </div>
             </div>
             
-            {/* FIXED DAY SELECTOR SCROLL: Added w-max and flex-nowrap to the inner container */}
-            <div className="overflow-x-auto no-scrollbar -mx-4 px-4 py-2 touch-pan-x">
-              <div className="flex gap-2 w-max items-center flex-nowrap min-w-full">
+            {/* FIXED DAY SELECTOR SCROLL: Added scroll-smooth and ensured container allows horizontal scroll via flex-nowrap + w-max */}
+            <div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 touch-pan-x cursor-ew-resize">
+              <div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">
                  {trip.dailyPlans.map(p => (
                    <button 
                      key={p.id} 
                      onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} 
-                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.2rem] h-10' : 'w-[3.8rem] h-12'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}
+                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.4rem] h-11' : 'w-[4.2rem] h-13'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md scale-105' : 'bg-white border-rose-100 text-rose-300 hover:border-rose-300'}`}
                    >
                       <span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
-                      <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
+                      <span className="text-xs font-bold leading-none mt-0.5">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
                    </button>
                  ))}
-                 <button onClick={addDay} className="w-[2.5rem] h-10 sm:h-12 flex items-center justify-center text-rose-200 flex-shrink-0 bg-white border border-dashed border-rose-200 rounded-2xl"><PlusIcon className="w-5 h-5" /></button>
+                 <button onClick={addDay} className={`flex items-center justify-center text-rose-200 flex-shrink-0 bg-white border border-dashed border-rose-200 rounded-2xl hover:border-rose-400 hover:text-rose-400 transition-colors ${isScrolled ? 'w-[3rem] h-11' : 'w-[3.5rem] h-13'}`} title="Add Day"><PlusIcon className="w-5 h-5" /></button>
               </div>
             </div>
          </div>
@@ -679,11 +684,14 @@ const App = () => {
                   {editingTheme ? (
                     <input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} />
                   ) : (
-                    <h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate">Day {activeDay}: {currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200" /></h2>
+                    <h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate group cursor-pointer">
+                      Day {activeDay}: {currentDayPlan?.theme} 
+                      <EditIcon className="w-3 h-3 text-rose-200 group-hover:text-rose-400 transition-colors" />
+                    </h2>
                   )}
                 </div>
                 <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800">
-                   <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic">Total for Day</div>
+                   <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic">Daily Total</div>
                    <div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div>
                    <div className="text-[9px] font-bold text-rose-400">≈ RM {dayTotalMYR.toFixed(2)}</div>
                 </div>
@@ -707,8 +715,12 @@ const App = () => {
                           <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3">
                             <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100"><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>
                             {(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">¥{(act.cost ?? 0).toLocaleString()}</span>}
+                            {act.isBooked && <span className="text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-lg border border-green-100">Booked</span>}
                           </div>
-                          <div className="flex items-end justify-between gap-4"><p className="text-xs text-slate-600 line-clamp-2 flex-1">{act.description}</p><MapIcon className="w-4 h-4 text-rose-200" /></div>
+                          <div className="flex items-end justify-between gap-4">
+                            <p className="text-xs text-slate-600 line-clamp-2 flex-1 leading-relaxed">{act.description}</p>
+                            <MapIcon className="w-4 h-4 text-rose-200 group-hover:text-rose-400 transition-colors" />
+                          </div>
                       </div>
                    </div>
                  );
@@ -725,7 +737,8 @@ const App = () => {
                  {t:'sightseeing', l:'Place', i:<CameraIcon className="w-5 h-5" />, c:'blue'}, 
                  {t:'food', l:'Food', i:<CoffeeIcon className="w-5 h-5" />, c:'orange'}, 
                  {t:'stay', l:'Stay', i:<BedIcon className="w-5 h-5" />, c:'emerald'}, 
-                 {t:'shopping', l:'Shop', i:<ShoppingBagIcon className="w-5 h-5" />, c:'rose'} 
+                 {t:'shopping', l:'Shop', i:<ShoppingBagIcon className="w-5 h-5" />, c:'rose'} ,
+                 {t:'travel', l:'Travel', i:<PlaneIcon className="w-5 h-5" />, c:'sky'}
                ].map(btn => (
                  <button key={btn.t} onClick={() => { setEditingActivity(null); setAddingType(btn.t as ActivityType); setIsActivityModalOpen(true); }} className="flex flex-col items-center p-2 rounded-2xl hover:bg-rose-50 group min-w-[3.5rem] sm:min-w-[4rem]">
                     <div className={`w-9 h-9 rounded-2xl bg-${btn.c}-50 text-${btn.c}-500 flex items-center justify-center mb-1 shadow-sm transition-transform group-active:scale-90`}>{btn.i}</div>
