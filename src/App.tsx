@@ -194,81 +194,153 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
   );
 };
 
-// --- Boarding Pass Modal ---
-const BoardingPassModal = ({ isOpen, onClose, trip }: { isOpen: boolean, onClose: () => void, trip: Trip }) => {
+// --- Boarding Pass / Itinerary Modal ---
+const BoardingPassModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   if (!isOpen) return null;
 
+  const flights = [
+    {
+      id: "1",
+      departure: "KUALA LUMPUR",
+      arrival: "TOKYO (HANEDA)",
+      terminal: "1",
+      arrivalTerminal: "0",
+      flightNo: "NH886",
+      date: "25APR2026",
+      day: "SAT",
+      time: "1415",
+      arrivalTime: "2215",
+      seat: "30A",
+      fare: "KFA9TYOK",
+      status: "OK",
+      baggage: "1PC"
+    },
+    {
+      id: "2",
+      departure: "TOKYO (HANEDA)",
+      arrival: "SAPPORO (NEW CHITOSE D)",
+      terminal: "2",
+      arrivalTerminal: "",
+      flightNo: "NH987",
+      date: "01MAY2026",
+      day: "FRI",
+      time: "0620",
+      arrivalTime: "0750",
+      seat: "8K",
+      fare: "KFA9TYOK",
+      status: "OK",
+      baggage: "1PC"
+    },
+    {
+      id: "3",
+      departure: "SAPPORO (NEW CHITOSE D)",
+      arrival: "TOKYO (HANEDA)",
+      terminal: "",
+      arrivalTerminal: "2",
+      flightNo: "NH82",
+      date: "07MAY2026",
+      day: "THU",
+      time: "2030",
+      arrivalTime: "2210",
+      seat: "18K",
+      fare: "KFA9TYOK",
+      status: "OK",
+      baggage: "1PC"
+    },
+    {
+      id: "4",
+      departure: "TOKYO (HANEDA)",
+      arrival: "KUALA LUMPUR",
+      terminal: "0",
+      arrivalTerminal: "1",
+      flightNo: "NH885",
+      date: "07MAY2026",
+      day: "THU",
+      time: "2330",
+      arrivalTime: "0600 (08MAY)",
+      seat: "29K",
+      fare: "KFA9TYOK",
+      status: "OK",
+      baggage: "1PC"
+    }
+  ];
+
   return (
-    <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[160] flex items-center justify-center p-2 sm:p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-rose-50 w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 overflow-hidden flex flex-col animate-slideUp border-4 border-white">
-        <div className="bg-rose-600 p-6 flex justify-between items-center text-white">
-          <div className="flex items-center gap-2">
-            <PlaneIcon className="w-6 h-6" />
-            <span className="font-bold tracking-tighter text-xl">AIR OURJOURNEY</span>
+      <div className="bg-[#f2f2f2] w-full max-w-4xl rounded-lg shadow-2xl z-10 overflow-hidden flex flex-col animate-slideUp border border-slate-300 font-mono text-[10px] sm:text-xs">
+        
+        {/* Header Style as per image */}
+        <div className="bg-white p-4 border-b border-slate-300 flex justify-between items-center">
+          <div className="flex items-center gap-2 text-slate-800">
+            <PlaneIcon className="w-5 h-5" />
+            <span className="font-bold text-lg tracking-widest">ITINERARY</span>
           </div>
-          <div className="text-right">
-            <div className="text-[10px] font-bold uppercase opacity-70">Boarding Pass</div>
-            <div className="font-bold text-sm">COUPLE CLASS</div>
+          <div className="text-right text-slate-500">
+            <div className="font-bold">ALL NIPPON AIRWAYS</div>
+            <div className="text-[10px]">ISSUED FOR: CHEONG WAN SHENG / CHAN ZI XUAN</div>
           </div>
         </div>
 
-        <div className="flex-1 p-8 text-slate-800 bg-white relative">
-          <div className="flex justify-between items-start mb-10">
-            <div className="flex-1">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Passanger Name</p>
-              <h4 className="text-2xl font-serif font-bold text-rose-950">Vin & Dolly</h4>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Flight Number</p>
-              <h4 className="text-2xl font-serif font-bold text-rose-950">VJ2025</h4>
-            </div>
-          </div>
+        <div className="flex-1 p-2 sm:p-6 overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b border-slate-400 text-left uppercase text-slate-500">
+                <th className="py-2 pr-2">City/Airport</th>
+                <th className="py-2 px-1">Terminal</th>
+                <th className="py-2 px-1">Flight No.</th>
+                <th className="py-2 px-1">Date</th>
+                <th className="py-2 px-1">Day</th>
+                <th className="py-2 px-1">Time</th>
+                <th className="py-2 px-1">Status</th>
+                <th className="py-2 px-1">Seat</th>
+                <th className="py-2 pl-2">Baggage</th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-900">
+              {flights.map((f, idx) => (
+                <React.Fragment key={f.id}>
+                  {/* Departure Row */}
+                  <tr className="border-t border-slate-200">
+                    <td className="py-3 pr-2 font-bold">[{idx + 1}] {f.departure}</td>
+                    <td className="py-3 px-1">{f.terminal}</td>
+                    <td className="py-3 px-1 font-bold">{f.flightNo}</td>
+                    <td className="py-3 px-1">{f.date}</td>
+                    <td className="py-3 px-1">{f.day}</td>
+                    <td className="py-3 px-1">{f.time}</td>
+                    <td className="py-3 px-1">{f.status}</td>
+                    <td className="py-3 px-1">-</td>
+                    <td className="py-3 pl-2">{f.baggage}</td>
+                  </tr>
+                  {/* Arrival Row */}
+                  <tr className="bg-slate-100/50">
+                    <td className="py-2 pr-2 italic pl-4">ARRIVAL: {f.arrival}</td>
+                    <td className="py-2 px-1">{f.arrivalTerminal}</td>
+                    <td className="py-2 px-1"></td>
+                    <td className="py-2 px-1"></td>
+                    <td className="py-2 px-1"></td>
+                    <td className="py-2 px-1 italic">{f.arrivalTime}</td>
+                    <td className="py-2 px-1"></td>
+                    <td className="py-2 px-1 font-bold">{f.seat}</td>
+                    <td className="py-2 pl-2"></td>
+                  </tr>
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-          <div className="flex justify-between items-center mb-10 gap-6">
-            <div className="flex-1">
-              <h2 className="text-5xl font-bold text-slate-800 tracking-tighter">KUL</h2>
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Kuala Lumpur</p>
-            </div>
-            <div className="flex flex-col items-center flex-shrink-0 px-4">
-              <div className="w-full h-px border-t-2 border-dashed border-rose-200 relative">
-                <PlaneIcon className="w-5 h-5 text-rose-400 absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2" />
-              </div>
-            </div>
-            <div className="flex-1 text-right">
-              <h2 className="text-5xl font-bold text-slate-800 tracking-tighter">HND</h2>
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Tokyo Haneda</p>
-            </div>
+        {/* Footer info */}
+        <div className="bg-white p-4 border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-500">
+          <div>
+            * ALL TIMES ARE LOCAL. FARE BASIS: KFA9TYOK
           </div>
-
-          <div className="grid grid-cols-4 gap-4 border-t border-slate-100 pt-8">
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Date</p>
-              <p className="font-bold text-sm">{trip.startDate || 'TBD'}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Gate</p>
-              <p className="font-bold text-sm">C22</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Boarding</p>
-              <p className="font-bold text-sm">13:30</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Seat</p>
-              <p className="font-bold text-sm">11A, 11B</p>
-            </div>
-          </div>
-
-          <div className="mt-12 pt-8 border-t-2 border-dashed border-slate-200 flex items-center justify-between">
-             <div className="space-y-1 opacity-60">
-                <div className="h-10 w-48 bg-slate-900 rounded flex items-center justify-center p-2">
-                   <div className="h-full w-full bg-[repeating-linear-gradient(90deg,#fff,#fff_2px,#000_2px,#000_4px)]"></div>
-                </div>
-                <div className="text-[8px] font-bold text-center tracking-[0.4em]">LOVE-2025-VINDOL</div>
-             </div>
-             <button onClick={onClose} className="p-3 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-100 transition-colors font-bold text-xs uppercase tracking-widest">Close Pass</button>
-          </div>
+          <button 
+            onClick={onClose}
+            className="px-4 py-2 bg-slate-900 text-white rounded hover:bg-slate-800 transition-colors uppercase font-bold"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -743,7 +815,7 @@ const App = () => {
         )}
         <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
         <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
-        <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} trip={trip} />
+        <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} />
       </div>
     );
   }
@@ -887,7 +959,7 @@ const App = () => {
        <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
        <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
        <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
-       <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} trip={trip} />
+       <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} />
     </div>
   );
 };
