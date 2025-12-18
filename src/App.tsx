@@ -91,8 +91,7 @@ interface ActivityModalProps {
 const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, initialData, initialType, exchangeRate }) => {
   const [formData, setFormData] = useState<Activity>({
     id: '', time: '09:00', title: '', description: '', location: '',
-    customMapLink: '', type: 'sightseeing', cost: 0, notes: '', isBooked: false,
-    flightNo: '', terminal: ''
+    customMapLink: '', type: 'sightseeing', cost: 0, notes: '', isBooked: false
   });
 
   useEffect(() => {
@@ -100,16 +99,13 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
       setFormData({ 
         ...initialData, 
         cost: initialData.cost ?? 0,
-        flightNo: initialData.flightNo ?? '',
-        terminal: initialData.terminal ?? '',
         customMapLink: initialData.customMapLink ?? '',
         notes: initialData.notes ?? ''
       });
     } else {
       setFormData({
         id: generateId(), time: '09:00', title: '', description: '', location: '',
-        customMapLink: '', type: initialType || 'sightseeing', cost: 0, notes: '', isBooked: false,
-        flightNo: '', terminal: ''
+        customMapLink: '', type: initialType || 'sightseeing', cost: 0, notes: '', isBooked: false
       });
     }
   }, [initialData, isOpen, initialType]);
@@ -272,29 +268,26 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
       // Step 1: Wayfinding Protocol Instructions
       const textResponse = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Provide a detailed station navigation and transfer guide for ${target} station in Japan. 
+        contents: `Provide a point-by-point station navigation and transfer guide for ${target} station in Japan. 
         Focus on:
-        1. Major line transfers (e.g. JR to Metro).
-        2. Specific platform navigation (e.g. Yamanote line to Chuo line).
-        3. Strategic exit choice for major landmarks.
-        4. Helpful landmarks inside the station.
-        Use clear, step-by-step instructions.`,
+        1. High-traffic platform transfers (e.g. JR to Subway).
+        2. Exit guidance for tourists.
+        3. Strategic "meeting points" inside the station.
+        Make instructions clear and easy to follow while walking.`,
         config: {
-          systemInstruction: "You are a Japanese transport expert. Provide concise, clear wayfinding instructions with bold headers."
+          systemInstruction: "You are an expert station navigator. Provide bold, clear, and actionable wayfinding advice."
         }
       });
       setGuide(textResponse.text || "Sorry, I couldn't find details for that station.");
 
-      // Step 2: 2D/3D Schematic Map Generation
-      // Refined prompt to get "on point" visual diagrams
+      // Step 2: 3D/2D Schematic Map Generation
       const imgResponse = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: `Create a professional 3D isometric or clean 2D schematic diagram/infographic showing the platform levels, transfers, and main exits for ${target} station in Japan. 
-        Style: Modern minimalist transit map style, white background, high contrast, colored lines for train routes (Yamanote green, etc.), clear numbered arrows for exits. 
-        The map must be easy for a tourist to follow visually.`,
+        contents: `Create a professional 3D isometric schematic diagram showing the main platform levels, escalators, and key exits for ${target} station in Japan. 
+        Style: Modern minimalist transit map, clean white background, high contrast, colored lines representing different train routes, clear exit numbering. 
+        Focus on showing the general layout levels (e.g., B1, Ground, 2F).`,
       });
       
-      // Fixed potential undefined candidates access
       if (imgResponse.candidates && imgResponse.candidates[0]?.content?.parts) {
         for (const part of imgResponse.candidates[0].content.parts) {
           if (part.inlineData) {
@@ -305,7 +298,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 
     } catch (err) {
       console.error('Metro Guide Error:', err);
-      setGuide("An error occurred while fetching the guide. Please try again.");
+      setGuide("Navigation service briefly unavailable. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -321,7 +314,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
+      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
@@ -354,14 +347,14 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <SparklesIcon className="w-8 h-8 text-rose-400 animate-pulse" />
-              <p className="text-rose-400 font-serif italic animate-pulse text-center">Generating visual navigation map...</p>
+              <p className="text-rose-400 font-serif italic animate-pulse text-center">Sketching station layout...</p>
             </div>
           ) : (guide || imageUrl) && (
             <div className="space-y-6 animate-fadeIn pb-8">
                {imageUrl && (
                  <div className="rounded-3xl overflow-hidden border border-slate-100 shadow-xl bg-white p-2">
                    <img src={imageUrl} alt="Station Map" className="w-full h-auto object-cover rounded-2xl" />
-                   <p className="text-[10px] text-center text-slate-400 mt-2 font-bold uppercase tracking-widest">AI Generated Schematic</p>
+                   <p className="text-[10px] text-center text-slate-400 mt-2 font-bold uppercase tracking-widest">3D Isometric Schematic</p>
                  </div>
                )}
                {guide && (
@@ -727,16 +720,16 @@ const App = () => {
                </div>
             </div>
             
-            {/* FIXED DAY SELECTOR SCROLL: Added min-w-0 to allow shrink, flex-nowrap and touch scrolling support */}
-            <div className="w-full overflow-hidden relative">
-              <div className="flex gap-2 no-scrollbar overflow-x-auto pb-2 items-center px-2 flex-nowrap min-h-[48px] touch-pan-x cursor-grab active:cursor-grabbing">
+            {/* FIXED DAY SELECTOR SCROLL: Added -mx-4, px-4, and flex-nowrap to ensure items can exceed screen width and scroll correctly */}
+            <div className="w-full relative overflow-hidden">
+              <div className="flex gap-2 no-scrollbar overflow-x-auto pb-2 items-center -mx-4 px-4 flex-nowrap min-h-[48px] touch-pan-x">
                  {trip.dailyPlans.map(p => (
                    <button 
                      key={p.id} 
                      onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} 
-                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'min-w-[2.8rem] h-10 px-1.5' : 'min-w-[3.2rem] h-12 px-2'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}
+                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'min-w-[3rem] h-10' : 'min-w-[3.5rem] h-12'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}
                    >
-                      <span className="text-[7px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
+                      <span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
                       <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
                    </button>
                  ))}
