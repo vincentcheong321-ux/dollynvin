@@ -1,8 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
+import { GoogleGenAI } from "@google/genai";
 import { 
   ActivityIcon,
   PlusIcon,
@@ -19,7 +20,9 @@ import {
   CoffeeIcon,
   CameraIcon,
   ShoppingBagIcon,
-  BedIcon
+  BedIcon,
+  SparklesIcon,
+  ArrowRightIcon
 } from './components/Icons';
 
 // --- Utilities ---
@@ -243,6 +246,115 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
   );
 };
 
+// --- Metro Station Assistant Modal ---
+const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const [stationName, setStationName] = useState('');
+  const [guide, setGuide] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchGuide = async () => {
+    if (!stationName.trim()) return;
+    setIsLoading(true);
+    setGuide('');
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Provide a detailed platform navigation guide for ${stationName} station in Japan. Explain how to find the major platforms (like JR Yamanote line, Shinkansen, or local metro lines) from main entrances. Include tips for navigating complex exits. Keep it helpful for a tourist.`,
+        config: {
+          systemInstruction: "You are a Japanese transport expert. Provide clear, concise wayfinding instructions for railway stations."
+        }
+      });
+      setGuide(response.text || "Sorry, I couldn't find details for that station.");
+    } catch (err) {
+      setGuide("An error occurred while fetching the guide. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
+      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp overflow-hidden border border-rose-100">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-3 text-rose-600">
+            <div className="p-3 bg-rose-50 rounded-2xl">
+              <MapIcon className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Guide</h3>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Station Wayfinding</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
+        </div>
+
+        <div className="mb-6 flex gap-2">
+          <input 
+            type="text" 
+            placeholder="Search station (e.g., Shinjuku, Tokyo...)" 
+            value={stationName}
+            onChange={(e) => setStationName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchGuide()}
+            className="flex-1 p-4 bg-rose-50 border border-rose-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-400 transition-all font-medium text-rose-900"
+          />
+          <button 
+            onClick={fetchGuide}
+            disabled={isLoading || !stationName.trim()}
+            className="p-4 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 disabled:opacity-50 transition-all shadow-md active:scale-95"
+          >
+            <SparklesIcon className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-6">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 space-y-4">
+              <div className="w-12 h-12 border-4 border-rose-100 border-t-rose-500 rounded-full animate-spin"></div>
+              <p className="text-rose-400 font-serif italic animate-pulse">Mapping out the station maze...</p>
+            </div>
+          ) : guide ? (
+            <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 text-slate-700 leading-relaxed animate-fadeIn whitespace-pre-wrap">
+               <h4 className="font-serif font-bold text-xl text-rose-950 mb-4 border-b border-rose-100 pb-2">{stationName} Guide</h4>
+               {guide}
+            </div>
+          ) : (
+            <div className="text-center py-12 px-6">
+               <p className="text-slate-400 italic mb-6">Enter a Japanese station name to get platform navigation tips and layout help.</p>
+               <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
+                 {['Shinjuku', 'Tokyo', 'Shibuya', 'Osaka'].map(s => (
+                   <button 
+                    key={s} 
+                    onClick={() => { setStationName(s); }}
+                    className="p-3 bg-white border border-rose-50 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-50 transition-colors"
+                   >
+                     {s} Station
+                   </button>
+                 ))}
+               </div>
+            </div>
+          )}
+
+          <div className="bg-sky-50 rounded-2xl p-4 border border-sky-100 flex items-start gap-4">
+            <div className="p-2 bg-white rounded-lg shadow-sm">
+              <MapIcon className="w-5 h-5 text-sky-500" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-sky-900 mb-1">Official Network Map</p>
+              <a href="https://www.tokyometro.jp/en/subwaymap/index.html" target="_blank" rel="noreferrer" className="text-xs font-bold text-sky-600 underline hover:text-sky-800 transition-colors">
+                View Official Tokyo Metro Map PDF
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 const App = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -252,6 +364,7 @@ const App = () => {
   const [addingType, setAddingType] = useState<ActivityType | undefined>(undefined);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
+  const [isMetroGuideOpen, setIsMetroGuideOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingTheme, setEditingTheme] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -353,8 +466,11 @@ const App = () => {
               )}
             </div>
             <div className="flex items-center space-x-1">
-               <button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><WalletIcon className="w-5 h-5" /></button>
-               <button onClick={() => setIsNotesOpen(!isNotesOpen)} className={`p-2 rounded-full transition-colors ${isNotesOpen ? 'bg-rose-100 text-rose-600' : 'text-rose-400 hover:bg-rose-50'}`}><NoteIcon className="w-5 h-5" /></button>
+               <button onClick={() => setIsMetroGuideOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors" title="Metro Guide">
+                 <MapIcon className="w-5 h-5" />
+               </button>
+               <button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors" title="Budget"><WalletIcon className="w-5 h-5" /></button>
+               <button onClick={() => setIsNotesOpen(!isNotesOpen)} className={`p-2 rounded-full transition-colors ${isNotesOpen ? 'bg-rose-100 text-rose-600' : 'text-rose-400 hover:bg-rose-50'}`} title="Notes"><NoteIcon className="w-5 h-5" /></button>
             </div>
          </div>
          <div className="w-full bg-white/50 py-3 px-4 flex flex-wrap justify-center gap-2 border-t border-rose-50 no-scrollbar overflow-x-auto">
@@ -414,7 +530,7 @@ const App = () => {
                 </div>
                 <div className="text-right">
                    <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Day Est.</div>
-                   <div className="font-bold text-rose-900 text-xl">¥{dayTotalJPY.toLocaleString()}</div>
+                   <div className="font-bold text-rose-950 text-xl">¥{dayTotalJPY.toLocaleString()}</div>
                    <div className="text-[10px] font-bold text-rose-300">≈ RM {dayTotalMYR.toFixed(2)}</div>
                 </div>
              </div>
@@ -456,7 +572,15 @@ const App = () => {
                           )}
                         </div>
                         <div className="flex items-end justify-between">
-                          <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed flex-1">{act.description}</p>
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{act.description}</p>
+                            {act.notes && (
+                               <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-500 uppercase">
+                                 <NoteIcon className="w-2.5 h-2.5" />
+                                 <span className="truncate max-w-[200px]">{act.notes}</span>
+                               </div>
+                            )}
+                          </div>
                           { (act.customMapLink || act.location) && (
                             <a 
                               href={act.customMapLink && act.customMapLink.trim() !== "" ? (act.customMapLink.startsWith('http') ? act.customMapLink : `https://${act.customMapLink}`) : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} 
@@ -533,6 +657,7 @@ const App = () => {
          exchangeRate={exchangeRate}
        />
        <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
+       <MetroGuideModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
     </div>
   );
 };
