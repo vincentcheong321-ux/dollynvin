@@ -20,6 +20,8 @@ export interface Activity {
   type: ActivityType;
   notes?: string; // For reservation numbers, booking refs, etc.
   isBooked?: boolean;
+  flightNo?: string;
+  terminal?: string;
 }
 
 export interface DailyPlan {

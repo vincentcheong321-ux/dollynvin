@@ -13,7 +13,8 @@ import {
   NoteIcon,
   CloseIcon,
   WalletIcon,
-  BackIcon
+  BackIcon,
+  PlaneIcon
 } from './components/Icons';
 
 // --- Utilities ---
@@ -38,16 +39,23 @@ interface ActivityModalProps {
 const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, initialData, initialType }) => {
   const [formData, setFormData] = useState<Activity>({
     id: '', time: '09:00', title: '', description: '', location: '',
-    customMapLink: '', type: 'sightseeing', cost: 0, notes: '', isBooked: false
+    customMapLink: '', type: 'sightseeing', cost: 0, notes: '', isBooked: false,
+    flightNo: '', terminal: ''
   });
 
   useEffect(() => {
     if (initialData) {
-      setFormData({ ...initialData, cost: initialData.cost ?? 0 });
+      setFormData({ 
+        ...initialData, 
+        cost: initialData.cost ?? 0,
+        flightNo: initialData.flightNo ?? '',
+        terminal: initialData.terminal ?? ''
+      });
     } else {
       setFormData({
         id: generateId(), time: '09:00', title: '', description: '', location: '',
-        customMapLink: '', type: initialType || 'sightseeing', cost: 0, notes: '', isBooked: false
+        customMapLink: '', type: initialType || 'sightseeing', cost: 0, notes: '', isBooked: false,
+        flightNo: '', terminal: ''
       });
     }
   }, [initialData, isOpen, initialType]);
@@ -92,6 +100,22 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
               </label>
             </div>
           </div>
+
+          {formData.type === 'travel' && (
+            <div className="grid grid-cols-2 gap-4 animate-fadeIn">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1">
+                  <PlaneIcon className="w-3 h-3" /> Flight No
+                </label>
+                <input type="text" placeholder="e.g. MH123" value={formData.flightNo || ''} onChange={e => setFormData({...formData, flightNo: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Terminal</label>
+                <input type="text" placeholder="e.g. T1" value={formData.terminal || ''} onChange={e => setFormData({...formData, terminal: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" />
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Activity Title</label>
             <input type="text" placeholder="e.g., Dinner at the pier" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none text-lg font-medium" />
@@ -343,9 +367,18 @@ const App = () => {
                        </div>
                        <button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition-all"><TrashIcon className="w-4 h-4" /></button>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
-                       <ActivityIcon type={act.type} className="w-3 h-3" />
-                       <span className="uppercase font-bold tracking-widest">{act.type}</span>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-2">
+                       <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                         <ActivityIcon type={act.type} className="w-3 h-3" />
+                         <span className="uppercase font-bold tracking-widest">{act.type}</span>
+                       </div>
+                       {act.flightNo && (
+                         <div className="flex items-center gap-1 bg-sky-50 text-sky-600 px-2 py-0.5 rounded border border-sky-100 font-bold">
+                            <PlaneIcon className="w-3 h-3" />
+                            <span>FLIGHT: {act.flightNo}</span>
+                            {act.terminal && <span className="ml-1 opacity-70">({act.terminal})</span>}
+                         </div>
+                       )}
                        {(act.cost ?? 0) > 0 && <span className="text-rose-400 font-bold">Cost: {(act.cost ?? 0).toLocaleString()}</span>}
                     </div>
                     <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{act.description}</p>
