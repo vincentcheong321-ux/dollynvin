@@ -29,8 +29,14 @@ const getFormattedDate = (startDate: string | undefined, dayOffset: number) => {
   if (!startDate) return `DAY ${dayOffset + 1}`;
   const date = new Date(startDate);
   date.setDate(date.getDate() + dayOffset);
-  // Returns format like "FRI, APR 25"
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+};
+
+const getDayOfMonth = (startDate: string | undefined, dayOffset: number) => {
+  if (!startDate) return null;
+  const date = new Date(startDate);
+  date.setDate(date.getDate() + dayOffset);
+  return date.getDate();
 };
 
 // --- Activity Modal ---
@@ -40,7 +46,7 @@ interface ActivityModalProps {
   onSave: (activity: Activity) => void;
   initialData?: Activity | null;
   initialType?: ActivityType;
-  exchangeRate: number; // Rate for 1 JPY to MYR
+  exchangeRate: number;
 }
 
 const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, initialData, initialType, exchangeRate }) => {
@@ -57,7 +63,8 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
         cost: initialData.cost ?? 0,
         flightNo: initialData.flightNo ?? '',
         terminal: initialData.terminal ?? '',
-        customMapLink: initialData.customMapLink ?? ''
+        customMapLink: initialData.customMapLink ?? '',
+        notes: initialData.notes ?? ''
       });
     } else {
       setFormData({
@@ -154,6 +161,20 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
                 </div>
              </div>
           </div>
+
+          <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 mt-4">
+            <div className="flex items-center space-x-2 text-amber-600 mb-2">
+              <NoteIcon className="w-4 h-4" />
+              <label className="text-xs font-bold uppercase">Important Details</label>
+            </div>
+            <textarea 
+              rows={3}
+              placeholder="Paste Booking IDs, Flight Numbers, Reservation Links here..."
+              value={formData.notes || ''}
+              onChange={e => setFormData({...formData, notes: e.target.value})}
+              className="w-full p-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none resize-none text-slate-700 text-sm placeholder-slate-400"
+            />
+          </div>
         </div>
         <div className="mt-6 pt-4 border-t border-slate-100">
           <button onClick={() => onSave(formData)} disabled={!formData.title} className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-lg shadow-lg disabled:opacity-50 transition-all flex items-center justify-center space-x-2">
@@ -234,7 +255,7 @@ const App = () => {
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingTheme, setEditingTheme] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [exchangeRate, setExchangeRate] = useState(0.03); // 1 JPY = 0.03 MYR approx
+  const [exchangeRate, setExchangeRate] = useState(0.03); 
 
   // Load from Supabase on start
   useEffect(() => {
@@ -338,8 +359,9 @@ const App = () => {
          </div>
          <div className="w-full bg-white/50 py-3 px-4 flex flex-wrap justify-center gap-2 border-t border-rose-50 no-scrollbar overflow-x-auto">
             {trip.dailyPlans.map(p => (
-              <button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`min-w-[3.5rem] py-1.5 px-3 rounded-xl text-xs font-bold border transition-all ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}>
-                Day {p.dayNumber}
+              <button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center min-w-[3.5rem] py-1.5 px-3 rounded-xl text-xs font-bold border transition-all ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}>
+                <span className="text-[9px] opacity-70 uppercase mb-0.5">Day {p.dayNumber}</span>
+                <span className="text-sm font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
               </button>
             ))}
             <button onClick={addDay} className="p-2 text-rose-200 hover:text-rose-500"><PlusIcon className="w-5 h-5" /></button>
@@ -397,52 +419,57 @@ const App = () => {
                 </div>
              </div>
 
-             <div className="space-y-4">
+             <div className="relative border-l-2 border-rose-200/50 ml-4 sm:ml-6 space-y-8 pb-4 pl-6 sm:pl-8">
                {sortedActivities.length === 0 && (
-                 <div className="py-24 text-center border-2 border-dashed border-rose-100 rounded-[3rem] text-rose-300 italic">No plans for this day yet.</div>
+                 <div className="py-24 text-center border-2 border-dashed border-rose-100 rounded-[3rem] text-rose-300 italic ml-[-2rem]">No plans for this day yet.</div>
                )}
                {sortedActivities.map(act => (
-                 <div key={act.id} onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-5 rounded-3xl shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-0.5 ${act.isBooked ? 'border-l-4 border-l-green-400' : 'border-rose-50'}`}>
-                    <div className="flex justify-between items-start mb-3">
-                       <div className="flex items-center gap-3">
-                         <span className="text-sm font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg">{act.time}</span>
-                         <h4 className="font-bold text-lg text-slate-800">{act.title}</h4>
-                       </div>
-                       <div className="flex items-center gap-2">
-                         { (act.customMapLink || act.location) && (
-                           <a 
-                             href={act.customMapLink && act.customMapLink.trim() !== "" ? (act.customMapLink.startsWith('http') ? act.customMapLink : `https://${act.customMapLink}`) : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} 
-                             target="_blank" 
-                             rel="noreferrer" 
-                             onClick={e => e.stopPropagation()} 
-                             className="p-2 bg-rose-50 text-rose-400 hover:text-rose-600 rounded-full border border-rose-100"
-                           >
-                             <MapIcon className="w-3 h-3" />
-                           </a>
-                         )}
-                         <button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-400 transition-all"><TrashIcon className="w-3 h-3" /></button>
-                       </div>
+                 <div key={act.id} className="relative group">
+                    <div className={`absolute -left-[33px] sm:-left-[41px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-colors ${act.isBooked ? 'border-green-500' : 'border-rose-300'}`}></div>
+                    <div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-5 rounded-3xl shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-0.5 ${act.isBooked ? 'border-l-4 border-l-green-400 border-y-white border-r-white' : 'border-white hover:border-rose-100'}`}>
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg">{act.time}</span>
+                            <h4 className="font-bold text-lg text-slate-800">{act.title}</h4>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-400 transition-all"><TrashIcon className="w-3 h-3" /></button>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-2">
+                          <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                            <ActivityIcon type={act.type} className="w-3 h-3" />
+                            <span className="uppercase font-bold tracking-widest">{act.type}</span>
+                          </div>
+                          {act.flightNo && (
+                            <div className="flex items-center gap-1 bg-sky-50 text-sky-600 px-2 py-0.5 rounded border border-sky-100 font-bold">
+                                <PlaneIcon className="w-3 h-3" />
+                                <span>FLIGHT: {act.flightNo}</span>
+                                {act.terminal && <span className="ml-1 opacity-70">({act.terminal})</span>}
+                            </div>
+                          )}
+                          {(act.cost ?? 0) > 0 && (
+                            <span className="text-rose-400 font-bold">
+                              ¥{(act.cost ?? 0).toLocaleString()}
+                              <span className="ml-1 opacity-60 text-[10px]">≈ RM {((act.cost ?? 0) * exchangeRate).toFixed(2)}</span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-end justify-between">
+                          <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed flex-1">{act.description}</p>
+                          { (act.customMapLink || act.location) && (
+                            <a 
+                              href={act.customMapLink && act.customMapLink.trim() !== "" ? (act.customMapLink.startsWith('http') ? act.customMapLink : `https://${act.customMapLink}`) : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              onClick={e => e.stopPropagation()} 
+                              className="ml-4 p-2.5 bg-rose-50 text-rose-400 hover:text-rose-600 rounded-full border border-rose-100 transition-colors"
+                            >
+                              <MapIcon className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-2">
-                       <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-                         <ActivityIcon type={act.type} className="w-3 h-3" />
-                         <span className="uppercase font-bold tracking-widest">{act.type}</span>
-                       </div>
-                       {act.flightNo && (
-                         <div className="flex items-center gap-1 bg-sky-50 text-sky-600 px-2 py-0.5 rounded border border-sky-100 font-bold">
-                            <PlaneIcon className="w-3 h-3" />
-                            <span>FLIGHT: {act.flightNo}</span>
-                            {act.terminal && <span className="ml-1 opacity-70">({act.terminal})</span>}
-                         </div>
-                       )}
-                       {(act.cost ?? 0) > 0 && (
-                         <span className="text-rose-400 font-bold">
-                           ¥{(act.cost ?? 0).toLocaleString()}
-                           <span className="ml-1 opacity-60 text-[10px]">≈ RM {((act.cost ?? 0) * exchangeRate).toFixed(2)}</span>
-                         </span>
-                       )}
-                    </div>
-                    <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{act.description}</p>
                  </div>
                ))}
              </div>
@@ -450,18 +477,48 @@ const App = () => {
          )}
        </main>
 
-       {/* Floating Quick Add Bottom Bar */}
+       {/* Floating Quick Add Bottom Bar with Labels */}
        {!isNotesOpen && (
-         <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-50">
+         <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-50">
             <div className="max-w-3xl mx-auto flex justify-center pointer-events-auto">
-               <div className="bg-white/90 backdrop-blur-xl border border-rose-100 shadow-xl rounded-2xl p-2 flex items-center space-x-1 sm:space-x-2">
-                 <button onClick={() => openAddModal('sightseeing')} title="Add Place" className="p-3 bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-100 transition-colors"><CameraIcon className="w-5 h-5" /></button>
-                 <button onClick={() => openAddModal('food')} title="Add Food" className="p-3 bg-orange-50 text-orange-500 rounded-xl hover:bg-orange-100 transition-colors"><CoffeeIcon className="w-5 h-5" /></button>
-                 <button onClick={() => openAddModal('shopping')} title="Add Shopping" className="p-3 bg-purple-50 text-purple-500 rounded-xl hover:bg-purple-100 transition-colors"><ShoppingBagIcon className="w-5 h-5" /></button>
-                 <button onClick={() => openAddModal('stay')} title="Add Stay" className="p-3 bg-emerald-50 text-emerald-500 rounded-xl hover:bg-emerald-100 transition-colors"><BedIcon className="w-5 h-5" /></button>
-                 <button onClick={() => openAddModal('travel')} title="Add Transit" className="p-3 bg-sky-50 text-sky-500 rounded-xl hover:bg-sky-100 transition-colors"><PlaneIcon className="w-5 h-5" /></button>
-                 <div className="w-px h-8 bg-slate-200 mx-1"></div>
-                 <button onClick={() => openAddModal('other')} title="Add Custom" className="p-3 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors shadow-lg"><PlusIcon className="w-5 h-5" /></button>
+               <div className="bg-white/95 backdrop-blur-xl border border-rose-100 shadow-xl rounded-2xl p-2 flex items-center space-x-1 sm:space-x-3">
+                 <button onClick={() => openAddModal('sightseeing')} className="flex flex-col items-center p-2 rounded-xl hover:bg-rose-50 transition-colors group min-w-[4rem]">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform shadow-sm border border-blue-100">
+                      <CameraIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500">Place</span>
+                 </button>
+                 <button onClick={() => openAddModal('food')} className="flex flex-col items-center p-2 rounded-xl hover:bg-rose-50 transition-colors group min-w-[4rem]">
+                    <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform shadow-sm border border-orange-100">
+                      <CoffeeIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500">Food</span>
+                 </button>
+                 <button onClick={() => openAddModal('shopping')} className="flex flex-col items-center p-2 rounded-xl hover:bg-rose-50 transition-colors group min-w-[4rem]">
+                    <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform shadow-sm border border-purple-100">
+                      <ShoppingBagIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500">Shop</span>
+                 </button>
+                 <button onClick={() => openAddModal('stay')} className="flex flex-col items-center p-2 rounded-xl hover:bg-rose-50 transition-colors group min-w-[4rem]">
+                    <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform shadow-sm border border-emerald-100">
+                      <BedIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500">Stay</span>
+                 </button>
+                 <button onClick={() => openAddModal('travel')} className="flex flex-col items-center p-2 rounded-xl hover:bg-rose-50 transition-colors group min-w-[4rem]">
+                    <div className="w-10 h-10 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform shadow-sm border border-sky-100">
+                      <PlaneIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500">Transit</span>
+                 </button>
+                 <div className="w-px h-8 bg-rose-200 mx-1"></div>
+                 <button onClick={() => openAddModal('other')} className="flex flex-col items-center p-2 rounded-xl hover:bg-rose-50 transition-colors group min-w-[4rem]">
+                    <div className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center mb-1 group-hover:scale-110 transition-transform shadow-lg">
+                      <PlusIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500">Add</span>
+                 </button>
                </div>
             </div>
          </div>
