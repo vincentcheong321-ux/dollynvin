@@ -20,7 +20,6 @@ import {
   SparklesIcon,
   ArrowRightIcon,
   HomeIcon,
-  CalendarIcon,
   HeartIcon,
   ShoppingBagIcon,
   PlaneIcon,
@@ -259,19 +258,19 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
   );
 };
 
-// --- Subway Map Viewer Modal (Updated) ---
+// --- Subway Map Viewer Modal ---
 const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl z-10 p-6 flex flex-col h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
+      <div className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl z-10 p-6 flex flex-col h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-2.5 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
-              <h3 className="text-2xl font-serif font-bold text-rose-950">Subway Map</h3>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Subway Explorer</h3>
               <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Tokyo Subway Route Map</p>
             </div>
           </div>
@@ -279,30 +278,30 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
         </div>
 
         <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-100 relative group flex flex-col">
-           <div className="flex-1 overflow-auto p-2 scrollbar-thin scrollbar-thumb-rose-200 cursor-grab active:cursor-grabbing">
+           <div className="flex-1 overflow-auto p-4 scrollbar-thin scrollbar-thumb-rose-200 cursor-grab active:cursor-grabbing">
               <img 
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Tokyo_Metro_Subway_Map.svg/2560px-Tokyo_Metro_Subway_Map.svg.png" 
                 alt="Tokyo Subway Route Map" 
-                className="max-w-none w-[350%] md:w-[150%] h-auto rounded-lg shadow-2xl"
+                className="max-w-none w-[350%] md:w-[150%] h-auto rounded-lg shadow-2xl transition-all"
               />
            </div>
-           <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center pointer-events-none">
-              <div className="bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-lg border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600">
-                 Scroll or Pinch to Zoom
+           <div className="absolute bottom-6 left-6 right-6 flex justify-between items-center pointer-events-none">
+              <div className="bg-white/95 backdrop-blur px-4 py-2 rounded-2xl shadow-xl border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                 Scroll / Pinch to Explore
               </div>
               <a 
                 href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
                 target="_blank" rel="noreferrer"
-                className="pointer-events-auto bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-2 hover:bg-rose-700 transition-colors"
+                className="pointer-events-auto bg-rose-600 text-white px-6 py-3 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-2 hover:bg-rose-700 transition-all active:scale-95"
               >
-                <span>Full PDF</span>
-                <ArrowRightIcon className="w-3.5 h-3.5" />
+                <span>View Full PDF</span>
+                <ArrowRightIcon className="w-4 h-4" />
               </a>
            </div>
         </div>
         
-        <div className="mt-3 flex-shrink-0 text-center">
-           <p className="text-[9px] text-slate-300 uppercase tracking-tighter">Route Map provided by Tokyo Metro Co., Ltd. (via Wikimedia Commons)</p>
+        <div className="mt-4 flex-shrink-0 text-center opacity-40">
+           <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Route Map provided by Tokyo Metro Co., Ltd. (via Wikimedia Commons)</p>
         </div>
       </div>
     </div>
@@ -488,11 +487,6 @@ const App = () => {
 
   const currentDayPlan = useMemo(() => trip?.dailyPlans.find(d => d.dayNumber === activeDay), [trip, activeDay]);
   const sortedActivities = useMemo(() => currentDayPlan ? [...currentDayPlan.activities].sort((a, b) => a.time.localeCompare(b.time)) : [], [currentDayPlan]);
-  
-  const totalBudgetJPY = useMemo(() => {
-    if (!trip) return 0;
-    return trip.dailyPlans.reduce((sum, plan) => sum + plan.activities.reduce((s, a) => s + (a.cost ?? 0), 0), 0);
-  }, [trip]);
   
   const dayTotalJPY = useMemo(() => sortedActivities.reduce((sum, act) => sum + (act.cost ?? 0), 0), [sortedActivities]);
   const dayTotalMYR = useMemo(() => dayTotalJPY * exchangeRate, [dayTotalJPY, exchangeRate]);
