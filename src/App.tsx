@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
@@ -18,15 +18,12 @@ import {
   MapIcon,
   CoffeeIcon,
   CameraIcon,
-  ShoppingBagIcon,
   BedIcon,
   SparklesIcon,
   ArrowRightIcon,
   HomeIcon,
   CalendarIcon,
-  HeartIcon,
-  // Added missing PieChartIcon import
-  PieChartIcon
+  HeartIcon
 } from './components/Icons';
 
 // --- Utilities ---
@@ -77,8 +74,8 @@ const isActivityOngoing = (activityTime: string, nextActivityTime?: string): boo
     return currentMinutes >= startMinutes && currentMinutes < endMinutes;
   }
   
-  // Default ongoing window: 90 minutes for last activity
-  return currentMinutes >= startMinutes && currentMinutes < startMinutes + 90;
+  // Default ongoing window: 2 hours for last activity
+  return currentMinutes >= startMinutes && currentMinutes < startMinutes + 120;
 };
 
 // --- Activity Modal ---
@@ -188,20 +185,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
                 </div>
              </div>
           </div>
-
-          <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 mt-4">
-            <div className="flex items-center space-x-2 text-amber-600 mb-2">
-              <NoteIcon className="w-4 h-4" />
-              <label className="text-xs font-bold uppercase">Important Details</label>
-            </div>
-            <textarea 
-              rows={3}
-              placeholder="Paste Booking IDs, Flight Numbers, Reservation Links here..."
-              value={formData.notes || ''}
-              onChange={e => setFormData({...formData, notes: e.target.value})}
-              className="w-full p-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none resize-none text-slate-700 text-sm placeholder-slate-400"
-            />
-          </div>
         </div>
         <div className="mt-6 pt-4 border-t border-slate-100">
           <button onClick={() => onSave(formData)} disabled={!formData.title} className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-bold text-lg shadow-lg disabled:opacity-50 transition-all flex items-center justify-center space-x-2">
@@ -227,7 +210,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
   const totalMYR = total * exchangeRate;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
        <div className="absolute inset-0 bg-rose-900/40 backdrop-blur-md transition-opacity" onClick={onClose}></div>
        <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp">
          <div className="flex justify-between items-center mb-8">
@@ -237,9 +220,8 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
            </div>
            <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full"><CloseIcon className="w-6 h-6" /></button>
          </div>
-         <div className="overflow-y-auto pr-2 space-y-8 flex-1 no-scrollbar">
+         <div className="overflow-y-auto pr-2 space-y-8 flex-1 no-scrollbar text-slate-800">
             <div className="bg-rose-600 rounded-[2rem] p-8 text-white text-center shadow-lg relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-4 opacity-10"><PieChartIcon className="w-24 h-24" /></div>
                <p className="text-white/80 font-bold uppercase tracking-widest text-xs mb-2">Estimated Total Cost</p>
                <h2 className="text-5xl font-serif font-bold mb-1">¥ {total.toLocaleString()}</h2>
                <div className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-bold">≈ RM {totalMYR.toFixed(2)}</div>
@@ -283,7 +265,6 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     setIsLoading(true);
     setGuide('');
     try {
-      // Use named parameter to initialize GoogleGenAI as per guidelines
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -292,11 +273,10 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           systemInstruction: "You are a Japanese transport expert. Provide clear, concise wayfinding instructions for railway stations."
         }
       });
-      // response.text is a property, not a method
       setGuide(response.text || "Sorry, I couldn't find details for that station.");
     } catch (err) {
       console.error('Metro Guide Error:', err);
-      setGuide("An error occurred while fetching the guide. Ensure your API key is valid or try again later.");
+      setGuide("An error occurred while fetching the guide. Please check your internet connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -310,7 +290,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
       <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp overflow-hidden border border-rose-100">
         <div className="flex justify-between items-center mb-6">
@@ -318,7 +298,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
               <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Assistant</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Japan Platform Navigation</p>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Platform Navigator</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
@@ -331,12 +311,12 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-6">
+        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-6 text-slate-800">
           {!guide && !isLoading && (
             <div className="text-center py-6">
                <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-4">Quick Select</p>
                <div className="flex flex-wrap justify-center gap-2">
-                 {['Shinjuku', 'Tokyo', 'Shibuya', 'Kyoto', 'Osaka', 'Sapporo'].map(s => (
+                 {['Shinjuku', 'Tokyo', 'Shibuya', 'Kyoto', 'Osaka'].map(s => (
                    <button key={s} onClick={() => handleQuickSelect(s)} className="px-4 py-2 bg-white border border-rose-100 rounded-full text-xs font-bold text-rose-400 hover:bg-rose-50 transition-colors shadow-sm">{s}</button>
                  ))}
                </div>
@@ -345,22 +325,14 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <SparklesIcon className="w-8 h-8 text-rose-400 animate-pulse" />
-              <p className="text-rose-400 font-serif italic animate-pulse">Mapping out the platforms...</p>
+              <p className="text-rose-400 font-serif italic animate-pulse text-center">Checking the station maps...</p>
             </div>
           ) : guide && (
-            <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 text-slate-700 leading-relaxed animate-fadeIn whitespace-pre-wrap">
-               <h4 className="font-serif font-bold text-xl text-rose-950 mb-4 border-b border-rose-100 pb-2">Navigation for {stationName}</h4>
+            <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 leading-relaxed animate-fadeIn whitespace-pre-wrap">
+               <h4 className="font-serif font-bold text-xl text-rose-950 mb-4 border-b border-rose-100 pb-2">Wayfinding for {stationName}</h4>
                {guide}
             </div>
           )}
-          <div className="bg-sky-50 rounded-2xl p-4 border border-sky-100 flex items-start gap-4">
-            <MapIcon className="w-5 h-5 text-sky-500 mt-1" />
-            <div>
-              <p className="text-xs font-bold text-sky-900 mb-1">Official Resources</p>
-              <a href="https://www.tokyometro.jp/en/subwaymap/index.html" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-sky-600 underline hover:text-sky-800 transition-colors block">Tokyo Metro Network Map (PDF)</a>
-              <a href="https://www.jreast.co.jp/e/downloads/index.html" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-sky-600 underline hover:text-sky-800 transition-colors block mt-1">JR East Station Maps</a>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -371,7 +343,6 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 const App = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [activeDay, setActiveDay] = useState(1);
-  const [view, setView] = useState<'dashboard' | 'itinerary'>('itinerary');
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [addingType, setAddingType] = useState<ActivityType | undefined>(undefined);
@@ -384,8 +355,10 @@ const App = () => {
   const [exchangeRate, setExchangeRate] = useState(0.03); 
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleScroll = () => setIsScrolled(window.scrollY > 15);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -416,7 +389,7 @@ const App = () => {
   const dayTotalMYR = dayTotalJPY * exchangeRate;
   const isSelectedDayToday = useMemo(() => isToday(trip?.startDate, activeDay), [trip?.startDate, activeDay]);
 
-  if (!trip || isLoading) return <div className="min-h-screen flex items-center justify-center font-serif text-rose-400 animate-pulse text-xl">Creating our journey...</div>;
+  if (!trip || isLoading) return <div className="min-h-screen flex items-center justify-center font-serif text-rose-400 animate-pulse text-xl">Creating our map...</div>;
 
   const handleUpdate = (t: Trip) => setTrip({ ...t });
   
@@ -454,62 +427,36 @@ const App = () => {
     if (confirm('Reset everything? This cannot be undone.')) {
       handleUpdate(createBlankTrip());
       setActiveDay(1);
-      setView('itinerary');
       setIsNotesOpen(false);
     }
   };
-
-  if (view === 'dashboard') {
-    const daysUntil = getDaysUntil(trip.startDate);
-    let totalPlanned = 0;
-    trip.dailyPlans.forEach(p => totalPlanned += p.activities.length);
-    return (
-      <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn">
-        <header className="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-rose-100 p-4">
-          <div className="max-w-3xl mx-auto flex items-center justify-between">
-            <h1 className="text-2xl font-serif font-bold text-rose-950">Dashboard</h1>
-            <button onClick={() => setView('itinerary')} className="flex items-center gap-2 px-6 py-2 bg-rose-600 text-white rounded-full text-sm font-bold shadow-lg shadow-rose-200"><CalendarIcon className="w-4 h-4" /> Go to Itinerary</button>
-          </div>
-        </header>
-        <main className="flex-1 max-w-3xl mx-auto w-full p-6 space-y-8">
-           <section className="text-center py-8">
-              <div className="inline-block p-4 bg-rose-50 rounded-full mb-4 animate-bounce"><HeartIcon className="w-8 h-8 text-rose-500" /></div>
-              <h2 className="text-3xl font-serif font-bold text-slate-800 mb-2">Our Trip to {trip.destination}</h2>
-              {daysUntil !== null && <div className="text-rose-600 font-bold uppercase tracking-widest text-sm">{daysUntil > 0 ? `${daysUntil} Days To Go!` : daysUntil === 0 ? "It's Travel Day! ❤️" : "Memories made!"}</div>}
-           </section>
-           <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-rose-50 text-center"><CalendarIcon className="w-8 h-8 text-orange-400 mx-auto mb-3" /><h4 className="font-bold text-slate-800">{trip.duration} Days</h4></div>
-              <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-rose-50 text-center"><WalletIcon className="w-8 h-8 text-rose-400 mx-auto mb-3" /><h4 className="font-bold text-slate-800">¥ Budget</h4></div>
-           </div>
-           <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-rose-50 p-8 text-center space-y-4">
-              <p className="text-slate-600 text-sm leading-relaxed italic">"{trip.notes?.substring(0, 150)}..."</p>
-              <button onClick={() => setView('itinerary')} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-rose-600 transition-colors">Open Itinerary <ArrowRightIcon className="w-4 h-4" /></button>
-           </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col sakura-bg">
        <header className={`bg-white/95 backdrop-blur-md sticky top-0 z-[60] border-b border-rose-100 transition-all duration-300 ${isScrolled ? 'py-1 shadow-md' : 'py-3'}`}>
          <div className="max-w-3xl mx-auto px-4">
             <div className="flex items-center justify-between gap-2 mb-2">
-               <button onClick={() => setView('dashboard')} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full flex-shrink-0"><HomeIcon className="w-5 h-5" /></button>
+               <button onClick={() => window.scrollTo({top:0, behavior:'smooth'})} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full flex-shrink-0"><HomeIcon className="w-5 h-5" /></button>
                <div className="flex-1 text-center min-w-0" onClick={() => setEditingTitle(true)}>
-                  {editingTitle ? <input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} /> : 
-                  <h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-base' : 'text-xl'}`}>{trip.destination}</h2>}
+                  {editingTitle ? (
+                    <input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center text-slate-800" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>{trip.destination}</h2>
+                      {!isScrolled && <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">{trip.duration} Day Trip</p>}
+                    </div>
+                  )}
                </div>
                <div className="flex items-center gap-1">
                   <button onClick={() => setIsMetroGuideOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><MapIcon className="w-5 h-5" /></button>
                   <button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><WalletIcon className="w-5 h-5" /></button>
                </div>
             </div>
-            <div className="flex gap-2 no-scrollbar overflow-x-auto pb-1 justify-center">
+            <div className="flex gap-2 no-scrollbar overflow-x-auto pb-1 justify-center items-center">
                {trip.dailyPlans.map(p => (
-                 <button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all ${isScrolled ? 'min-w-[3rem] py-1 px-2' : 'min-w-[3.5rem] py-2 px-3'} ${activeDay === p.dayNumber ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}>
-                    <span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
-                    <span className="text-sm font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
+                 <button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all ${isScrolled ? 'min-w-[2.8rem] py-1 px-1.5' : 'min-w-[3.2rem] py-1.5 px-2'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}>
+                    <span className="text-[7px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
+                    <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
                  </button>
                ))}
                <button onClick={addDay} className="p-2 text-rose-200"><PlusIcon className="w-5 h-5" /></button>
@@ -517,9 +464,9 @@ const App = () => {
          </div>
        </header>
 
-       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 pb-36">
+       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 pb-40">
          {isNotesOpen ? (
-           <div className="bg-white/90 backdrop-blur-sm rounded-[2.5rem] p-8 shadow-sm border border-rose-50 space-y-8 animate-fadeIn">
+           <div className="bg-white/90 backdrop-blur-sm rounded-[2.5rem] p-8 shadow-sm border border-rose-50 space-y-8 animate-fadeIn text-slate-800">
               <div className="flex justify-between items-center border-b border-rose-50 pb-4"><h3 className="font-serif font-bold text-2xl text-rose-950">Settings & Notes</h3><button onClick={resetTrip} className="px-4 py-2 bg-red-50 text-red-500 rounded-xl text-xs font-bold hover:bg-red-500 hover:text-white transition-all">Reset Trip</button></div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">Trip Start Date</label><input type="date" className="w-full p-4 bg-rose-50 rounded-2xl outline-none" value={trip.startDate || ''} onChange={e => handleUpdate({...trip, startDate: e.target.value})} /></div>
@@ -529,15 +476,20 @@ const App = () => {
            </div>
          ) : (
            <div className="space-y-6 animate-fadeIn">
-             <div className="flex items-center justify-between px-2">
-                <div onClick={() => setEditingTheme(true)} className="flex-1">
+             <div className="flex items-center justify-between px-1">
+                <div onClick={() => setEditingTheme(true)} className="flex-1 min-w-0">
                   <div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">{getFormattedDate(trip.startDate, activeDay - 1)}</div>
-                  {editingTheme ? <input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} /> : 
-                  <h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2"><span className="text-rose-500">Day {activeDay}:</span> <span className="truncate">{currentDayPlan?.theme}</span> <EditIcon className="w-3 h-3 text-rose-200" /></h2>}
+                  {editingTheme ? (
+                    <input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} />
+                  ) : (
+                    <h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate">
+                      <span className="text-rose-500">Day {activeDay}:</span> <span className="truncate">{currentDayPlan?.theme}</span> <EditIcon className="w-3 h-3 text-rose-200" />
+                    </h2>
+                  )}
                 </div>
-                <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100">
-                   <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter">Est. Day Spend</div>
-                   <div className="font-bold text-rose-950 text-base">¥{dayTotalJPY.toLocaleString()}</div>
+                <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0">
+                   <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter">Est. Spend</div>
+                   <div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div>
                    <div className="text-[9px] font-bold text-rose-400">≈ RM {dayTotalMYR.toFixed(2)}</div>
                 </div>
              </div>
@@ -549,25 +501,35 @@ const App = () => {
                  return (
                    <div key={act.id} className="relative group">
                       <div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : (act.isBooked ? 'border-green-500' : 'border-rose-300')}`}></div>
-                      {ongoing && <div className="absolute -left-5 -top-1 text-[8px] font-black text-rose-600 uppercase tracking-tighter bg-rose-100 px-1.5 py-0.5 rounded shadow-sm animate-pulse">Now</div>}
-                      <div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-5 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${ongoing ? 'border-rose-300 ring-1 ring-rose-100 shadow-rose-100' : (act.isBooked ? 'border-l-8 border-l-green-400 border-y-white border-r-white' : 'border-white hover:border-rose-100')}`}>
-                          <div className="flex justify-between items-start mb-3 gap-2">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span className={`text-[11px] font-bold px-2.5 py-1.5 rounded-xl flex-shrink-0 ${ongoing ? 'bg-rose-600 text-white shadow-md' : 'bg-rose-50 text-rose-600'}`}>{act.time}</span>
-                              <h4 className="font-bold text-base text-slate-800 truncate">{act.title}</h4>
+                      
+                      {ongoing && <div className="absolute -left-5 -top-1.5 text-[8px] font-black text-white uppercase tracking-tighter bg-rose-600 px-1.5 py-0.5 rounded shadow-sm animate-pulse z-20">Ongoing</div>}
+                      
+                      <div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${ongoing ? 'border-rose-300 ring-2 ring-rose-50 bg-rose-50/10' : (act.isBooked ? 'border-l-8 border-l-green-400 border-y-white border-r-white' : 'border-white hover:border-rose-100')}`}>
+                          <div className="flex justify-between items-start mb-2 gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className={`text-[10px] font-bold px-2 py-1 rounded-xl flex-shrink-0 ${ongoing ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600'}`}>{act.time}</span>
+                              <h4 className="font-bold text-sm text-slate-800 truncate">{act.title}</h4>
                             </div>
-                            <button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-2 text-slate-300 hover:text-red-400"><TrashIcon className="w-3.5 h-3.5" /></button>
+                            <button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button>
                           </div>
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-3">
-                            <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100"><ActivityIcon type={act.type} className="w-3.5 h-3.5 text-slate-500" /><span className="uppercase font-bold tracking-widest text-[10px]">{act.type}</span></div>
-                            {(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">¥{(act.cost ?? 0).toLocaleString()}</span>}
-                            {act.isBooked && <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded-lg border border-green-100 flex items-center gap-1"><CheckIcon className="w-3 h-3" /> Booked</span>}
+                          
+                          <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3">
+                            <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">
+                               <ActivityIcon type={act.type} className="w-3 h-3 text-slate-500" />
+                               <span className="uppercase font-bold tracking-widest">{act.type}</span>
+                            </div>
+                            {(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">¥{(act.cost ?? 0).toLocaleString()}</span>}
+                            {act.isBooked && <span className="text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-lg border border-green-100 flex items-center gap-1"><CheckIcon className="w-2.5 h-2.5" /> Booked</span>}
                           </div>
+                          
                           <div className="flex items-end justify-between gap-4">
-                            <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed flex-1">{act.description}</p>
-                            {(act.customMapLink || act.location) && <a href={act.customMapLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-3 bg-rose-50 text-rose-400 rounded-2xl border border-rose-100 flex-shrink-0 hover:bg-rose-100 transition-colors"><MapIcon className="w-5 h-5" /></a>}
+                            <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed flex-1">{act.description}</p>
+                            {(act.customMapLink || act.location) && (
+                              <a href={act.customMapLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-2.5 bg-rose-50 text-rose-400 rounded-2xl border border-rose-100 flex-shrink-0 hover:bg-rose-100 transition-colors">
+                                <MapIcon className="w-4 h-4" />
+                              </a>
+                            )}
                           </div>
-                          {act.notes && <div className="mt-3 pt-3 border-t border-slate-50 flex items-center gap-2 text-[10px] font-bold text-amber-600 truncate"><NoteIcon className="w-3 h-3" /> {act.notes}</div>}
                       </div>
                    </div>
                  );
@@ -577,19 +539,25 @@ const App = () => {
          )}
        </main>
 
+       {/* Floating Quick Navigation / Action Bar */}
        <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-50">
           <div className="max-w-3xl mx-auto flex justify-center pointer-events-auto">
-             <div className="bg-white/95 backdrop-blur-xl border border-rose-100 shadow-2xl rounded-3xl p-2 flex items-center space-x-1 sm:space-x-3 overflow-x-auto no-scrollbar max-w-[95vw]">
-               {[ {t:'sightseeing', l:'Place', i:<CameraIcon className="w-5 h-5" />, c:'blue'}, {t:'food', l:'Food', i:<CoffeeIcon className="w-5 h-5" />, c:'orange'}, {t:'stay', l:'Stay', i:<BedIcon className="w-5 h-5" />, c:'emerald'}, {t:'travel', l:'Transit', i:<PlaneIcon className="w-5 h-5" />, c:'sky'} ].map(btn => (
-                 <button key={btn.t} onClick={() => { setEditingActivity(null); setAddingType(btn.t as ActivityType); setIsActivityModalOpen(true); }} className="flex flex-col items-center p-2 rounded-2xl hover:bg-rose-50 group min-w-[4rem]">
-                    <div className={`w-10 h-10 rounded-2xl bg-${btn.c}-50 text-${btn.c}-500 flex items-center justify-center mb-1 shadow-sm border border-${btn.c}-100 transition-transform group-active:scale-90`}>{btn.i}</div>
-                    <span className="text-[9px] font-bold text-slate-500 uppercase">{btn.l}</span>
+             <div className="bg-white/95 backdrop-blur-xl border border-rose-100 shadow-2xl rounded-[2.5rem] p-2 flex items-center space-x-1 overflow-x-auto no-scrollbar max-w-[95vw]">
+               {[ 
+                 {t:'sightseeing', l:'Place', i:<CameraIcon className="w-5 h-5" />, c:'blue'}, 
+                 {t:'food', l:'Food', i:<CoffeeIcon className="w-5 h-5" />, c:'orange'}, 
+                 {t:'stay', l:'Stay', i:<BedIcon className="w-5 h-5" />, c:'emerald'}, 
+                 {t:'travel', l:'Transit', i:<PlaneIcon className="w-5 h-5" />, c:'sky'} 
+               ].map(btn => (
+                 <button key={btn.t} onClick={() => { setEditingActivity(null); setAddingType(btn.t as ActivityType); setIsActivityModalOpen(true); }} className="flex flex-col items-center p-2 rounded-2xl hover:bg-rose-50 group min-w-[3.5rem] sm:min-w-[4rem]">
+                    <div className={`w-9 h-9 rounded-2xl bg-${btn.c}-50 text-${btn.c}-500 flex items-center justify-center mb-1 shadow-sm border border-${btn.c}-50 transition-transform group-active:scale-90`}>{btn.i}</div>
+                    <span className="text-[8px] font-bold text-slate-500 uppercase">{btn.l}</span>
                  </button>
                ))}
                <div className="w-px h-8 bg-rose-100 mx-1"></div>
-               <button onClick={() => { setEditingActivity(null); setIsActivityModalOpen(true); }} className="flex flex-col items-center p-2 rounded-2xl hover:bg-rose-50 group min-w-[4rem]">
-                  <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center mb-1 shadow-lg group-active:scale-90"><PlusIcon className="w-5 h-5" /></div>
-                  <span className="text-[9px] font-bold text-rose-500 uppercase">Custom</span>
+               <button onClick={() => { setEditingActivity(null); setIsActivityModalOpen(true); }} className="flex flex-col items-center p-2 rounded-2xl hover:bg-rose-50 group min-w-[3.5rem] sm:min-w-[4rem]">
+                  <div className="w-9 h-9 rounded-2xl bg-rose-600 text-white flex items-center justify-center mb-1 shadow-lg group-active:scale-90"><PlusIcon className="w-5 h-5" /></div>
+                  <span className="text-[8px] font-bold text-rose-500 uppercase">Custom</span>
                </button>
              </div>
           </div>
@@ -598,8 +566,11 @@ const App = () => {
        <ActivityModal isOpen={isActivityModalOpen} onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); setAddingType(undefined); }} onSave={handleSaveActivity} initialData={editingActivity} initialType={addingType} exchangeRate={exchangeRate} />
        <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
        <MetroGuideModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
-       <footer className="fixed top-20 right-4 z-40 sm:hidden">
-          <button onClick={() => setIsNotesOpen(!isNotesOpen)} className={`p-3 rounded-full shadow-lg border transition-all ${isNotesOpen ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-rose-400 border-rose-100'}`}><NoteIcon className="w-6 h-6" /></button>
+       
+       <footer className="fixed bottom-24 right-4 z-[55]">
+          <button onClick={() => setIsNotesOpen(!isNotesOpen)} className={`p-3.5 rounded-full shadow-lg border transition-all ${isNotesOpen ? 'bg-rose-600 text-white border-rose-600 scale-110' : 'bg-white text-rose-400 border-rose-100 hover:scale-110'}`} title="Notes & Settings">
+             {isNotesOpen ? <CloseIcon className="w-6 h-6" /> : <NoteIcon className="w-6 h-6" />}
+          </button>
        </footer>
     </div>
   );
