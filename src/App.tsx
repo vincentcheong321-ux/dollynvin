@@ -1,11 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Trip, Activity, ActivityType, DailyPlan } from './types';
+import { Trip, Activity, ActivityType, DailyPlan, TripVibe } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
 import { 
-  MapPinIcon, 
-  CalendarIcon, 
   ActivityIcon,
   PlusIcon,
   TrashIcon,
@@ -14,17 +12,11 @@ import {
   CheckIcon,
   NoteIcon,
   CloseIcon,
-  BedIcon,
-  CoffeeIcon,
-  CameraIcon,
-  PlaneIcon,
-  MapIcon,
   WalletIcon,
-  PieChartIcon,
-  ShoppingBagIcon,
   BackIcon
 } from './components/Icons';
 
+// --- Utilities ---
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const getFormattedDate = (startDate: string | undefined, dayOffset: number) => {
@@ -51,7 +43,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
 
   useEffect(() => {
     if (initialData) {
-      setFormData({ ...initialData, cost: typeof initialData.cost === 'number' ? initialData.cost : 0 });
+      setFormData({ ...initialData, cost: initialData.cost ?? 0 });
     } else {
       setFormData({
         id: generateId(), time: '09:00', title: '', description: '', location: '',
@@ -141,7 +133,7 @@ const BudgetModal = ({ isOpen, onClose, trip }: { isOpen: boolean, onClose: () =
   let total = 0;
   const categoryTotals: Record<string, number> = { food: 0, sightseeing: 0, relaxation: 0, travel: 0, stay: 0, shopping: 0, other: 0 };
   trip.dailyPlans.forEach(plan => plan.activities.forEach(act => {
-    const c = (act.cost && !isNaN(act.cost)) ? act.cost : 0;
+    const c = act.cost ?? 0;
     total += c;
     if (categoryTotals[act.type] !== undefined) categoryTotals[act.type] += c; else categoryTotals['other'] += c;
   }));
@@ -192,7 +184,6 @@ const App = () => {
   const [activeDay, setActiveDay] = useState(1);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
-  const [activityTypeToAdd, setActivityTypeToAdd] = useState<ActivityType | undefined>(undefined);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -231,7 +222,7 @@ const App = () => {
   
   const currentDayPlan = trip.dailyPlans.find(d => d.dayNumber === activeDay);
   const sortedActivities = currentDayPlan ? [...currentDayPlan.activities].sort((a, b) => a.time.localeCompare(b.time)) : [];
-  const dayTotal = sortedActivities.reduce((sum, act) => sum + (act.cost || 0), 0);
+  const dayTotal = sortedActivities.reduce((sum, act) => sum + (act.cost ?? 0), 0);
 
   const handleSaveActivity = (activity: Activity) => {
     const updatedPlans = trip.dailyPlans.map(plan => {
@@ -278,7 +269,7 @@ const App = () => {
             <button onClick={resetTrip} className="p-2 text-rose-300 hover:text-rose-500" title="New Trip"><BackIcon className="w-5 h-5" /></button>
             <div className="flex-1 text-center cursor-pointer" onClick={() => setEditingTitle(true)}>
               {editingTitle ? (
-                <input autoFocus className="text-center font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />
+                <input autoFocus className="text-center font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />
               ) : (
                 <div className="flex flex-col items-center">
                    <h2 className="font-serif font-bold text-rose-950 text-xl flex items-center gap-2">{trip.destination} <EditIcon className="w-3 h-3 text-rose-200" /></h2>
@@ -320,7 +311,7 @@ const App = () => {
                 <div onClick={() => setEditingTheme(true)} className="cursor-pointer group">
                   <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">{getFormattedDate(trip.startDate, activeDay - 1)}</div>
                   {editingTheme ? (
-                    <input autoFocus className="text-2xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none" defaultValue={currentDayPlan?.theme} onBlur={e => {
+                    <input autoFocus className="text-2xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent" defaultValue={currentDayPlan?.theme} onBlur={e => {
                       const updated = trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p);
                       handleUpdate({...trip, dailyPlans: updated});
                       setEditingTheme(false);
@@ -351,7 +342,7 @@ const App = () => {
                     <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
                        <ActivityIcon type={act.type} className="w-3 h-3" />
                        <span className="uppercase font-bold tracking-widest">{act.type}</span>
-                       {act.cost > 0 && <span className="text-rose-400 font-bold">Cost: {act.cost.toLocaleString()}</span>}
+                       {(act.cost ?? 0) > 0 && <span className="text-rose-400 font-bold">Cost: {(act.cost ?? 0).toLocaleString()}</span>}
                     </div>
                     <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{act.description}</p>
                  </div>
