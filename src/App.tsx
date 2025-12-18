@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Trip, Activity, ActivityType, DailyPlan, TripVibe } from './types';
+import { Trip, Activity, ActivityType, DailyPlan } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
 import { 
