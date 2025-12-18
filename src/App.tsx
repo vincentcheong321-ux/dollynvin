@@ -40,7 +40,7 @@ interface ActivityModalProps {
   onSave: (activity: Activity) => void;
   initialData?: Activity | null;
   initialType?: ActivityType;
-  exchangeRate: number;
+  exchangeRate: number; // Rate for 1 JPY to MYR
 }
 
 const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, initialData, initialType, exchangeRate }) => {
@@ -228,6 +228,7 @@ const App = () => {
   const [activeDay, setActiveDay] = useState(1);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [addingType, setAddingType] = useState<ActivityType | undefined>(undefined);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -283,6 +284,7 @@ const App = () => {
     handleUpdate({ ...trip, dailyPlans: updatedPlans });
     setIsActivityModalOpen(false);
     setEditingActivity(null);
+    setAddingType(undefined);
   };
 
   const handleDeleteActivity = (id: string) => {
@@ -310,6 +312,7 @@ const App = () => {
 
   const openAddModal = (type: ActivityType = 'sightseeing') => {
     setEditingActivity(null);
+    setAddingType(type);
     setIsActivityModalOpen(true);
   };
 
@@ -353,10 +356,10 @@ const App = () => {
                   <input type="date" className="w-full p-3 bg-rose-50 border-none rounded-xl outline-none" value={trip.startDate || ''} onChange={e => handleUpdate({...trip, startDate: e.target.value})} />
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-rose-400 uppercase mb-2">JPY Exchange Rate (MYR)</label>
+                    <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Exchange Rate (MYR per 100 JPY)</label>
                     <div className="flex items-center space-x-2 bg-rose-50 p-3 rounded-xl">
-                      <span className="text-xs font-bold text-rose-900">1 JPY =</span>
-                      <input type="number" step="0.0001" className="bg-transparent border-b border-rose-200 outline-none w-20 text-center font-bold text-rose-900" value={exchangeRate} onChange={e => setExchangeRate(parseFloat(e.target.value) || 0)} />
+                      <span className="text-xs font-bold text-rose-900">100 JPY =</span>
+                      <input type="number" step="0.01" className="bg-transparent border-b border-rose-200 outline-none w-20 text-center font-bold text-rose-900" value={(exchangeRate * 100).toFixed(2)} onChange={e => setExchangeRate((parseFloat(e.target.value) || 0) / 100)} />
                       <span className="text-xs font-bold text-rose-900">MYR</span>
                     </div>
                 </div>
@@ -402,13 +405,13 @@ const App = () => {
                  <div key={act.id} onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-5 rounded-3xl shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-0.5 ${act.isBooked ? 'border-l-4 border-l-green-400' : 'border-rose-50'}`}>
                     <div className="flex justify-between items-start mb-3">
                        <div className="flex items-center gap-3">
-                         <span className="text-xs font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg">{act.time}</span>
+                         <span className="text-sm font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg">{act.time}</span>
                          <h4 className="font-bold text-lg text-slate-800">{act.title}</h4>
                        </div>
                        <div className="flex items-center gap-2">
                          { (act.customMapLink || act.location) && (
                            <a 
-                             href={act.customMapLink && act.customMapLink.trim() !== "" ? act.customMapLink : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} 
+                             href={act.customMapLink && act.customMapLink.trim() !== "" ? (act.customMapLink.startsWith('http') ? act.customMapLink : `https://${act.customMapLink}`) : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} 
                              target="_blank" 
                              rel="noreferrer" 
                              onClick={e => e.stopPropagation()} 
@@ -466,9 +469,10 @@ const App = () => {
 
        <ActivityModal 
          isOpen={isActivityModalOpen} 
-         onClose={() => setIsActivityModalOpen(false)} 
+         onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); setAddingType(undefined); }} 
          onSave={handleSaveActivity} 
          initialData={editingActivity} 
+         initialType={addingType}
          exchangeRate={exchangeRate}
        />
        <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
