@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
@@ -14,7 +14,6 @@ import {
   NoteIcon,
   CloseIcon,
   WalletIcon,
-  BackIcon,
   PlaneIcon,
   MapIcon,
   CoffeeIcon,
@@ -22,7 +21,10 @@ import {
   ShoppingBagIcon,
   BedIcon,
   SparklesIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  HomeIcon,
+  CalendarIcon,
+  HeartIcon
 } from './components/Icons';
 
 // --- Utilities ---
@@ -40,6 +42,16 @@ const getDayOfMonth = (startDate: string | undefined, dayOffset: number) => {
   const date = new Date(startDate);
   date.setDate(date.getDate() + dayOffset);
   return date.getDate();
+};
+
+const getDaysUntil = (startDate: string | undefined) => {
+  if (!startDate) return null;
+  const start = new Date(startDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffTime = start.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
 };
 
 // --- Activity Modal ---
@@ -252,15 +264,16 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   const [guide, setGuide] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchGuide = async () => {
-    if (!stationName.trim()) return;
+  const fetchGuide = async (nameOverride?: string) => {
+    const target = nameOverride || stationName;
+    if (!target.trim()) return;
     setIsLoading(true);
     setGuide('');
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Provide a detailed platform navigation guide for ${stationName} station in Japan. Explain how to find the major platforms (like JR Yamanote line, Shinkansen, or local metro lines) from main entrances. Include tips for navigating complex exits. Keep it helpful for a tourist.`,
+        contents: `Provide a detailed platform navigation guide for ${target} station in Japan. Explain how to find the major platforms (like JR Yamanote line, Shinkansen, or local metro lines) from main entrances. Include tips for navigating complex exits. Keep it helpful for a tourist.`,
         config: {
           systemInstruction: "You are a Japanese transport expert. Provide clear, concise wayfinding instructions for railway stations."
         }
@@ -271,6 +284,11 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleQuickSelect = (name: string) => {
+    setStationName(name);
+    fetchGuide(name);
   };
 
   if (!isOpen) return null;
@@ -285,8 +303,8 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
               <MapIcon className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Guide</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Station Wayfinding</p>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Assistant</h3>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Japan Platform Navigation</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
@@ -295,46 +313,59 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         <div className="mb-6 flex gap-2">
           <input 
             type="text" 
-            placeholder="Search station (e.g., Shinjuku, Tokyo...)" 
+            placeholder="Enter station name..." 
             value={stationName}
             onChange={(e) => setStationName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && fetchGuide()}
             className="flex-1 p-4 bg-rose-50 border border-rose-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-400 transition-all font-medium text-rose-900"
           />
           <button 
-            onClick={fetchGuide}
+            onClick={() => fetchGuide()}
             disabled={isLoading || !stationName.trim()}
-            className="p-4 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 disabled:opacity-50 transition-all shadow-md active:scale-95"
+            className="p-4 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 disabled:opacity-50 transition-all shadow-md active:scale-95 flex items-center justify-center min-w-[3.5rem]"
           >
-            <SparklesIcon className="w-6 h-6" />
+            {isLoading ? (
+              <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+            ) : (
+              <ArrowRightIcon className="w-6 h-6" />
+            )}
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-6">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 space-y-4">
-              <div className="w-12 h-12 border-4 border-rose-100 border-t-rose-500 rounded-full animate-spin"></div>
-              <p className="text-rose-400 font-serif italic animate-pulse">Mapping out the station maze...</p>
-            </div>
-          ) : guide ? (
-            <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 text-slate-700 leading-relaxed animate-fadeIn whitespace-pre-wrap">
-               <h4 className="font-serif font-bold text-xl text-rose-950 mb-4 border-b border-rose-100 pb-2">{stationName} Guide</h4>
-               {guide}
-            </div>
-          ) : (
-            <div className="text-center py-12 px-6">
-               <p className="text-slate-400 italic mb-6">Enter a Japanese station name to get platform navigation tips and layout help.</p>
-               <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
-                 {['Shinjuku', 'Tokyo', 'Shibuya', 'Osaka'].map(s => (
+          {!guide && !isLoading && (
+            <div className="text-center py-6">
+               <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-4">Quick Select Station</p>
+               <div className="flex flex-wrap justify-center gap-2">
+                 {['Shinjuku', 'Tokyo', 'Shibuya', 'Kyoto', 'Osaka', 'Sapporo', 'Haneda Airport'].map(s => (
                    <button 
                     key={s} 
-                    onClick={() => { setStationName(s); }}
-                    className="p-3 bg-white border border-rose-50 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-50 transition-colors"
+                    onClick={() => handleQuickSelect(s)}
+                    className="px-4 py-2 bg-white border border-rose-100 rounded-full text-xs font-bold text-rose-400 hover:bg-rose-50 transition-colors shadow-sm"
                    >
-                     {s} Station
+                     {s}
                    </button>
                  ))}
                </div>
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 space-y-4">
+              <div className="p-4 bg-rose-50 rounded-full">
+                <SparklesIcon className="w-8 h-8 text-rose-400 animate-pulse" />
+              </div>
+              <p className="text-rose-400 font-serif italic animate-pulse">Consulting the transit maps...</p>
+            </div>
+          ) : guide && (
+            <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 text-slate-700 leading-relaxed animate-fadeIn whitespace-pre-wrap relative">
+               <div className="absolute top-0 right-0 p-4">
+                  <SparklesIcon className="w-5 h-5 text-rose-200" />
+               </div>
+               <h4 className="font-serif font-bold text-xl text-rose-950 mb-4 border-b border-rose-100 pb-2 flex items-center gap-2">
+                 Wayfinding for {stationName}
+               </h4>
+               {guide}
             </div>
           )}
 
@@ -343,9 +374,12 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
               <MapIcon className="w-5 h-5 text-sky-500" />
             </div>
             <div>
-              <p className="text-xs font-bold text-sky-900 mb-1">Official Network Map</p>
-              <a href="https://www.tokyometro.jp/en/subwaymap/index.html" target="_blank" rel="noreferrer" className="text-xs font-bold text-sky-600 underline hover:text-sky-800 transition-colors">
-                View Official Tokyo Metro Map PDF
+              <p className="text-xs font-bold text-sky-900 mb-1">Static Transit Maps</p>
+              <a href="https://www.tokyometro.jp/en/subwaymap/index.html" target="_blank" rel="noreferrer" className="text-xs font-bold text-sky-600 underline hover:text-sky-800 transition-colors block">
+                Official Tokyo Metro Network Map (PDF)
+              </a>
+              <a href="https://www.jreast.co.jp/e/downloads/index.html" target="_blank" rel="noreferrer" className="text-xs font-bold text-sky-600 underline hover:text-sky-800 transition-colors block mt-1">
+                JR East Railway & Station Maps
               </a>
             </div>
           </div>
@@ -359,6 +393,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 const App = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [activeDay, setActiveDay] = useState(1);
+  const [view, setView] = useState<'dashboard' | 'itinerary'>('itinerary');
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [addingType, setAddingType] = useState<ActivityType | undefined>(undefined);
@@ -438,9 +473,11 @@ const App = () => {
   };
 
   const resetTrip = () => {
-    if (confirm('Reset everything and start over?')) {
+    if (confirm('Reset everything and start over? This cannot be undone.')) {
       handleUpdate(createBlankTrip());
       setActiveDay(1);
+      setView('itinerary');
+      setIsNotesOpen(false);
     }
   };
 
@@ -450,11 +487,98 @@ const App = () => {
     setIsActivityModalOpen(true);
   };
 
+  // --- Render Dashboard ---
+  if (view === 'dashboard') {
+    const daysUntil = getDaysUntil(trip.startDate);
+    let totalPlanned = 0;
+    trip.dailyPlans.forEach(p => totalPlanned += p.activities.length);
+
+    return (
+      <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn">
+        <header className="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-rose-100 shadow-sm">
+          <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 className="text-2xl font-serif font-bold text-rose-950">Dashboard</h1>
+            <div className="flex items-center space-x-2">
+               <button onClick={() => setView('itinerary')} className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-full text-xs font-bold shadow-lg shadow-rose-200">
+                 <CalendarIcon className="w-4 h-4" /> View Itinerary
+               </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 max-w-3xl mx-auto w-full p-6 space-y-8">
+           <section className="text-center py-8">
+              <div className="inline-block p-4 bg-rose-50 rounded-full mb-4">
+                <HeartIcon className="w-8 h-8 text-rose-500 animate-pulse" />
+              </div>
+              <h2 className="text-3xl font-serif font-bold text-slate-800 mb-2">Our Trip to {trip.destination}</h2>
+              {daysUntil !== null && (
+                <div className="text-rose-600 font-bold uppercase tracking-widest text-sm">
+                  {daysUntil > 0 ? `${daysUntil} Days To Go!` : daysUntil === 0 ? "It's Travel Day! ❤️" : "Memories made!"}
+                </div>
+              )}
+           </section>
+
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center text-center space-y-4">
+                 <div className="p-4 bg-orange-50 rounded-2xl">
+                    <CalendarIcon className="w-8 h-8 text-orange-400" />
+                 </div>
+                 <div>
+                    <h4 className="font-bold text-slate-800 text-lg">{trip.duration} Days Planned</h4>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{totalPlanned} Activities Total</p>
+                 </div>
+              </div>
+              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center text-center space-y-4">
+                 <div className="p-4 bg-rose-50 rounded-2xl">
+                    <WalletIcon className="w-8 h-8 text-rose-400" />
+                 </div>
+                 <div>
+                    <h4 className="font-bold text-slate-800 text-lg">Budget Ready</h4>
+                    <button onClick={() => setIsBudgetOpen(true)} className="text-xs text-rose-500 font-bold uppercase tracking-widest underline underline-offset-4">View Summary</button>
+                 </div>
+              </div>
+           </div>
+
+           <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-rose-50 group">
+              <div className="h-48 bg-rose-100 flex items-center justify-center relative">
+                 {trip.coverImage ? (
+                   <img src={trip.coverImage} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                 ) : (
+                   <MapIcon className="w-16 h-16 text-rose-200" />
+                 )}
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                 <div className="absolute bottom-6 left-8 text-white">
+                    <h3 className="text-2xl font-serif font-bold">{trip.destination}</h3>
+                    <p className="text-xs font-bold opacity-80 uppercase tracking-[0.2em]">{trip.startDate || 'Set Dates'}</p>
+                 </div>
+              </div>
+              <div className="p-8">
+                 <p className="text-slate-600 text-sm leading-relaxed italic mb-6">"{trip.notes?.substring(0, 100)}..."</p>
+                 <button onClick={() => setView('itinerary')} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 group-hover:bg-rose-600 transition-colors">
+                   Open Full Itinerary <ArrowRightIcon className="w-4 h-4" />
+                 </button>
+              </div>
+           </div>
+        </main>
+
+        <footer className="p-8 text-center">
+           <button onClick={() => { setIsNotesOpen(true); setView('itinerary'); }} className="text-xs font-bold text-slate-400 uppercase tracking-widest hover:text-rose-400 transition-colors">
+             Settings & Notes
+           </button>
+        </footer>
+
+        <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
+      </div>
+    );
+  }
+
+  // --- Render Itinerary ---
   return (
     <div className="min-h-screen flex flex-col sakura-bg">
        <header className="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-rose-100 shadow-sm">
          <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-            <button onClick={resetTrip} className="p-2 text-rose-300 hover:text-rose-500" title="Reset Trip"><BackIcon className="w-5 h-5" /></button>
+            <button onClick={() => setView('dashboard')} className="p-2 text-rose-300 hover:text-rose-500" title="Dashboard"><HomeIcon className="w-5 h-5" /></button>
             <div className="flex-1 text-center cursor-pointer" onClick={() => setEditingTitle(true)}>
               {editingTitle ? (
                 <input autoFocus className="text-center font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />
@@ -486,8 +610,13 @@ const App = () => {
 
        <main className="flex-1 max-w-3xl mx-auto w-full p-4 pb-32">
          {isNotesOpen ? (
-           <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-sm border border-rose-50 space-y-6 animate-fadeIn">
-              <h3 className="font-serif font-bold text-2xl text-rose-950 border-b border-rose-50 pb-4">General Trip Notes</h3>
+           <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-sm border border-rose-50 space-y-8 animate-fadeIn">
+              <div className="flex justify-between items-center border-b border-rose-50 pb-4">
+                <h3 className="font-serif font-bold text-2xl text-rose-950">General Trip Notes</h3>
+                <button onClick={resetTrip} className="px-4 py-2 bg-red-50 text-red-500 rounded-xl text-xs font-bold hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                   Reset Everything
+                </button>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Trip Start Date</label>
