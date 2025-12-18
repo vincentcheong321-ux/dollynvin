@@ -285,17 +285,21 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
       });
       setGuide(textResponse.text || "Sorry, I couldn't find details for that station.");
 
-      // Step 2: 2D Schematic Map Generation
+      // Step 2: 2D/3D Schematic Map Generation
+      // Refined prompt to get "on point" visual diagrams
       const imgResponse = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: `Create a professional 2D minimalist schematic diagram/infographic for ${target} station's main platforms and exits. 
-        Style: Modern transit map style, clean white background, high contrast, colored lines representing different train lines (use official colors like green for Yamanote, orange for Chuo), clear icons for exits and toilets. 
-        Goal: A bird's eye view or simplified layout showing the relationship between levels and major exits.`,
+        contents: `Create a professional 3D isometric or clean 2D schematic diagram/infographic showing the platform levels, transfers, and main exits for ${target} station in Japan. 
+        Style: Modern minimalist transit map style, white background, high contrast, colored lines for train routes (Yamanote green, etc.), clear numbered arrows for exits. 
+        The map must be easy for a tourist to follow visually.`,
       });
       
-      for (const part of imgResponse.candidates[0].content.parts) {
-        if (part.inlineData) {
-          setImageUrl(`data:image/png;base64,${part.inlineData.data}`);
+      // Fixed potential undefined candidates access
+      if (imgResponse.candidates && imgResponse.candidates[0]?.content?.parts) {
+        for (const part of imgResponse.candidates[0].content.parts) {
+          if (part.inlineData) {
+            setImageUrl(`data:image/png;base64,${part.inlineData.data}`);
+          }
         }
       }
 
@@ -350,7 +354,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <SparklesIcon className="w-8 h-8 text-rose-400 animate-pulse" />
-              <p className="text-rose-400 font-serif italic animate-pulse text-center">Generating 2D maps and directions...</p>
+              <p className="text-rose-400 font-serif italic animate-pulse text-center">Generating visual navigation map...</p>
             </div>
           ) : (guide || imageUrl) && (
             <div className="space-y-6 animate-fadeIn pb-8">
@@ -723,15 +727,23 @@ const App = () => {
                </div>
             </div>
             
-            {/* FIXED DAY SELECTOR SCROLL: Ensure flex-nowrap and remove centering constraints */}
-            <div className="flex gap-2 no-scrollbar overflow-x-auto pb-1 items-center px-4 flex-nowrap min-h-[44px]">
-               {trip.dailyPlans.map(p => (
-                 <button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'min-w-[2.8rem] py-1 px-1.5' : 'min-w-[3.2rem] py-1.5 px-2'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}>
-                    <span className="text-[7px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
-                    <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
+            {/* FIXED DAY SELECTOR SCROLL: Added min-w-0 to allow shrink, flex-nowrap and touch scrolling support */}
+            <div className="w-full overflow-hidden relative">
+              <div className="flex gap-2 no-scrollbar overflow-x-auto pb-2 items-center px-2 flex-nowrap min-h-[48px] touch-pan-x cursor-grab active:cursor-grabbing">
+                 {trip.dailyPlans.map(p => (
+                   <button 
+                     key={p.id} 
+                     onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} 
+                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'min-w-[2.8rem] h-10 px-1.5' : 'min-w-[3.2rem] h-12 px-2'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}
+                   >
+                      <span className="text-[7px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
+                      <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
+                   </button>
+                 ))}
+                 <button onClick={addDay} className="p-2 text-rose-200 flex-shrink-0 hover:text-rose-500 transition-colors">
+                   <PlusIcon className="w-5 h-5" />
                  </button>
-               ))}
-               <button onClick={addDay} className="p-2 text-rose-200 flex-shrink-0"><PlusIcon className="w-5 h-5" /></button>
+              </div>
             </div>
          </div>
        </header>
