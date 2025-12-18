@@ -269,7 +269,13 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
                       </div>
                     </div>
                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-rose-500 rounded-full transition-all duration-1000" style={{ width: `${(cost / maxCost) * 100}%` }}></div>
+                      <div className={`h-full rounded-full transition-all duration-1000 ${
+                        cat === 'food' ? 'bg-orange-400' : 
+                        cat === 'stay' ? 'bg-emerald-400' :
+                        cat === 'travel' ? 'bg-sky-400' : 
+                        cat === 'shopping' ? 'bg-purple-400' :
+                        'bg-rose-400'
+                      }`} style={{ width: `${(cost / maxCost) * 100}%` }}></div>
                     </div>
                   </div>
                 );
@@ -325,7 +331,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             onClick={() => setActiveTab('map')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'map' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
           >
-            Subway Map
+            Route Map
           </button>
         </div>
 
@@ -391,11 +397,11 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                   <img 
                     src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Tokyo_Metro_Subway_Map.svg/2560px-Tokyo_Metro_Subway_Map.svg.png" 
                     alt="Tokyo Subway Route Map" 
-                    className="max-w-none h-auto w-[200%] md:w-[120%] rounded-lg shadow-2xl"
+                    className="max-w-none h-auto w-[250%] md:w-[150%] rounded-lg shadow-2xl"
                   />
                </div>
                <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-lg border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600 pointer-events-none">
-                  Scroll / Drag to View Details
+                  Scroll / Pinch to Explore Map
                </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -412,7 +418,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                 target="_blank" rel="noreferrer"
                 className="flex items-center justify-center gap-3 p-4 bg-white text-rose-600 border border-rose-100 rounded-2xl font-bold hover:bg-rose-50 transition-colors"
                >
-                 <span>Interactive Guide</span>
+                 <span>Full Web Guide</span>
                  <ArrowRightIcon className="w-4 h-4" />
                </a>
             </div>
@@ -589,9 +595,16 @@ const App = () => {
     const daysUntil = getDaysUntil(trip.startDate);
     return (
       <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn">
-        <header className="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-rose-100 p-4">
+        <header className="bg-transparent p-4">
            <div className="max-w-3xl mx-auto flex items-center justify-between">
-              <div className="flex items-center gap-2"><HeartIcon className="w-5 h-5 text-rose-500" /><h1 className="text-xl font-serif font-bold text-rose-950">Our Journey</h1></div>
+              <div className="w-10"></div>
+              <div 
+                className="relative bg-white p-4 rounded-full shadow-lg border border-rose-100 group cursor-pointer active:scale-95 transition-all"
+                onClick={() => setView('itinerary')}
+              >
+                <div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-10 group-hover:opacity-30"></div>
+                <HeartIcon className="w-8 h-8 text-rose-500 relative" />
+              </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setIsChatOpen(true)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-full"><SparklesIcon className="w-5 h-5" /></button>
                 <button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><NoteIcon className="w-5 h-5" /></button>
@@ -599,24 +612,61 @@ const App = () => {
            </div>
         </header>
         <main className="flex-1 max-w-3xl mx-auto w-full p-6 space-y-8 pb-32">
-           <section className="text-center py-10 space-y-4">
-              <div className="relative inline-block"><div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-20"></div><div className="relative bg-white p-6 rounded-full shadow-xl border border-rose-100"><HeartIcon className="w-10 h-10 text-rose-500" /></div></div>
-              <div className="space-y-1"><h2 className="text-4xl font-serif font-bold text-slate-800">{trip.destination}</h2><p className="text-rose-400 font-bold tracking-widest uppercase text-xs">Adventure for Two</p></div>
-              {daysUntil !== null && <div className="bg-rose-50 inline-block px-6 py-2 rounded-full border border-rose-100 shadow-sm"><span className="text-rose-600 font-bold text-sm">{daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}</span></div>}
+           <section className="text-center py-4 space-y-2">
+              <h2 className="text-4xl font-serif font-bold text-slate-800">{trip.destination}</h2>
+              <p className="text-rose-400 font-bold tracking-widest uppercase text-xs">Adventure for Two</p>
+              {daysUntil !== null && (
+                <div className="mt-4">
+                  <div className="bg-rose-50 inline-block px-6 py-2 rounded-full border border-rose-100 shadow-sm">
+                    <span className="text-rose-600 font-bold text-sm">
+                      {daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}
+                    </span>
+                  </div>
+                </div>
+              )}
            </section>
+
            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 text-center space-y-2"><CalendarIcon className="w-8 h-8 text-orange-400 mx-auto" /><h4 className="font-bold text-slate-800 text-lg">{trip.duration} Days</h4></div>
-              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 text-center space-y-2"><WalletIcon className="w-8 h-8 text-rose-400 mx-auto" /><h4 className="font-bold text-slate-800 text-lg">¥{totalBudgetJPY.toLocaleString()}</h4></div>
+              <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-rose-50 text-center space-y-3">
+                <div className="p-2 bg-orange-50 w-max mx-auto rounded-xl"><CalendarIcon className="w-6 h-6 text-orange-400" /></div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-2xl">{trip.duration} Days</h4>
+                </div>
+              </div>
+              <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-rose-50 text-center space-y-3">
+                <div className="p-2 bg-rose-50 w-max mx-auto rounded-xl"><WalletIcon className="w-6 h-6 text-rose-400" /></div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-2xl">¥{totalBudgetJPY.toLocaleString()}</h4>
+                </div>
+              </div>
            </div>
-           <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-rose-50 p-8 space-y-6">
-              <div className="flex items-center gap-3 text-rose-950 font-serif font-bold text-xl"><SparklesIcon className="w-5 h-5 text-rose-400" /><h3>Quick Actions</h3></div>
-              <button onClick={() => setView('itinerary')} className="w-full py-5 bg-rose-600 text-white rounded-3xl font-bold shadow-lg">Open Itinerary</button>
-              <div className="grid grid-cols-2 gap-3">
-                 <button onClick={() => setIsMetroGuideOpen(true)} className="py-4 bg-slate-900 text-white rounded-3xl font-bold flex items-center justify-center gap-2"><MapIcon className="w-4 h-4" /> Metro Map</button>
-                 <button onClick={() => setIsBudgetOpen(true)} className="py-4 bg-white text-rose-600 border border-rose-100 rounded-3xl font-bold flex items-center justify-center gap-2"><WalletIcon className="w-4 h-4" /> Budget</button>
+
+           <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-rose-50 p-8 space-y-8">
+              <div className="flex items-center gap-3 text-rose-950 font-serif font-bold text-xl">
+                 <SparklesIcon className="w-5 h-5 text-rose-400" />
+                 <h3>Quick Actions</h3>
+              </div>
+              
+              <button 
+                onClick={() => setView('itinerary')} 
+                className="w-full py-6 bg-rose-600 hover:bg-rose-700 text-white rounded-[2rem] font-bold shadow-xl transition-all active:scale-[0.98]"
+              >
+                Open Itinerary
+              </button>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <button onClick={() => setIsMetroGuideOpen(true)} className="py-5 bg-slate-900 hover:bg-slate-800 text-white rounded-[2rem] font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
+                    <MapIcon className="w-5 h-5" /> 
+                    <span>Metro Map</span>
+                 </button>
+                 <button onClick={() => setIsBudgetOpen(true)} className="py-5 bg-white border border-rose-100 text-rose-600 hover:bg-rose-50 rounded-[2rem] font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
+                    <WalletIcon className="w-5 h-5" /> 
+                    <span>Budget</span>
+                 </button>
               </div>
            </div>
         </main>
+
         {isNotesOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsNotesOpen(false)}></div>
@@ -644,24 +694,28 @@ const App = () => {
                   {editingTitle ? (
                     <input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center text-slate-800" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />
                   ) : (
-                    <div className="flex flex-col items-center"><h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>{trip.destination}</h2></div>
+                    <div className="flex flex-col items-center">
+                      <h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>
+                        {trip.destination}
+                      </h2>
+                    </div>
                   )}
                </div>
                <div className="flex items-center gap-1">
-                  <button onClick={() => setIsChatOpen(true)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-full"><SparklesIcon className="w-5 h-5" /></button>
-                  <button onClick={() => setIsMetroGuideOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><MapIcon className="w-5 h-5" /></button>
-                  <button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><WalletIcon className="w-5 h-5" /></button>
+                  <button onClick={() => setIsChatOpen(true)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-full transition-colors"><SparklesIcon className="w-5 h-5" /></button>
+                  <button onClick={() => setIsMetroGuideOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><MapIcon className="w-5 h-5" /></button>
+                  <button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><WalletIcon className="w-5 h-5" /></button>
                </div>
             </div>
             
-            {/* FIXED DAY SELECTOR SCROLL: Added w-full overflow-x-auto and ensured the inner flex box allows scrolling on desktop browsers */}
-            <div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 touch-pan-x cursor-ew-resize">
-              <div className="flex gap-2 w-max items-center flex-nowrap pr-12">
+            {/* DATE SELECTOR: Enforced better scrolling container with explicit width handling */}
+            <div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 select-none">
+              <div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">
                  {trip.dailyPlans.map(p => (
                    <button 
                      key={p.id} 
                      onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} 
-                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.4rem] h-11' : 'w-[4.2rem] h-13'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md scale-105' : 'bg-white border-rose-100 text-rose-300 hover:border-rose-300'}`}
+                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.4rem] h-11' : 'w-[4.2rem] h-13'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-900 border-rose-900 text-white shadow-md scale-105' : 'bg-white border-rose-100 text-rose-400 hover:border-rose-300'}`}
                    >
                       <span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
                       <span className="text-xs font-bold leading-none mt-0.5">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
@@ -681,16 +735,13 @@ const App = () => {
                   {editingTheme ? (
                     <input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} />
                   ) : (
-                    <h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate group cursor-pointer">
-                      Day {activeDay}: {currentDayPlan?.theme} 
-                      <EditIcon className="w-3 h-3 text-rose-200 group-hover:text-rose-400 transition-colors" />
-                    </h2>
+                    <h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate group cursor-pointer">Day {activeDay}: {currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200 group-hover:text-rose-400 transition-colors" /></h2>
                   )}
                 </div>
                 <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800">
-                   <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic">Daily Total</div>
+                   <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic text-center">Daily Total</div>
                    <div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div>
-                   <div className="text-[9px] font-bold text-rose-400">≈ RM {dayTotalMYR.toFixed(2)}</div>
+                   <div className="text-[9px] font-bold text-rose-400 text-center">≈ RM {dayTotalMYR.toFixed(2)}</div>
                 </div>
              </div>
 
@@ -701,7 +752,7 @@ const App = () => {
                  return (
                    <div key={act.id} className="relative group">
                       <div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : (act.isBooked ? 'border-green-500' : 'border-rose-300')}`}></div>
-                      <div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${act.isBooked ? 'border-l-8 border-l-green-400' : 'border-white hover:border-rose-100'}`}>
+                      <div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${act.isBooked ? 'border-l-8 border-l-green-400 shadow-green-50' : 'border-white hover:border-rose-100 shadow-rose-50/50'}`}>
                           <div className="flex justify-between items-start mb-2 gap-2 text-slate-800">
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span>
@@ -709,14 +760,30 @@ const App = () => {
                             </div>
                             <button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button>
                           </div>
+                          
+                          {/* Colorful Badges Re-added */}
                           <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3">
-                            <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100"><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>
-                            {(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">¥{(act.cost ?? 0).toLocaleString()}</span>}
-                            {act.isBooked && <span className="text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-lg border border-green-100">Booked</span>}
+                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${
+                              act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                              act.type === 'sightseeing' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                              act.type === 'shopping' ? 'bg-purple-50 text-purple-600 border-purple-100' :
+                              act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' :
+                              act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                              act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' :
+                              'bg-slate-50 text-slate-600 border-slate-100'
+                            }`}>
+                              <ActivityIcon type={act.type} className="w-3 h-3" />
+                              <span className="uppercase font-bold tracking-widest">{act.type}</span>
+                            </div>
+                            
+                            {(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-xl border border-rose-100">¥{(act.cost ?? 0).toLocaleString()}</span>}
+                            {act.isBooked && <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded-xl border border-green-100 flex items-center gap-1"><CheckIcon className="w-2.5 h-2.5" /> Booked</span>}
                           </div>
                           <div className="flex items-end justify-between gap-4">
                             <p className="text-xs text-slate-600 line-clamp-2 flex-1 leading-relaxed">{act.description}</p>
-                            <MapIcon className="w-4 h-4 text-rose-200 group-hover:text-rose-400 transition-colors" />
+                            <div className="p-2 bg-rose-50 rounded-full group-hover:bg-rose-100 transition-colors">
+                              <MapIcon className="w-3.5 h-3.5 text-rose-400" />
+                            </div>
                           </div>
                       </div>
                    </div>
@@ -738,13 +805,13 @@ const App = () => {
                  {t:'travel', l:'Travel', i:<PlaneIcon className="w-5 h-5" />, c:'sky'}
                ].map(btn => (
                  <button key={btn.t} onClick={() => { setEditingActivity(null); setAddingType(btn.t as ActivityType); setIsActivityModalOpen(true); }} className="flex flex-col items-center p-2 rounded-2xl hover:bg-rose-50 group min-w-[3.5rem] sm:min-w-[4rem]">
-                    <div className={`w-9 h-9 rounded-2xl bg-${btn.c}-50 text-${btn.c}-500 flex items-center justify-center mb-1 shadow-sm transition-transform group-active:scale-90`}>{btn.i}</div>
+                    <div className={`w-10 h-10 rounded-2xl bg-${btn.c}-50 text-${btn.c}-500 flex items-center justify-center mb-1 shadow-sm transition-all group-active:scale-90 group-hover:scale-105`}>{btn.i}</div>
                     <span className="text-[8px] font-bold text-slate-500 uppercase">{btn.l}</span>
                  </button>
                ))}
                <div className="w-px h-8 bg-rose-100 mx-1"></div>
                <button onClick={() => { setEditingActivity(null); setIsActivityModalOpen(true); }} className="flex flex-col items-center p-2 rounded-2xl hover:bg-rose-50 group min-w-[3.5rem] sm:min-w-[4rem]">
-                  <div className="w-9 h-9 rounded-2xl bg-rose-600 text-white flex items-center justify-center mb-1 shadow-lg group-active:scale-90"><PlusIcon className="w-5 h-5" /></div>
+                  <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center mb-1 shadow-lg group-active:scale-90 group-hover:scale-105 transition-all"><PlusIcon className="w-5 h-5" /></div>
                   <span className="text-[8px] font-bold text-rose-500 uppercase">Custom</span>
                </button>
              </div>
