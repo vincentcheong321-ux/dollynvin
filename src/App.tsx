@@ -249,29 +249,82 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
 };
 
 // --- Metro Station Assistant Modal ---
-const TOKYO_METRO_STATIONS = [
-  { name: 'Shinjuku', id: 'shinjuku' },
-  { name: 'Tokyo', id: 'tokyo' },
-  { name: 'Shibuya', id: 'shibuya' },
-  { name: 'Ginza', id: 'ginza' },
-  { name: 'Asakusa', id: 'asakusa' },
-  { name: 'Ueno', id: 'ueno' },
-  { name: 'Roppongi', id: 'roppongi' },
-  { name: 'Akihabara', id: 'akihabara' },
-  { name: 'Ikebukuro', id: 'ikebukuro' },
-  { name: 'Omote-sando', id: 'omote-sando' },
-  { name: 'Nihombashi', id: 'nihombashi' },
-  { name: 'Kanda', id: 'kanda' },
-  { name: 'Ebisu', id: 'ebisu' }
+const METRO_LINES = [
+  { 
+    name: 'Ginza Line', 
+    id: 'ginza', 
+    color: '#FF9500', 
+    letter: 'G',
+    stations: ['Shibuya', 'Omotesando', 'Akasaka-mitsuke', 'Ginza', 'Nihombashi', 'Ueno', 'Asakusa']
+  },
+  { 
+    name: 'Marunouchi Line', 
+    id: 'marunouchi', 
+    color: '#F62E36', 
+    letter: 'M',
+    stations: ['Ogikubo', 'Shinjuku', 'Akasaka-mitsuke', 'Ginza', 'Tokyo', 'Otemachi', 'Ikebukuro']
+  },
+  { 
+    name: 'Hibiya Line', 
+    id: 'hibiya', 
+    color: '#B5B5AC', 
+    letter: 'H',
+    stations: ['Naka-meguro', 'Ebisu', 'Roppongi', 'Ginza', 'Akihabara', 'Ueno', 'Kita-senju']
+  },
+  { 
+    name: 'Tozai Line', 
+    id: 'tozai', 
+    color: '#009BBF', 
+    letter: 'T',
+    stations: ['Nakano', 'Takadanobaba', 'Iidabashi', 'Otemachi', 'Nihombashi', 'Nishi-funabashi']
+  },
+  { 
+    name: 'Chiyoda Line', 
+    id: 'chiyoda', 
+    color: '#00BB85', 
+    letter: 'C',
+    stations: ['Yoyogi-uehara', 'Meiji-jingumae', 'Omotesando', 'Akasaka', 'Otemachi', 'Kita-senju']
+  },
+  { 
+    name: 'Yurakucho Line', 
+    id: 'yurakucho', 
+    color: '#C1A470', 
+    letter: 'Y',
+    stations: ['Wakoshi', 'Ikebukuro', 'Iidabashi', 'Yurakucho', 'Ginza-itchome', 'Toyosu']
+  },
+  { 
+    name: 'Hanzomon Line', 
+    id: 'hanzomon', 
+    color: '#8F76D6', 
+    letter: 'Z',
+    stations: ['Shibuya', 'Omotesando', 'Nagatacho', 'Otemachi', 'Kiyosumi-shirakawa', 'Oshiage']
+  },
+  { 
+    name: 'Namboku Line', 
+    id: 'namboku', 
+    color: '#00AC9B', 
+    letter: 'N',
+    stations: ['Meguro', 'Shirokanedai', 'Azabu-juban', 'Nagatacho', 'Iidabashi', 'Akabane-iwabuchi']
+  },
+  { 
+    name: 'Fukutoshin Line', 
+    id: 'fukutoshin', 
+    color: '#9C5E31', 
+    letter: 'F',
+    stations: ['Wakoshi', 'Ikebukuro', 'Shinjuku-sanchome', 'Meiji-jingumae', 'Shibuya']
+  }
 ];
 
 const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedLine, setExpandedLine] = useState<string | null>('ginza');
 
-  const filteredStations = useMemo(() => {
-    return TOKYO_METRO_STATIONS.filter(s => 
-      s.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredLines = useMemo(() => {
+    if (!searchTerm) return METRO_LINES;
+    return METRO_LINES.map(line => ({
+      ...line,
+      stations: line.stations.filter(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
+    })).filter(line => line.stations.length > 0);
   }, [searchTerm]);
 
   if (!isOpen) return null;
@@ -279,13 +332,13 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
+      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
-              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Guide</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Official Tokyo Metro Info</p>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Navigator</h3>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Official Line Routes</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
@@ -295,10 +348,10 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           <div className="relative">
             <input 
               type="text" 
-              placeholder="Search station (e.g., Shinjuku)..." 
+              placeholder="Search station (e.g., Shibuya)..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-4 pl-12 bg-rose-50 border border-rose-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-400 transition-all font-medium text-rose-900" 
+              className="w-full p-4 pl-12 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-400 transition-all font-medium text-rose-900" 
             />
             <div className="absolute left-4 top-4.5 text-rose-300">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -306,49 +359,72 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-3">
-          <div className="bg-rose-600 p-4 rounded-2xl text-white mb-6 flex items-center justify-between shadow-lg">
-            <div>
-              <h4 className="font-bold">Full Station Directory</h4>
-              <p className="text-[10px] opacity-80 uppercase tracking-widest">Official Tokyo Metro Website</p>
-            </div>
-            <a 
-              href="https://www.tokyometro.jp/en/route_station/index.html" 
-              target="_blank" 
-              rel="noreferrer"
-              className="p-3 bg-white text-rose-600 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition-all"
-            >
-              Open Site
-            </a>
-          </div>
+        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-4">
+          {filteredLines.map(line => (
+            <div key={line.id} className="border border-slate-100 rounded-[2rem] overflow-hidden bg-white shadow-sm transition-all">
+              <button 
+                onClick={() => setExpandedLine(expandedLine === line.id ? null : line.id)}
+                className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
+              >
+                <div className="flex items-center space-x-4">
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
+                    style={{ backgroundColor: line.color }}
+                  >
+                    {line.letter}
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-serif font-bold text-slate-800">{line.name}</h4>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Major Stations</p>
+                  </div>
+                </div>
+                <div className={`transform transition-transform ${expandedLine === line.id ? 'rotate-90' : ''}`}>
+                   <ArrowRightIcon className="w-5 h-5 text-slate-300" />
+                </div>
+              </button>
 
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Quick Access Stations</p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {filteredStations.map(station => (
-              <div key={station.id} className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex items-center justify-between hover:border-rose-200 transition-colors">
-                <span className="font-serif font-bold text-slate-800">{station.name}</span>
-                <a 
-                  href={`https://www.tokyometro.jp/en/route_station/index.html`} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="p-2 bg-white text-rose-500 rounded-lg shadow-sm hover:bg-rose-500 hover:text-white transition-all"
-                  title={`View ${station.name} layout`}
-                >
-                  <ArrowRightIcon className="w-4 h-4" />
-                </a>
-              </div>
-            ))}
-          </div>
-          
-          {filteredStations.length === 0 && (
-            <div className="text-center py-10 text-slate-400 italic">No stations matching "{searchTerm}"</div>
+              {expandedLine === line.id && (
+                <div className="p-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fadeIn">
+                  {line.stations.map(station => (
+                    <a 
+                      key={station}
+                      href={`https://www.tokyometro.jp/en/route_station/${station.toLowerCase().replace(/ /g, '-')}/index.html`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50/30 transition-all group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: line.color }}></div>
+                        <span className="font-medium text-slate-700 text-sm">{station}</span>
+                      </div>
+                      <ArrowRightIcon className="w-3.5 h-3.5 text-slate-300 group-hover:text-rose-400" />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {filteredLines.length === 0 && (
+            <div className="text-center py-10">
+               <div className="bg-slate-100 inline-block p-4 rounded-full mb-4">
+                 <MapIcon className="w-8 h-8 text-slate-300" />
+               </div>
+               <p className="text-slate-400 font-medium italic">No stations found matching "{searchTerm}"</p>
+            </div>
           )}
         </div>
         
-        <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-center gap-2">
-          <SparklesIcon className="w-4 h-4 text-rose-300" />
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Always verify with official maps at stations</p>
+        <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col items-center gap-2">
+           <a 
+              href="https://www.tokyometro.jp/en/route_station/index.html" 
+              target="_blank" 
+              rel="noreferrer"
+              className="text-[10px] font-bold text-rose-400 hover:text-rose-600 uppercase tracking-widest underline decoration-dotted underline-offset-4"
+            >
+              View Complete Official Directory
+            </a>
+           <p className="text-[9px] text-slate-300 uppercase tracking-tighter">Official route data provided by Tokyo Metro Co., Ltd.</p>
         </div>
       </div>
     </div>
@@ -704,7 +780,6 @@ const App = () => {
                </div>
             </div>
             
-            {/* FIXED DAY SELECTOR SCROLL: Added w-full relative container with absolute-scrolling flex child */}
             <div className="w-full relative py-1">
               <div className="flex gap-2 overflow-x-auto no-scrollbar items-center -mx-4 px-4 flex-nowrap touch-pan-x">
                  <div className="flex gap-2 min-w-max">
