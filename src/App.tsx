@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
@@ -25,6 +25,7 @@ import {
   CalendarIcon,
   HeartIcon
 } from './components/Icons';
+import { sendChatMessage } from './services/geminiService';
 
 // --- Utilities ---
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -338,6 +339,131 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   );
 };
 
+// --- Chat Assistant Modal ---
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+}
+
+const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onClose: () => void, currentTrip: Trip | null }) => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setMessages([{ 
+        id: 'init', 
+        role: 'model', 
+        text: currentTrip 
+          ? `Hi! I'm ready to help with your trip to ${currentTrip.destination}. Need suggestions for a specific day or help finding a restaurant nearby?`
+          : `Hi! I'm your travel assistant. Start by creating a trip!`
+      }]);
+    }
+  }, [isOpen, currentTrip]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isOpen]);
+
+  const handleSend = async () => {
+    if (!input.trim() || !currentTrip) return;
+
+    const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text: input };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setIsTyping(true);
+
+    try {
+      const history = messages.filter(m => m.id !== 'init').map(m => ({
+        role: m.role,
+        parts: [{ text: m.text }]
+      }));
+
+      const result = await sendChatMessage(input, history, currentTrip);
+      
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'model',
+        text: result.text || "I found some info for you."
+      }]);
+    } catch (e) {
+      console.error(e);
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Sorry, connection error." }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center sm:p-6 pointer-events-none">
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={onClose}></div>
+      <div className="bg-white/95 w-full h-[85vh] sm:h-[600px] sm:max-w-md sm:rounded-3xl shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-slideUp border border-white/50">
+        <div className="bg-rose-600 p-4 flex items-center justify-between text-white shadow-md">
+          <div className="flex items-center space-x-2">
+            <SparklesIcon className="w-5 h-5" />
+            <span className="font-bold">Trip Assistant</span>
+          </div>
+          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+            <CloseIcon className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
+                msg.role === 'user' 
+                  ? 'bg-rose-600 text-white rounded-br-none' 
+                  : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'
+              }`}>
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</div>
+              </div>
+            </div>
+          ))}
+          {isTyping && (
+             <div className="flex justify-start">
+               <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-slate-100 shadow-sm">
+                 <div className="flex space-x-1">
+                   <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce"></div>
+                   <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce delay-75"></div>
+                   <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce delay-150"></div>
+                 </div>
+               </div>
+             </div>
+          )}
+        </div>
+
+        <div className="p-4 bg-white border-t border-slate-100">
+          <div className="flex items-center space-x-2 bg-slate-50 rounded-full px-4 py-2 border border-slate-200 focus-within:border-rose-400 transition-all">
+            <input
+              type="text"
+              placeholder="Ask about your trip..."
+              className="flex-1 bg-transparent outline-none text-slate-700 placeholder-slate-400"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            />
+            <button 
+              onClick={handleSend}
+              disabled={!input.trim() || isTyping}
+              className="p-2 bg-rose-600 text-white rounded-full hover:bg-rose-700 disabled:opacity-50 transition-colors"
+            >
+              <ArrowRightIcon className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 const App = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -349,6 +475,7 @@ const App = () => {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
   const [isMetroGuideOpen, setIsMetroGuideOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingTheme, setEditingTheme] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -450,7 +577,10 @@ const App = () => {
                  <HeartIcon className="w-5 h-5 text-rose-500" />
                  <h1 className="text-xl font-serif font-bold text-rose-950">Our Journey</h1>
               </div>
-              <button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><NoteIcon className="w-5 h-5" /></button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setIsChatOpen(true)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-full"><SparklesIcon className="w-5 h-5" /></button>
+                <button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><NoteIcon className="w-5 h-5" /></button>
+              </div>
            </div>
         </header>
 
@@ -530,6 +660,7 @@ const App = () => {
              </div>
           </div>
         )}
+        <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
       </div>
     );
   }
@@ -552,18 +683,20 @@ const App = () => {
                   )}
                </div>
                <div className="flex items-center gap-1">
+                  <button onClick={() => setIsChatOpen(true)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-full"><SparklesIcon className="w-5 h-5" /></button>
                   <button onClick={() => setIsMetroGuideOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><MapIcon className="w-5 h-5" /></button>
                   <button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><WalletIcon className="w-5 h-5" /></button>
                </div>
             </div>
-            <div className="flex gap-2 no-scrollbar overflow-x-auto pb-1 justify-center items-center">
+            {/* FIXED DAY SELECTOR SCROLL: removed justify-center, added px-4 */}
+            <div className="flex gap-2 no-scrollbar overflow-x-auto pb-1 items-center px-4">
                {trip.dailyPlans.map(p => (
-                 <button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all ${isScrolled ? 'min-w-[2.8rem] py-1 px-1.5' : 'min-w-[3.2rem] py-1.5 px-2'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}>
+                 <button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'min-w-[2.8rem] py-1 px-1.5' : 'min-w-[3.2rem] py-1.5 px-2'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}>
                     <span className="text-[7px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
                     <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
                  </button>
                ))}
-               <button onClick={addDay} className="p-2 text-rose-200"><PlusIcon className="w-5 h-5" /></button>
+               <button onClick={addDay} className="p-2 text-rose-200 flex-shrink-0"><PlusIcon className="w-5 h-5" /></button>
             </div>
          </div>
        </header>
@@ -659,6 +792,7 @@ const App = () => {
        <ActivityModal isOpen={isActivityModalOpen} onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); setAddingType(undefined); }} onSave={handleSaveActivity} initialData={editingActivity} initialType={addingType} exchangeRate={exchangeRate} />
        <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
        <MetroGuideModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
+       <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
     </div>
   );
 };

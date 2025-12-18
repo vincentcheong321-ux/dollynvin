@@ -1,3 +1,4 @@
+
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -8,9 +9,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
-      // Define process.env to prevent "process is not defined" errors in some environments
-      'process.env': JSON.stringify({})
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || 'AIzaSyCM5cbYE_2Jz648_AbrzpUqCCLA9l2DtCg'),
     }
   };
 });
