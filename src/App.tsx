@@ -22,7 +22,8 @@ import {
   ArrowRightIcon,
   HomeIcon,
   CalendarIcon,
-  HeartIcon
+  HeartIcon,
+  ShoppingBagIcon
 } from './components/Icons';
 import { sendChatMessage } from './services/geminiService';
 
@@ -77,7 +78,7 @@ const isActivityOngoing = (activityTime: string, nextActivityTime?: string): boo
   return currentMinutes >= startMinutes && currentMinutes < startMinutes + 120;
 };
 
-// --- Metro Data Structure ---
+// --- Metro Data ---
 const METRO_LINES = [
   { 
     name: 'Ginza Line', 
@@ -87,9 +88,9 @@ const METRO_LINES = [
     stations: [
       { name: 'Shibuya', id: 'shibuya' },
       { name: 'Omotesando', id: 'omotesando' },
-      { name: 'Aoyama-itchome', id: 'aoyama-itchome' },
-      { name: 'Akasaka-mitsuke', id: 'akasaka-mitsuke' },
-      { name: 'Tameike-sanno', id: 'tameike-sanno' },
+      { name: 'Aoyama-itchome', id: 'aoyama_itchome' },
+      { name: 'Akasaka-mitsuke', id: 'akasakamitsuke' },
+      { name: 'Tameike-sanno', id: 'tameikesanno' },
       { name: 'Toranomon', id: 'toranomon' },
       { name: 'Shimbashi', id: 'shimbashi' },
       { name: 'Ginza', id: 'ginza' },
@@ -98,7 +99,7 @@ const METRO_LINES = [
       { name: 'Mitsukoshimae', id: 'mitsukoshimae' },
       { name: 'Kanda', id: 'kanda' },
       { name: 'Suehirocho', id: 'suehirocho' },
-      { name: 'Ueno-hirokoji', id: 'ueno-hirokoji' },
+      { name: 'Ueno-hirokoji', id: 'uenohirokoji' },
       { name: 'Ueno', id: 'ueno' },
       { name: 'Inaricho', id: 'inaricho' },
       { name: 'Tawaramachi', id: 'tawaramachi' },
@@ -112,8 +113,13 @@ const METRO_LINES = [
     letter: 'M',
     stations: [
       { name: 'Shinjuku', id: 'shinjuku' },
-      { name: 'Shinjuku-sanchome', id: 'shinjuku-sanchome' },
-      { name: 'Akasaka-mitsuke', id: 'akasaka-mitsuke' },
+      { name: 'Shinjuku-sanchome', id: 'shinjukusanchome' },
+      { name: 'Shinjuku-gyoemmae', id: 'shinjukugyoemmae' },
+      { name: 'Yotsuya-sanchome', id: 'yotsuyasanchome' },
+      { name: 'Yotsuya', id: 'yotsuya' },
+      { name: 'Akasaka-mitsuke', id: 'akasakamitsuke' },
+      { name: 'Kokkai-gijidomae', id: 'kokkaigijidomae' },
+      { name: 'Kasumigaseki', id: 'kasumigaseki' },
       { name: 'Ginza', id: 'ginza' },
       { name: 'Tokyo', id: 'tokyo' },
       { name: 'Otemachi', id: 'otemachi' },
@@ -126,12 +132,21 @@ const METRO_LINES = [
     color: '#B5B5AC', 
     letter: 'H',
     stations: [
-      { name: 'Naka-meguro', id: 'naka-meguro' },
+      { name: 'Naka-meguro', id: 'nakameguro' },
       { name: 'Ebisu', id: 'ebisu' },
-      { name: 'Hiro-o', id: 'hiro-o' },
+      { name: 'Hiro-o', id: 'hiroo' },
       { name: 'Roppongi', id: 'roppongi' },
       { name: 'Kamiyacho', id: 'kamiyacho' },
+      { name: 'Toranomon Hills', id: 'toranomonhills' },
+      { name: 'Kasumigaseki', id: 'kasumigaseki' },
+      { name: 'Hibiya', id: 'hibiya' },
       { name: 'Ginza', id: 'ginza' },
+      { name: 'Higashi-ginza', id: 'higashiginza' },
+      { name: 'Tsukiji', id: 'tsukiji' },
+      { name: 'Hatchobori', id: 'hatchobori' },
+      { name: 'Kayabacho', id: 'kayabacho' },
+      { name: 'Ningyocho', id: 'ningyocho' },
+      { name: 'Kodemmacho', id: 'kodemmacho' },
       { name: 'Akihabara', id: 'akihabara' },
       { name: 'Ueno', id: 'ueno' }
     ]
@@ -144,8 +159,11 @@ const METRO_LINES = [
     stations: [
       { name: 'Nakano', id: 'nakano' },
       { name: 'Takadanobaba', id: 'takadanobaba' },
+      { name: 'Waseda', id: 'waseda' },
+      { name: 'Kagurazaka', id: 'kagurazaka' },
       { name: 'Iidabashi', id: 'iidabashi' },
       { name: 'Kudanshita', id: 'kudanshita' },
+      { name: 'Takebashi', id: 'takebashi' },
       { name: 'Otemachi', id: 'otemachi' },
       { name: 'Nihombashi', id: 'nihombashi' }
     ]
@@ -156,8 +174,9 @@ const METRO_LINES = [
     color: '#00BB85', 
     letter: 'C',
     stations: [
-      { name: 'Yoyogi-uehara', id: 'yoyogi-uehara' },
-      { name: 'Meiji-jingumae', id: 'meiji-jingumae' },
+      { name: 'Yoyogi-uehara', id: 'yoyogiuehara' },
+      { name: 'Yoyogi-koen', id: 'yoyogikoen' },
+      { name: 'Meiji-jingumae', id: 'meijijingumae' },
       { name: 'Omotesando', id: 'omotesando' },
       { name: 'Akasaka', id: 'akasaka' },
       { name: 'Otemachi', id: 'otemachi' }
@@ -340,6 +359,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
 const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedLine, setExpandedLine] = useState<string | null>('ginza');
+  const [activeTab, setActiveTab] = useState<'directory' | 'map'>('directory');
 
   const filteredLines = useMemo(() => {
     if (!searchTerm) return METRO_LINES;
@@ -354,102 +374,145 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
+      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
-              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Navigator</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Official Route Guide</p>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Tokyo Subway</h3>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Route & Station Info</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
         </div>
 
-        <div className="mb-6">
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder="Search station (e.g., Shibuya)..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-4 pl-12 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-400 transition-all font-medium text-rose-900" 
-            />
-            <div className="absolute left-4 top-4.5 text-rose-300">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        {/* Tab Selector */}
+        <div className="flex bg-rose-50/50 p-1 rounded-2xl mb-6 flex-shrink-0">
+          <button 
+            onClick={() => setActiveTab('directory')}
+            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'directory' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
+          >
+            Line Directory
+          </button>
+          <button 
+            onClick={() => setActiveTab('map')}
+            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'map' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
+          >
+            Subway Map
+          </button>
+        </div>
+
+        {activeTab === 'directory' ? (
+          <>
+            <div className="mb-6 flex-shrink-0">
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Search station (e.g., Shibuya)..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full p-4 pl-12 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-400 transition-all font-medium text-rose-900" 
+                />
+                <div className="absolute left-4 top-4.5 text-rose-300">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-4">
+              {filteredLines.map(line => (
+                <div key={line.id} className="border border-slate-100 rounded-[2rem] overflow-hidden bg-white shadow-sm transition-all">
+                  <button 
+                    onClick={() => setExpandedLine(expandedLine === line.id ? null : line.id)}
+                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
+                        style={{ backgroundColor: line.color }}
+                      >
+                        {line.letter}
+                      </div>
+                      <div className="text-left">
+                        <h4 className="font-serif font-bold text-slate-800">{line.name}</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Major Stations</p>
+                      </div>
+                    </div>
+                    <div className={`transform transition-transform ${expandedLine === line.id ? 'rotate-90' : ''}`}>
+                       <ArrowRightIcon className="w-5 h-5 text-slate-300" />
+                    </div>
+                  </button>
+
+                  {expandedLine === line.id && (
+                    <div className="p-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fadeIn">
+                      {line.stations.map(station => (
+                        <a 
+                          key={station.id}
+                          href={`https://www.tokyometro.jp/lang_en/station/${station.id}/index.html`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50/30 transition-all group"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: line.color }}></div>
+                            <span className="font-medium text-slate-700 text-sm">{station.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <span className="text-[10px] font-bold text-rose-400 uppercase">View Page</span>
+                             <ArrowRightIcon className="w-3.5 h-3.5 text-rose-400" />
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
+            <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-50 relative group">
+               <div className="absolute inset-0 overflow-auto scrollbar-thin scrollbar-thumb-rose-200 flex items-start justify-center p-4 cursor-zoom-in">
+                  <img 
+                    src="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map_l.png" 
+                    alt="Tokyo Subway Route Map" 
+                    className="max-w-none w-[200%] md:w-[150%] h-auto rounded-lg shadow-2xl"
+                  />
+               </div>
+               <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-2 rounded-xl shadow-lg border border-slate-100 text-[9px] font-bold uppercase tracking-widest text-slate-500 pointer-events-none">
+                  Scroll / Pinch to see full map
+               </div>
+            </div>
+            <div className="bg-rose-600 p-4 rounded-2xl text-white flex items-center justify-between shadow-lg">
+               <div className="flex items-center space-x-3">
+                  <PlaneIcon className="w-5 h-5 rotate-45" />
+                  <div>
+                    <h4 className="font-bold text-sm">High-Res Map PDF</h4>
+                    <p className="text-[10px] opacity-80 uppercase tracking-widest">Official Tokyo Metro PDF</p>
+                  </div>
+               </div>
+               <a 
+                href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
+                target="_blank" 
+                rel="noreferrer"
+                className="px-4 py-2 bg-white text-rose-600 rounded-xl font-bold text-xs hover:bg-rose-50 transition-colors shadow-sm"
+               >
+                 Download
+               </a>
             </div>
           </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-4">
-          {filteredLines.map(line => (
-            <div key={line.id} className="border border-slate-100 rounded-[2rem] overflow-hidden bg-white shadow-sm transition-all">
-              <button 
-                onClick={() => setExpandedLine(expandedLine === line.id ? null : line.id)}
-                className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-center space-x-4">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
-                    style={{ backgroundColor: line.color }}
-                  >
-                    {line.letter}
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-serif font-bold text-slate-800">{line.name}</h4>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Official Stations</p>
-                  </div>
-                </div>
-                <div className={`transform transition-transform ${expandedLine === line.id ? 'rotate-90' : ''}`}>
-                   <ArrowRightIcon className="w-5 h-5 text-slate-300" />
-                </div>
-              </button>
-
-              {expandedLine === line.id && (
-                <div className="p-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fadeIn">
-                  {line.stations.map(station => (
-                    <a 
-                      key={station.id}
-                      href={`https://www.tokyometro.jp/lang_en/station/${station.id}/index.html`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50/30 transition-all group"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: line.color }}></div>
-                        <span className="font-medium text-slate-700 text-sm">{station.name}</span>
-                      </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <span className="text-[10px] font-bold text-rose-400 uppercase">View Page</span>
-                         <ArrowRightIcon className="w-3.5 h-3.5 text-rose-400" />
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-
-          {filteredLines.length === 0 && (
-            <div className="text-center py-10">
-               <div className="bg-slate-100 inline-block p-4 rounded-full mb-4">
-                 <MapIcon className="w-8 h-8 text-slate-300" />
-               </div>
-               <p className="text-slate-400 font-medium italic">No stations found matching "{searchTerm}"</p>
-            </div>
-          )}
-        </div>
+        )}
         
-        <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col items-center gap-2">
+        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center gap-2 flex-shrink-0">
            <a 
               href="https://www.tokyometro.jp/en/route_station/index.html" 
               target="_blank" 
               rel="noreferrer"
               className="text-[10px] font-bold text-rose-400 hover:text-rose-600 uppercase tracking-widest underline decoration-dotted underline-offset-4"
             >
-              Complete Official Directory
+              Full Official Directory
             </a>
-           <p className="text-[9px] text-slate-300 uppercase tracking-tighter">Official route data provided by Tokyo Metro Co., Ltd.</p>
+           <p className="text-[9px] text-slate-300 uppercase tracking-tighter text-center">Stations & Links provided by Tokyo Metro lang_en service.</p>
         </div>
       </div>
     </div>
@@ -805,23 +868,22 @@ const App = () => {
                </div>
             </div>
             
-            <div className="w-full relative py-1">
-              <div className="flex gap-2 overflow-x-auto no-scrollbar items-center -mx-4 px-4 flex-nowrap touch-pan-x">
-                 <div className="flex gap-2 min-w-max">
-                   {trip.dailyPlans.map(p => (
-                     <button 
-                       key={p.id} 
-                       onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} 
-                       className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.2rem] h-10' : 'w-[3.8rem] h-12'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}
-                     >
-                        <span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
-                        <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
-                     </button>
-                   ))}
-                   <button onClick={addDay} className="w-[2.5rem] h-10 sm:h-12 flex items-center justify-center text-rose-200 flex-shrink-0 hover:text-rose-500 transition-colors">
-                     <PlusIcon className="w-5 h-5" />
+            {/* DAY SELECTOR SCROLL FIX: Applied flex-nowrap, w-max, and flex-shrink-0 to items */}
+            <div className="w-full overflow-x-auto no-scrollbar py-2 -mx-4 px-4 touch-pan-x">
+              <div className="flex gap-2 w-max min-w-full justify-start items-center flex-nowrap">
+                 {trip.dailyPlans.map(p => (
+                   <button 
+                     key={p.id} 
+                     onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} 
+                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.2rem] h-10' : 'w-[3.8rem] h-12'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300 hover:border-rose-300'}`}
+                   >
+                      <span className="text-[8px] font-bold uppercase opacity-70 pointer-events-none">Day {p.dayNumber}</span>
+                      <span className="text-xs font-bold pointer-events-none">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
                    </button>
-                 </div>
+                 ))}
+                 <button onClick={addDay} className={`flex-shrink-0 flex items-center justify-center text-rose-300 hover:text-rose-500 transition-colors bg-white border border-dashed border-rose-200 rounded-2xl ${isScrolled ? 'w-[3.2rem] h-10' : 'w-[3.8rem] h-12'}`}>
+                   <PlusIcon className="w-5 h-5" />
+                 </button>
               </div>
             </div>
          </div>
