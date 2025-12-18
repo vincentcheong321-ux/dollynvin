@@ -85,7 +85,7 @@ const METRO_LINES = [
     stations: [
       { name: 'Shibuya', id: 'shibuya' }, { name: 'Omotesando', id: 'omotesando' }, { name: 'Aoyama-itchome', id: 'aoyama-itchome' },
       { name: 'Akasaka-mitsuke', id: 'akasaka-mitsuke' }, { name: 'Ginza', id: 'ginza' }, { name: 'Nihombashi', id: 'nihombashi' },
-      { name: 'Ueno', id: 'ueno' }, { name: 'Asakusa', id: 'asakusa' }
+      { name: 'Ueno', id: 'ueno' }, { name: 'Asakusa', id: 'akasaka' }
     ]
   },
   { 
@@ -614,7 +614,7 @@ const App = () => {
         <main className="flex-1 max-w-3xl mx-auto w-full p-6 space-y-8 pb-32">
            <section className="text-center py-4 space-y-2">
               <h2 className="text-4xl font-serif font-bold text-slate-800">{trip.destination}</h2>
-              <p className="text-rose-400 font-bold tracking-widest uppercase text-xs">Adventure for Two</p>
+              <p className="text-rose-400 font-bold tracking-widest uppercase text-xs">Adventure for Vin & Dolly?</p>
               {daysUntil !== null && (
                 <div className="mt-4">
                   <div className="bg-rose-50 inline-block px-6 py-2 rounded-full border border-rose-100 shadow-sm">
@@ -640,31 +640,8 @@ const App = () => {
                 </div>
               </div>
            </div>
-
-           <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-rose-50 p-8 space-y-8">
-              <div className="flex items-center gap-3 text-rose-950 font-serif font-bold text-xl">
-                 <SparklesIcon className="w-5 h-5 text-rose-400" />
-                 <h3>Quick Actions</h3>
-              </div>
-              
-              <button 
-                onClick={() => setView('itinerary')} 
-                className="w-full py-6 bg-rose-600 hover:bg-rose-700 text-white rounded-[2rem] font-bold shadow-xl transition-all active:scale-[0.98]"
-              >
-                Open Itinerary
-              </button>
-
-              <div className="grid grid-cols-2 gap-4">
-                 <button onClick={() => setIsMetroGuideOpen(true)} className="py-5 bg-slate-900 hover:bg-slate-800 text-white rounded-[2rem] font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
-                    <MapIcon className="w-5 h-5" /> 
-                    <span>Metro Map</span>
-                 </button>
-                 <button onClick={() => setIsBudgetOpen(true)} className="py-5 bg-white border border-rose-100 text-rose-600 hover:bg-rose-50 rounded-[2rem] font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
-                    <WalletIcon className="w-5 h-5" /> 
-                    <span>Budget</span>
-                 </button>
-              </div>
-           </div>
+           
+           {/* QUICK ACTIONS REMOVED FROM DASHBOARD AS REQUESTED */}
         </main>
 
         {isNotesOpen && (
@@ -708,7 +685,7 @@ const App = () => {
                </div>
             </div>
             
-            {/* DATE SELECTOR: Enforced better scrolling container with explicit width handling */}
+            {/* DATE SELECTOR */}
             <div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 select-none">
               <div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">
                  {trip.dailyPlans.map(p => (
@@ -761,7 +738,6 @@ const App = () => {
                             <button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button>
                           </div>
                           
-                          {/* Colorful Badges Re-added */}
                           <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3">
                             <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${
                               act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' :
