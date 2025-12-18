@@ -230,7 +230,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
                 if (cost === 0) return null;
                 return (
                   <div key={cat}>
-                    <div className="flex justify-between text-sm font-bold mb-1">
+                    <div className="flex justify-between text-sm font-medium mb-1">
                       <span className="capitalize">{cat}</span>
                       <div className="text-right">
                         <span>¥{cost.toLocaleString()}</span>
@@ -258,50 +258,67 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
   );
 };
 
-// --- Subway Map Viewer Modal ---
+// --- Subway Map / Metro Guide Modal ---
 const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl z-10 p-6 flex flex-col h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
-        <div className="flex justify-between items-center mb-4 flex-shrink-0">
+      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col animate-slideUp border border-rose-100 text-slate-800">
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-2.5 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
-              <h3 className="text-2xl font-serif font-bold text-rose-950">Subway Explorer</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Tokyo Subway Route Map</p>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Guide</h3>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Official Resources</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
         </div>
 
-        <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-100 relative group flex flex-col">
-           <div className="flex-1 overflow-auto p-4 scrollbar-thin scrollbar-thumb-rose-200 cursor-grab active:cursor-grabbing">
-              <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Tokyo_Metro_Subway_Map.svg/2560px-Tokyo_Metro_Subway_Map.svg.png" 
-                alt="Tokyo Subway Route Map" 
-                className="max-w-none w-[350%] md:w-[150%] h-auto rounded-lg shadow-2xl transition-all"
-              />
-           </div>
-           <div className="absolute bottom-6 left-6 right-6 flex justify-between items-center pointer-events-none">
-              <div className="bg-white/95 backdrop-blur px-4 py-2 rounded-2xl shadow-xl border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600">
-                 Scroll / Pinch to Explore
-              </div>
-              <a 
-                href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
-                target="_blank" rel="noreferrer"
-                className="pointer-events-auto bg-rose-600 text-white px-6 py-3 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-2 hover:bg-rose-700 transition-all active:scale-95"
-              >
-                <span>View Full PDF</span>
-                <ArrowRightIcon className="w-4 h-4" />
-              </a>
-           </div>
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600 mb-4 text-center">Plan your route through Tokyo with official tools and high-resolution maps.</p>
+          
+          <a 
+            href="https://www.tokyometro.jp/en/subwaymap/index.html" 
+            target="_blank" rel="noreferrer"
+            className="w-full flex items-center justify-between p-5 bg-slate-900 text-white rounded-[1.5rem] font-bold shadow-lg hover:bg-slate-800 transition-all active:scale-95 group"
+          >
+            <div className="flex items-center gap-3">
+              <MapIcon className="w-5 h-5 text-rose-400" />
+              <span>Official Route Search</span>
+            </div>
+            <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
+          </a>
+
+          <a 
+            href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
+            target="_blank" rel="noreferrer"
+            className="w-full flex items-center justify-between p-5 bg-white border border-rose-100 text-rose-600 rounded-[1.5rem] font-bold hover:bg-rose-50 transition-all active:scale-95 group"
+          >
+            <div className="flex items-center gap-3">
+              <PlusIcon className="w-5 h-5 rotate-45" />
+              <span>Download High-Res PDF</span>
+            </div>
+            <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
+          </a>
+
+          <a 
+            href="https://www.tokyometro.jp/en/index.html" 
+            target="_blank" rel="noreferrer"
+            className="w-full flex items-center justify-between p-5 bg-rose-50 text-rose-800 rounded-[1.5rem] font-bold hover:bg-rose-100 transition-all active:scale-95 group"
+          >
+            <div className="flex items-center gap-3">
+              <HomeIcon className="w-5 h-5 opacity-70" />
+              <span>Official Website</span>
+            </div>
+            <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
+          </a>
         </div>
         
-        <div className="mt-4 flex-shrink-0 text-center opacity-40">
-           <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Route Map provided by Tokyo Metro Co., Ltd. (via Wikimedia Commons)</p>
+        <div className="mt-8 text-center">
+           <p className="text-[10px] text-slate-400 uppercase tracking-tighter">Information provided by Tokyo Metro Co., Ltd.</p>
         </div>
       </div>
     </div>
@@ -496,9 +513,13 @@ const App = () => {
 
   const handleUpdate = (t: Trip) => setTrip({ ...t });
   const handleSaveActivity = (activity: Activity) => {
+    const sanitizedActivity = {
+      ...activity,
+      cost: (activity.cost && !isNaN(activity.cost)) ? activity.cost : 0
+    };
     const updatedPlans = trip.dailyPlans.map(plan => {
       if (plan.dayNumber === activeDay) {
-        const activities = editingActivity ? plan.activities.map(a => a.id === activity.id ? activity : a) : [...plan.activities, activity];
+        const activities = editingActivity ? plan.activities.map(a => a.id === sanitizedActivity.id ? sanitizedActivity : a) : [...plan.activities, sanitizedActivity];
         return { ...plan, activities };
       }
       return plan;
@@ -532,53 +553,37 @@ const App = () => {
         <header className="bg-transparent p-4">
            <div className="max-w-3xl mx-auto flex items-center justify-between">
               <div className="w-10"></div>
-              <div 
-                className="relative bg-white p-4 rounded-full shadow-lg border border-rose-100 group cursor-pointer active:scale-95 transition-all"
-                onClick={() => setView('itinerary')}
-              >
-                <div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-10 group-hover:opacity-30"></div>
-                <HeartIcon className="w-8 h-8 text-rose-500 relative" />
-              </div>
+              <div className="w-10"></div>
               <div className="flex items-center gap-2">
-                <button onClick={() => setIsChatOpen(true)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-full"><SparklesIcon className="w-5 h-5" /></button>
-                <button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><NoteIcon className="w-5 h-5" /></button>
+                <button onClick={() => setIsChatOpen(true)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-full transition-colors"><SparklesIcon className="w-5 h-5" /></button>
+                <button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><NoteIcon className="w-5 h-5" /></button>
               </div>
            </div>
         </header>
         <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8">
-           <section className="text-center py-4 space-y-3">
-              <h2 className="text-5xl font-serif font-bold text-slate-800 tracking-tight leading-tight">{trip.destination}</h2>
+           <section className="text-center py-4 space-y-6">
+              <div className="flex items-center justify-center gap-4">
+                 <h2 className="text-6xl font-serif font-bold text-slate-800 tracking-tight leading-tight">{trip.destination}</h2>
+                 <button 
+                  className="relative bg-white p-4 rounded-full shadow-lg border border-rose-100 group cursor-pointer active:scale-95 transition-all"
+                  onClick={() => setView('itinerary')}
+                 >
+                    <div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-10 group-hover:opacity-30"></div>
+                    <HeartIcon className="w-8 h-8 text-rose-500 relative" />
+                 </button>
+              </div>
               <p className="text-rose-400 font-bold tracking-[0.2em] uppercase text-xs">Journey for Vin & Dolly</p>
+              
               {daysUntil !== null && (
-                <div className="mt-6">
-                  <div className="bg-rose-50 inline-block px-8 py-3 rounded-full border border-rose-100 shadow-sm">
-                    <span className="text-rose-600 font-bold text-sm tracking-wide">
+                <div className="mt-8">
+                  <div className="bg-rose-50 inline-block px-10 py-4 rounded-full border border-rose-100 shadow-sm">
+                    <span className="text-rose-600 font-bold text-base tracking-wide">
                       {daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}
                     </span>
                   </div>
                 </div>
               )}
            </section>
-           
-           <div className="w-full max-w-sm pt-8">
-              <button 
-                onClick={() => setView('itinerary')} 
-                className="w-full py-6 bg-rose-600 hover:bg-rose-700 text-white rounded-[2.5rem] font-bold shadow-xl shadow-rose-100 transition-all active:scale-[0.98] text-lg mb-4"
-              >
-                Open Our Itinerary
-              </button>
-              
-              <div className="grid grid-cols-2 gap-4">
-                 <button onClick={() => setIsMetroGuideOpen(true)} className="py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-[2rem] font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-                    <MapIcon className="w-4 h-4" /> 
-                    <span>Subway Map</span>
-                 </button>
-                 <button onClick={() => setIsBudgetOpen(true)} className="py-4 bg-white border border-rose-100 text-rose-600 hover:bg-rose-50 rounded-[2rem] font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-                    <WalletIcon className="w-4 h-4" /> 
-                    <span>Budget</span>
-                 </button>
-              </div>
-           </div>
         </main>
 
         {isNotesOpen && (
