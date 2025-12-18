@@ -77,6 +77,94 @@ const isActivityOngoing = (activityTime: string, nextActivityTime?: string): boo
   return currentMinutes >= startMinutes && currentMinutes < startMinutes + 120;
 };
 
+// --- Metro Data Structure ---
+const METRO_LINES = [
+  { 
+    name: 'Ginza Line', 
+    id: 'ginza', 
+    color: '#FF9500', 
+    letter: 'G',
+    stations: [
+      { name: 'Shibuya', id: 'shibuya' },
+      { name: 'Omotesando', id: 'omotesando' },
+      { name: 'Aoyama-itchome', id: 'aoyama-itchome' },
+      { name: 'Akasaka-mitsuke', id: 'akasaka-mitsuke' },
+      { name: 'Tameike-sanno', id: 'tameike-sanno' },
+      { name: 'Toranomon', id: 'toranomon' },
+      { name: 'Shimbashi', id: 'shimbashi' },
+      { name: 'Ginza', id: 'ginza' },
+      { name: 'Kyobashi', id: 'kyobashi' },
+      { name: 'Nihombashi', id: 'nihombashi' },
+      { name: 'Mitsukoshimae', id: 'mitsukoshimae' },
+      { name: 'Kanda', id: 'kanda' },
+      { name: 'Suehirocho', id: 'suehirocho' },
+      { name: 'Ueno-hirokoji', id: 'ueno-hirokoji' },
+      { name: 'Ueno', id: 'ueno' },
+      { name: 'Inaricho', id: 'inaricho' },
+      { name: 'Tawaramachi', id: 'tawaramachi' },
+      { name: 'Asakusa', id: 'asakusa' }
+    ]
+  },
+  { 
+    name: 'Marunouchi Line', 
+    id: 'marunouchi', 
+    color: '#F62E36', 
+    letter: 'M',
+    stations: [
+      { name: 'Shinjuku', id: 'shinjuku' },
+      { name: 'Shinjuku-sanchome', id: 'shinjuku-sanchome' },
+      { name: 'Akasaka-mitsuke', id: 'akasaka-mitsuke' },
+      { name: 'Ginza', id: 'ginza' },
+      { name: 'Tokyo', id: 'tokyo' },
+      { name: 'Otemachi', id: 'otemachi' },
+      { name: 'Ikebukuro', id: 'ikebukuro' }
+    ]
+  },
+  { 
+    name: 'Hibiya Line', 
+    id: 'hibiya', 
+    color: '#B5B5AC', 
+    letter: 'H',
+    stations: [
+      { name: 'Naka-meguro', id: 'naka-meguro' },
+      { name: 'Ebisu', id: 'ebisu' },
+      { name: 'Hiro-o', id: 'hiro-o' },
+      { name: 'Roppongi', id: 'roppongi' },
+      { name: 'Kamiyacho', id: 'kamiyacho' },
+      { name: 'Ginza', id: 'ginza' },
+      { name: 'Akihabara', id: 'akihabara' },
+      { name: 'Ueno', id: 'ueno' }
+    ]
+  },
+  { 
+    name: 'Tozai Line', 
+    id: 'tozai', 
+    color: '#009BBF', 
+    letter: 'T',
+    stations: [
+      { name: 'Nakano', id: 'nakano' },
+      { name: 'Takadanobaba', id: 'takadanobaba' },
+      { name: 'Iidabashi', id: 'iidabashi' },
+      { name: 'Kudanshita', id: 'kudanshita' },
+      { name: 'Otemachi', id: 'otemachi' },
+      { name: 'Nihombashi', id: 'nihombashi' }
+    ]
+  },
+  { 
+    name: 'Chiyoda Line', 
+    id: 'chiyoda', 
+    color: '#00BB85', 
+    letter: 'C',
+    stations: [
+      { name: 'Yoyogi-uehara', id: 'yoyogi-uehara' },
+      { name: 'Meiji-jingumae', id: 'meiji-jingumae' },
+      { name: 'Omotesando', id: 'omotesando' },
+      { name: 'Akasaka', id: 'akasaka' },
+      { name: 'Otemachi', id: 'otemachi' }
+    ]
+  }
+];
+
 // --- Activity Modal ---
 interface ActivityModalProps {
   isOpen: boolean;
@@ -249,72 +337,6 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
 };
 
 // --- Metro Station Assistant Modal ---
-const METRO_LINES = [
-  { 
-    name: 'Ginza Line', 
-    id: 'ginza', 
-    color: '#FF9500', 
-    letter: 'G',
-    stations: ['Shibuya', 'Omotesando', 'Akasaka-mitsuke', 'Ginza', 'Nihombashi', 'Ueno', 'Asakusa']
-  },
-  { 
-    name: 'Marunouchi Line', 
-    id: 'marunouchi', 
-    color: '#F62E36', 
-    letter: 'M',
-    stations: ['Ogikubo', 'Shinjuku', 'Akasaka-mitsuke', 'Ginza', 'Tokyo', 'Otemachi', 'Ikebukuro']
-  },
-  { 
-    name: 'Hibiya Line', 
-    id: 'hibiya', 
-    color: '#B5B5AC', 
-    letter: 'H',
-    stations: ['Naka-meguro', 'Ebisu', 'Roppongi', 'Ginza', 'Akihabara', 'Ueno', 'Kita-senju']
-  },
-  { 
-    name: 'Tozai Line', 
-    id: 'tozai', 
-    color: '#009BBF', 
-    letter: 'T',
-    stations: ['Nakano', 'Takadanobaba', 'Iidabashi', 'Otemachi', 'Nihombashi', 'Nishi-funabashi']
-  },
-  { 
-    name: 'Chiyoda Line', 
-    id: 'chiyoda', 
-    color: '#00BB85', 
-    letter: 'C',
-    stations: ['Yoyogi-uehara', 'Meiji-jingumae', 'Omotesando', 'Akasaka', 'Otemachi', 'Kita-senju']
-  },
-  { 
-    name: 'Yurakucho Line', 
-    id: 'yurakucho', 
-    color: '#C1A470', 
-    letter: 'Y',
-    stations: ['Wakoshi', 'Ikebukuro', 'Iidabashi', 'Yurakucho', 'Ginza-itchome', 'Toyosu']
-  },
-  { 
-    name: 'Hanzomon Line', 
-    id: 'hanzomon', 
-    color: '#8F76D6', 
-    letter: 'Z',
-    stations: ['Shibuya', 'Omotesando', 'Nagatacho', 'Otemachi', 'Kiyosumi-shirakawa', 'Oshiage']
-  },
-  { 
-    name: 'Namboku Line', 
-    id: 'namboku', 
-    color: '#00AC9B', 
-    letter: 'N',
-    stations: ['Meguro', 'Shirokanedai', 'Azabu-juban', 'Nagatacho', 'Iidabashi', 'Akabane-iwabuchi']
-  },
-  { 
-    name: 'Fukutoshin Line', 
-    id: 'fukutoshin', 
-    color: '#9C5E31', 
-    letter: 'F',
-    stations: ['Wakoshi', 'Ikebukuro', 'Shinjuku-sanchome', 'Meiji-jingumae', 'Shibuya']
-  }
-];
-
 const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedLine, setExpandedLine] = useState<string | null>('ginza');
@@ -323,7 +345,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     if (!searchTerm) return METRO_LINES;
     return METRO_LINES.map(line => ({
       ...line,
-      stations: line.stations.filter(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
+      stations: line.stations.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
     })).filter(line => line.stations.length > 0);
   }, [searchTerm]);
 
@@ -338,7 +360,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
               <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Navigator</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Official Line Routes</p>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Official Route Guide</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
@@ -375,7 +397,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                   </div>
                   <div className="text-left">
                     <h4 className="font-serif font-bold text-slate-800">{line.name}</h4>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Major Stations</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Official Stations</p>
                   </div>
                 </div>
                 <div className={`transform transition-transform ${expandedLine === line.id ? 'rotate-90' : ''}`}>
@@ -387,17 +409,20 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                 <div className="p-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fadeIn">
                   {line.stations.map(station => (
                     <a 
-                      key={station}
-                      href={`https://www.tokyometro.jp/en/route_station/${station.toLowerCase().replace(/ /g, '-')}/index.html`}
+                      key={station.id}
+                      href={`https://www.tokyometro.jp/lang_en/station/${station.id}/index.html`}
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50/30 transition-all group"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: line.color }}></div>
-                        <span className="font-medium text-slate-700 text-sm">{station}</span>
+                        <span className="font-medium text-slate-700 text-sm">{station.name}</span>
                       </div>
-                      <ArrowRightIcon className="w-3.5 h-3.5 text-slate-300 group-hover:text-rose-400" />
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <span className="text-[10px] font-bold text-rose-400 uppercase">View Page</span>
+                         <ArrowRightIcon className="w-3.5 h-3.5 text-rose-400" />
+                      </div>
                     </a>
                   ))}
                 </div>
@@ -422,7 +447,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
               rel="noreferrer"
               className="text-[10px] font-bold text-rose-400 hover:text-rose-600 uppercase tracking-widest underline decoration-dotted underline-offset-4"
             >
-              View Complete Official Directory
+              Complete Official Directory
             </a>
            <p className="text-[9px] text-slate-300 uppercase tracking-tighter">Official route data provided by Tokyo Metro Co., Ltd.</p>
         </div>
