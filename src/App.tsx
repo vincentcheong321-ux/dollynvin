@@ -194,6 +194,87 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
   );
 };
 
+// --- Boarding Pass Modal ---
+const BoardingPassModal = ({ isOpen, onClose, trip }: { isOpen: boolean, onClose: () => void, trip: Trip }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
+      <div className="bg-rose-50 w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 overflow-hidden flex flex-col animate-slideUp border-4 border-white">
+        <div className="bg-rose-600 p-6 flex justify-between items-center text-white">
+          <div className="flex items-center gap-2">
+            <PlaneIcon className="w-6 h-6" />
+            <span className="font-bold tracking-tighter text-xl">AIR OURJOURNEY</span>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] font-bold uppercase opacity-70">Boarding Pass</div>
+            <div className="font-bold text-sm">COUPLE CLASS</div>
+          </div>
+        </div>
+
+        <div className="flex-1 p-8 text-slate-800 bg-white relative">
+          <div className="flex justify-between items-start mb-10">
+            <div className="flex-1">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Passanger Name</p>
+              <h4 className="text-2xl font-serif font-bold text-rose-950">Vin & Dolly</h4>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Flight Number</p>
+              <h4 className="text-2xl font-serif font-bold text-rose-950">VJ2025</h4>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mb-10 gap-6">
+            <div className="flex-1">
+              <h2 className="text-5xl font-bold text-slate-800 tracking-tighter">KUL</h2>
+              <p className="text-[10px] font-bold text-slate-400 uppercase">Kuala Lumpur</p>
+            </div>
+            <div className="flex flex-col items-center flex-shrink-0 px-4">
+              <div className="w-full h-px border-t-2 border-dashed border-rose-200 relative">
+                <PlaneIcon className="w-5 h-5 text-rose-400 absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2" />
+              </div>
+            </div>
+            <div className="flex-1 text-right">
+              <h2 className="text-5xl font-bold text-slate-800 tracking-tighter">HND</h2>
+              <p className="text-[10px] font-bold text-slate-400 uppercase">Tokyo Haneda</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-4 border-t border-slate-100 pt-8">
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Date</p>
+              <p className="font-bold text-sm">{trip.startDate || 'TBD'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Gate</p>
+              <p className="font-bold text-sm">C22</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Boarding</p>
+              <p className="font-bold text-sm">13:30</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Seat</p>
+              <p className="font-bold text-sm">11A, 11B</p>
+            </div>
+          </div>
+
+          <div className="mt-12 pt-8 border-t-2 border-dashed border-slate-200 flex items-center justify-between">
+             <div className="space-y-1 opacity-60">
+                <div className="h-10 w-48 bg-slate-900 rounded flex items-center justify-center p-2">
+                   <div className="h-full w-full bg-[repeating-linear-gradient(90deg,#fff,#fff_2px,#000_2px,#000_4px)]"></div>
+                </div>
+                <div className="text-[8px] font-bold text-center tracking-[0.4em]">LOVE-2025-VINDOL</div>
+             </div>
+             <button onClick={onClose} className="p-3 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-100 transition-colors font-bold text-xs uppercase tracking-widest">Close Pass</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Budget Modal ---
 const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean, onClose: () => void, trip: Trip, exchangeRate: number }) => {
   if (!isOpen) return null;
@@ -305,7 +386,7 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
           </a>
 
           <a 
-            href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
+            href="https://www.tokyometro.jp/station/pdf/202305/202305_number_en.pdf" 
             target="_blank" rel="noreferrer"
             className="w-full flex items-center justify-between p-5 bg-rose-50 text-rose-800 rounded-[1.5rem] font-bold hover:bg-rose-100 transition-all active:scale-95 group"
           >
@@ -471,6 +552,7 @@ const App = () => {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
   const [isMetroGuideOpen, setIsMetroGuideOpen] = useState(false);
+  const [isBoardingPassOpen, setIsBoardingPassOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingTheme, setEditingTheme] = useState(false);
@@ -590,7 +672,7 @@ const App = () => {
            {/* Quick Access Area */}
            <div className="w-full max-w-lg mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4">
               <button 
-                onClick={() => setIsNotesOpen(true)}
+                onClick={() => setIsBoardingPassOpen(true)}
                 className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"
               >
                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors">
@@ -661,6 +743,7 @@ const App = () => {
         )}
         <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
         <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
+        <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} trip={trip} />
       </div>
     );
   }
@@ -804,6 +887,7 @@ const App = () => {
        <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
        <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
        <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
+       <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} trip={trip} />
     </div>
   );
 };
