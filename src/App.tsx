@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
@@ -21,9 +21,7 @@ import {
   BedIcon,
   SparklesIcon,
   ArrowRightIcon,
-  HomeIcon,
-  CalendarIcon,
-  HeartIcon
+  HomeIcon
 } from './components/Icons';
 
 // --- Utilities ---
@@ -41,16 +39,6 @@ const getDayOfMonth = (startDate: string | undefined, dayOffset: number) => {
   const date = new Date(startDate);
   date.setDate(date.getDate() + dayOffset);
   return date.getDate();
-};
-
-const getDaysUntil = (startDate: string | undefined) => {
-  if (!startDate) return null;
-  const start = new Date(startDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffTime = start.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
 };
 
 const isToday = (startDate: string | undefined, dayNumber: number) => {
@@ -122,13 +110,13 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
       <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-6 sm:p-8 animate-fadeIn flex flex-col max-h-[90vh] border border-slate-100 overflow-hidden">
-        <div className="flex justify-between items-start mb-6 border-b border-slate-100 pb-4">
+        <div className="flex justify-between items-start mb-6 border-b border-slate-100 pb-4 text-slate-900">
           <div>
-            <h3 className="text-2xl font-serif font-bold text-slate-800">{initialData ? 'Edit Activity' : 'Add Activity'}</h3>
+            <h3 className="text-2xl font-serif font-bold">{initialData ? 'Edit Activity' : 'Add Activity'}</h3>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
         </div>
-        <div className="space-y-6 overflow-y-auto pr-2 flex-1 no-scrollbar">
+        <div className="space-y-6 overflow-y-auto pr-2 flex-1 no-scrollbar text-slate-700">
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-5 sm:col-span-3">
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Time</label>
@@ -293,7 +281,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
       <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp overflow-hidden border border-rose-100">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 text-slate-900">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
@@ -354,8 +342,6 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [exchangeRate, setExchangeRate] = useState(0.03); 
   const [isScrolled, setIsScrolled] = useState(false);
-
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 15);
@@ -505,10 +491,10 @@ const App = () => {
                       {ongoing && <div className="absolute -left-5 -top-1.5 text-[8px] font-black text-white uppercase tracking-tighter bg-rose-600 px-1.5 py-0.5 rounded shadow-sm animate-pulse z-20">Ongoing</div>}
                       
                       <div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${ongoing ? 'border-rose-300 ring-2 ring-rose-50 bg-rose-50/10' : (act.isBooked ? 'border-l-8 border-l-green-400 border-y-white border-r-white' : 'border-white hover:border-rose-100')}`}>
-                          <div className="flex justify-between items-start mb-2 gap-2">
+                          <div className="flex justify-between items-start mb-2 gap-2 text-slate-800">
                             <div className="flex items-center gap-2 min-w-0">
                               <span className={`text-[10px] font-bold px-2 py-1 rounded-xl flex-shrink-0 ${ongoing ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600'}`}>{act.time}</span>
-                              <h4 className="font-bold text-sm text-slate-800 truncate">{act.title}</h4>
+                              <h4 className="font-bold text-sm truncate">{act.title}</h4>
                             </div>
                             <button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button>
                           </div>
