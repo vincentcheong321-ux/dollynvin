@@ -21,7 +21,9 @@ import {
   BedIcon,
   SparklesIcon,
   ArrowRightIcon,
-  HomeIcon
+  HomeIcon,
+  CalendarIcon,
+  HeartIcon
 } from './components/Icons';
 
 // --- Utilities ---
@@ -39,6 +41,16 @@ const getDayOfMonth = (startDate: string | undefined, dayOffset: number) => {
   const date = new Date(startDate);
   date.setDate(date.getDate() + dayOffset);
   return date.getDate();
+};
+
+const getDaysUntil = (startDate: string | undefined) => {
+  if (!startDate) return null;
+  const start = new Date(startDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffTime = start.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
 };
 
 const isToday = (startDate: string | undefined, dayNumber: number) => {
@@ -62,7 +74,6 @@ const isActivityOngoing = (activityTime: string, nextActivityTime?: string): boo
     return currentMinutes >= startMinutes && currentMinutes < endMinutes;
   }
   
-  // Default ongoing window: 2 hours for last activity
   return currentMinutes >= startMinutes && currentMinutes < startMinutes + 120;
 };
 
@@ -109,14 +120,14 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-6 sm:p-8 animate-fadeIn flex flex-col max-h-[90vh] border border-slate-100 overflow-hidden">
-        <div className="flex justify-between items-start mb-6 border-b border-slate-100 pb-4 text-slate-900">
+      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-6 sm:p-8 animate-fadeIn flex flex-col max-h-[90vh] border border-slate-100 overflow-hidden text-slate-800">
+        <div className="flex justify-between items-start mb-6 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-2xl font-serif font-bold">{initialData ? 'Edit Activity' : 'Add Activity'}</h3>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
         </div>
-        <div className="space-y-6 overflow-y-auto pr-2 flex-1 no-scrollbar text-slate-700">
+        <div className="space-y-6 overflow-y-auto pr-2 flex-1 no-scrollbar">
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-5 sm:col-span-3">
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Time</label>
@@ -200,7 +211,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
        <div className="absolute inset-0 bg-rose-900/40 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-       <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp">
+       <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp text-slate-800">
          <div className="flex justify-between items-center mb-8">
            <div className="flex items-center space-x-3 text-rose-600">
              <WalletIcon className="w-6 h-6" />
@@ -208,7 +219,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
            </div>
            <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full"><CloseIcon className="w-6 h-6" /></button>
          </div>
-         <div className="overflow-y-auto pr-2 space-y-8 flex-1 no-scrollbar text-slate-800">
+         <div className="overflow-y-auto pr-2 space-y-8 flex-1 no-scrollbar">
             <div className="bg-rose-600 rounded-[2rem] p-8 text-white text-center shadow-lg relative overflow-hidden">
                <p className="text-white/80 font-bold uppercase tracking-widest text-xs mb-2">Estimated Total Cost</p>
                <h2 className="text-5xl font-serif font-bold mb-1">¥ {total.toLocaleString()}</h2>
@@ -280,8 +291,8 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp overflow-hidden border border-rose-100">
-        <div className="flex justify-between items-center mb-6 text-slate-900">
+      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
@@ -299,7 +310,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-6 text-slate-800">
+        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-6">
           {!guide && !isLoading && (
             <div className="text-center py-6">
                <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-4">Quick Select</p>
@@ -331,6 +342,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 const App = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [activeDay, setActiveDay] = useState(1);
+  const [view, setView] = useState<'dashboard' | 'itinerary'>('dashboard');
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [addingType, setAddingType] = useState<ActivityType | undefined>(undefined);
@@ -371,6 +383,15 @@ const App = () => {
 
   const currentDayPlan = useMemo(() => trip?.dailyPlans.find(d => d.dayNumber === activeDay), [trip, activeDay]);
   const sortedActivities = useMemo(() => currentDayPlan ? [...currentDayPlan.activities].sort((a, b) => a.time.localeCompare(b.time)) : [], [currentDayPlan]);
+  
+  // Calculate Total Trip Stats
+  const totalBudgetJPY = useMemo(() => {
+    if (!trip) return 0;
+    return trip.dailyPlans.reduce((sum, plan) => 
+      sum + plan.activities.reduce((s, a) => s + (a.cost ?? 0), 0)
+    , 0);
+  }, [trip]);
+  
   const dayTotalJPY = useMemo(() => sortedActivities.reduce((sum, act) => sum + (act.cost ?? 0), 0), [sortedActivities]);
   const dayTotalMYR = dayTotalJPY * exchangeRate;
   const isSelectedDayToday = useMemo(() => isToday(trip?.startDate, activeDay), [trip?.startDate, activeDay]);
@@ -413,16 +434,113 @@ const App = () => {
     if (confirm('Reset everything? This cannot be undone.')) {
       handleUpdate(createBlankTrip());
       setActiveDay(1);
+      setView('dashboard');
       setIsNotesOpen(false);
     }
   };
 
+  // DASHBOARD VIEW
+  if (view === 'dashboard') {
+    const daysUntil = getDaysUntil(trip.startDate);
+    return (
+      <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn">
+        <header className="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-rose-100 p-4">
+           <div className="max-w-3xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                 <HeartIcon className="w-5 h-5 text-rose-500" />
+                 <h1 className="text-xl font-serif font-bold text-rose-950">Our Journey</h1>
+              </div>
+              <button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full"><NoteIcon className="w-5 h-5" /></button>
+           </div>
+        </header>
+
+        <main className="flex-1 max-w-3xl mx-auto w-full p-6 space-y-8 pb-32">
+           <section className="text-center py-10 space-y-4">
+              <div className="relative inline-block">
+                <div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-20"></div>
+                <div className="relative bg-white p-6 rounded-full shadow-xl border border-rose-100">
+                   <HeartIcon className="w-10 h-10 text-rose-500" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-4xl font-serif font-bold text-slate-800">{trip.destination}</h2>
+                <p className="text-rose-400 font-bold tracking-widest uppercase text-xs">Adventure for Two</p>
+              </div>
+              {daysUntil !== null && (
+                <div className="bg-rose-50 inline-block px-6 py-2 rounded-full border border-rose-100 shadow-sm">
+                   <span className="text-rose-600 font-bold text-sm">
+                     {daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}
+                   </span>
+                </div>
+              )}
+           </section>
+
+           <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 text-center space-y-2">
+                 <CalendarIcon className="w-8 h-8 text-orange-400 mx-auto" />
+                 <div>
+                    <h4 className="font-bold text-slate-800 text-lg">{trip.duration} Days</h4>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Trip Length</p>
+                 </div>
+              </div>
+              <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 text-center space-y-2">
+                 <WalletIcon className="w-8 h-8 text-rose-400 mx-auto" />
+                 <div>
+                    <h4 className="font-bold text-slate-800 text-lg">¥{totalBudgetJPY.toLocaleString()}</h4>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Est. Total (RM {(totalBudgetJPY * exchangeRate).toFixed(0)})</p>
+                 </div>
+              </div>
+           </div>
+
+           <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-rose-50 p-8 space-y-6">
+              <div className="flex items-center gap-3 text-rose-950 font-serif font-bold text-xl">
+                 <SparklesIcon className="w-5 h-5 text-rose-400" />
+                 <h3>Quick Actions</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                 <button onClick={() => setView('itinerary')} className="w-full py-5 bg-rose-600 text-white rounded-3xl font-bold flex items-center justify-center gap-3 hover:bg-rose-700 transition-all shadow-lg active:scale-95">
+                    <CalendarIcon className="w-5 h-5" /> Open Itinerary
+                 </button>
+                 <div className="grid grid-cols-2 gap-3">
+                    <button onClick={() => { setIsMetroGuideOpen(true); }} className="py-4 bg-slate-900 text-white rounded-3xl font-bold flex items-center justify-center gap-2 text-sm hover:bg-slate-800 transition-all active:scale-95">
+                       <MapIcon className="w-4 h-4" /> Metro Guide
+                    </button>
+                    <button onClick={() => { setIsBudgetOpen(true); }} className="py-4 bg-white text-rose-600 border border-rose-100 rounded-3xl font-bold flex items-center justify-center gap-2 text-sm hover:bg-rose-50 transition-all active:scale-95">
+                       <WalletIcon className="w-4 h-4" /> Full Budget
+                    </button>
+                 </div>
+              </div>
+           </div>
+        </main>
+
+        {isNotesOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsNotesOpen(false)}></div>
+             <div className="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl z-10 animate-slideUp text-slate-800 max-h-[85vh] overflow-y-auto no-scrollbar">
+                <div className="flex justify-between items-center mb-6 border-b pb-4">
+                   <h3 className="font-serif font-bold text-2xl text-rose-950">Trip Settings</h3>
+                   <button onClick={() => setIsNotesOpen(false)}><CloseIcon className="w-6 h-6 text-slate-400" /></button>
+                </div>
+                <div className="space-y-6">
+                  <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">Trip Start Date</label><input type="date" className="w-full p-4 bg-rose-50 rounded-2xl outline-none" value={trip.startDate || ''} onChange={e => handleUpdate({...trip, startDate: e.target.value})} /></div>
+                  <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">Exchange Rate (100 JPY to MYR)</label><div className="flex items-center gap-2 bg-rose-50 p-4 rounded-2xl"><input type="number" step="0.01" className="bg-transparent border-b border-rose-200 outline-none w-20 text-center font-bold" value={(exchangeRate * 100).toFixed(2)} onChange={e => setExchangeRate((parseFloat(e.target.value) || 0) / 100)} /><span className="text-xs font-bold">MYR</span></div></div>
+                  <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">General Notes</label><textarea className="w-full h-40 p-4 bg-rose-50 rounded-2xl outline-none resize-none" value={trip.notes} onChange={e => handleUpdate({...trip, notes: e.target.value})} /></div>
+                  <button onClick={resetTrip} className="w-full py-4 text-red-500 font-bold bg-red-50 rounded-2xl hover:bg-red-500 hover:text-white transition-all">Reset Entire Trip</button>
+                </div>
+             </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ITINERARY VIEW
   return (
     <div className="min-h-screen flex flex-col sakura-bg">
        <header className={`bg-white/95 backdrop-blur-md sticky top-0 z-[60] border-b border-rose-100 transition-all duration-300 ${isScrolled ? 'py-1 shadow-md' : 'py-3'}`}>
          <div className="max-w-3xl mx-auto px-4">
             <div className="flex items-center justify-between gap-2 mb-2">
-               <button onClick={() => window.scrollTo({top:0, behavior:'smooth'})} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full flex-shrink-0"><HomeIcon className="w-5 h-5" /></button>
+               <button onClick={() => setView('dashboard')} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full flex-shrink-0"><HomeIcon className="w-5 h-5" /></button>
                <div className="flex-1 text-center min-w-0" onClick={() => setEditingTitle(true)}>
                   {editingTitle ? (
                     <input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center text-slate-800" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />
@@ -451,16 +569,6 @@ const App = () => {
        </header>
 
        <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 pb-40">
-         {isNotesOpen ? (
-           <div className="bg-white/90 backdrop-blur-sm rounded-[2.5rem] p-8 shadow-sm border border-rose-50 space-y-8 animate-fadeIn text-slate-800">
-              <div className="flex justify-between items-center border-b border-rose-50 pb-4"><h3 className="font-serif font-bold text-2xl text-rose-950">Settings & Notes</h3><button onClick={resetTrip} className="px-4 py-2 bg-red-50 text-red-500 rounded-xl text-xs font-bold hover:bg-red-500 hover:text-white transition-all">Reset Trip</button></div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">Trip Start Date</label><input type="date" className="w-full p-4 bg-rose-50 rounded-2xl outline-none" value={trip.startDate || ''} onChange={e => handleUpdate({...trip, startDate: e.target.value})} /></div>
-                <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">100 JPY to MYR</label><div className="flex items-center gap-2 bg-rose-50 p-4 rounded-2xl"><input type="number" step="0.01" className="bg-transparent border-b border-rose-200 outline-none w-20 text-center font-bold" value={(exchangeRate * 100).toFixed(2)} onChange={e => setExchangeRate((parseFloat(e.target.value) || 0) / 100)} /><span className="text-xs font-bold">MYR</span></div></div>
-              </div>
-              <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">General Notes</label><textarea className="w-full h-64 p-4 bg-rose-50 rounded-[2rem] outline-none resize-none" value={trip.notes} onChange={e => handleUpdate({...trip, notes: e.target.value})} /></div>
-           </div>
-         ) : (
            <div className="space-y-6 animate-fadeIn">
              <div className="flex items-center justify-between px-1">
                 <div onClick={() => setEditingTheme(true)} className="flex-1 min-w-0">
@@ -473,14 +581,14 @@ const App = () => {
                     </h2>
                   )}
                 </div>
-                <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0">
+                <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800">
                    <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter">Est. Spend</div>
                    <div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div>
                    <div className="text-[9px] font-bold text-rose-400">≈ RM {dayTotalMYR.toFixed(2)}</div>
                 </div>
              </div>
 
-             <div className="relative border-l-2 border-rose-200/50 ml-4 sm:ml-6 space-y-6 pb-4 pl-6 sm:pl-10">
+             <div className="relative border-l-2 border-rose-200/50 ml-4 sm:ml-6 space-y-6 pb-4 pl-6 sm:pl-10 text-slate-800">
                {sortedActivities.length === 0 && <div className="py-24 text-center border-2 border-dashed border-rose-100 rounded-[3rem] text-rose-300 italic ml-[-2rem]">Empty schedule for today.</div>}
                {sortedActivities.map((act, idx) => {
                  const ongoing = isSelectedDayToday && isActivityOngoing(act.time, sortedActivities[idx+1]?.time);
@@ -522,10 +630,9 @@ const App = () => {
                })}
              </div>
            </div>
-         )}
        </main>
 
-       {/* Floating Quick Navigation / Action Bar */}
+       {/* Floating Quick Action Bar */}
        <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-50">
           <div className="max-w-3xl mx-auto flex justify-center pointer-events-auto">
              <div className="bg-white/95 backdrop-blur-xl border border-rose-100 shadow-2xl rounded-[2.5rem] p-2 flex items-center space-x-1 overflow-x-auto no-scrollbar max-w-[95vw]">
@@ -552,12 +659,6 @@ const App = () => {
        <ActivityModal isOpen={isActivityModalOpen} onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); setAddingType(undefined); }} onSave={handleSaveActivity} initialData={editingActivity} initialType={addingType} exchangeRate={exchangeRate} />
        <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
        <MetroGuideModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
-       
-       <footer className="fixed bottom-24 right-4 z-[55]">
-          <button onClick={() => setIsNotesOpen(!isNotesOpen)} className={`p-3.5 rounded-full shadow-lg border transition-all ${isNotesOpen ? 'bg-rose-600 text-white border-rose-600 scale-110' : 'bg-white text-rose-400 border-rose-100 hover:scale-110'}`} title="Notes & Settings">
-             {isNotesOpen ? <CloseIcon className="w-6 h-6" /> : <NoteIcon className="w-6 h-6" />}
-          </button>
-       </footer>
     </div>
   );
 };
