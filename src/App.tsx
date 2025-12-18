@@ -85,7 +85,7 @@ const METRO_LINES = [
     stations: [
       { name: 'Shibuya', id: 'shibuya' }, { name: 'Omotesando', id: 'omotesando' }, { name: 'Aoyama-itchome', id: 'aoyama-itchome' },
       { name: 'Akasaka-mitsuke', id: 'akasaka-mitsuke' }, { name: 'Ginza', id: 'ginza' }, { name: 'Nihombashi', id: 'nihombashi' },
-      { name: 'Ueno', id: 'ueno' }, { name: 'Asakusa', id: 'akasaka' }
+      { name: 'Ueno', id: 'ueno' }, { name: 'Asakusa', id: 'asakusa' }
     ]
   },
   { 
@@ -306,7 +306,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
       <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3 text-rose-600">
@@ -611,14 +611,14 @@ const App = () => {
               </div>
            </div>
         </header>
-        <main className="flex-1 max-w-3xl mx-auto w-full p-6 space-y-8 pb-32">
-           <section className="text-center py-4 space-y-2">
-              <h2 className="text-4xl font-serif font-bold text-slate-800">{trip.destination}</h2>
-              <p className="text-rose-400 font-bold tracking-widest uppercase text-xs">Adventure for Vin & Dolly?</p>
+        <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8">
+           <section className="text-center py-4 space-y-3">
+              <h2 className="text-5xl font-serif font-bold text-slate-800 tracking-tight">{trip.destination}</h2>
+              <p className="text-rose-400 font-bold tracking-[0.2em] uppercase text-xs">Journey for Vin & Dolly</p>
               {daysUntil !== null && (
-                <div className="mt-4">
-                  <div className="bg-rose-50 inline-block px-6 py-2 rounded-full border border-rose-100 shadow-sm">
-                    <span className="text-rose-600 font-bold text-sm">
+                <div className="mt-6">
+                  <div className="bg-rose-50 inline-block px-8 py-3 rounded-full border border-rose-100 shadow-sm">
+                    <span className="text-rose-600 font-bold text-sm tracking-wide">
                       {daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}
                     </span>
                   </div>
@@ -626,22 +626,17 @@ const App = () => {
               )}
            </section>
 
-           <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-rose-50 text-center space-y-3">
-                <div className="p-2 bg-orange-50 w-max mx-auto rounded-xl"><CalendarIcon className="w-6 h-6 text-orange-400" /></div>
-                <div>
-                  <h4 className="font-bold text-slate-800 text-2xl">{trip.duration} Days</h4>
-                </div>
-              </div>
-              <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-rose-50 text-center space-y-3">
-                <div className="p-2 bg-rose-50 w-max mx-auto rounded-xl"><WalletIcon className="w-6 h-6 text-rose-400" /></div>
-                <div>
-                  <h4 className="font-bold text-slate-800 text-2xl">¥{totalBudgetJPY.toLocaleString()}</h4>
-                </div>
-              </div>
-           </div>
+           {/* DASHBOARD CARDS REMOVED (DAYS & WALLET) */}
+           {/* QUICK ACTIONS REMOVED */}
            
-           {/* QUICK ACTIONS REMOVED FROM DASHBOARD AS REQUESTED */}
+           <div className="w-full max-w-sm pt-8">
+              <button 
+                onClick={() => setView('itinerary')} 
+                className="w-full py-6 bg-rose-600 hover:bg-rose-700 text-white rounded-[2.5rem] font-bold shadow-xl shadow-rose-100 transition-all active:scale-[0.98] text-lg"
+              >
+                View Our Journey
+              </button>
+           </div>
         </main>
 
         {isNotesOpen && (
