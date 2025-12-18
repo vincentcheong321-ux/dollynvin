@@ -317,7 +317,11 @@ const App = () => {
                       setEditingTheme(false);
                     }} />
                   ) : (
-                    <h2 className="text-2xl font-serif font-bold text-rose-950 flex items-center gap-2">{currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200" /></h2>
+                    <h2 className="text-2xl font-serif font-bold text-rose-950 flex items-center gap-2">
+                      <span className="text-rose-500 mr-2">Day {activeDay}:</span>
+                      {currentDayPlan?.theme} 
+                      <EditIcon className="w-3 h-3 text-rose-200" />
+                    </h2>
                   )}
                 </div>
                 <div className="text-right">
