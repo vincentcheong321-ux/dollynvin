@@ -7,7 +7,7 @@ export enum TripVibe {
   CULTURAL = 'Cultural'
 }
 
-export type ActivityType = 'food' | 'sightseeing' | 'relaxation' | 'travel' | 'stay' | 'shopping' | 'other';
+export type ActivityType = 'food' | 'sightseeing' | 'relaxation' | 'travel' | 'stay' | 'shopping' | 'drive' | 'other';
 
 export interface Activity {
   id: string;

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Trip, Activity, ActivityType, DailyPlan } from './types';
+import { Trip, Activity, ActivityType, DailyPlan, ChatMessage } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
 import { 
@@ -23,7 +23,9 @@ import {
   CalendarIcon,
   HeartIcon,
   ShoppingBagIcon,
-  PlaneIcon
+  PlaneIcon,
+  CarIcon,
+  BackIcon
 } from './components/Icons';
 import { sendChatMessage } from './services/geminiService';
 
@@ -77,39 +79,6 @@ const isActivityOngoing = (activityTime: string, nextActivityTime?: string): boo
   
   return currentMinutes >= startMinutes && currentMinutes < startMinutes + 120;
 };
-
-// --- Metro Data ---
-const METRO_LINES = [
-  { 
-    name: 'Ginza Line', id: 'ginza', color: '#FF9500', letter: 'G',
-    stations: [
-      { name: 'Shibuya', id: 'shibuya' }, { name: 'Omotesando', id: 'omotesando' }, { name: 'Aoyama-itchome', id: 'aoyama-itchome' },
-      { name: 'Akasaka-mitsuke', id: 'akasaka-mitsuke' }, { name: 'Ginza', id: 'ginza' }, { name: 'Nihombashi', id: 'nihombashi' },
-      { name: 'Ueno', id: 'ueno' }, { name: 'Asakusa', id: 'asakusa' }
-    ]
-  },
-  { 
-    name: 'Marunouchi Line', id: 'marunouchi', color: '#F62E36', letter: 'M',
-    stations: [
-      { name: 'Shinjuku', id: 'shinjuku' }, { name: 'Shinjuku-sanchome', id: 'shinjuku-sanchome' }, { name: 'Tokyo', id: 'tokyo' },
-      { name: 'Ginza', id: 'ginza' }, { name: 'Otemachi', id: 'otemachi' }, { name: 'Ikebukuro', id: 'ikebukuro' }
-    ]
-  },
-  { 
-    name: 'Hibiya Line', id: 'hibiya', color: '#B5B5AC', letter: 'H',
-    stations: [
-      { name: 'Naka-meguro', id: 'naka-meguro' }, { name: 'Ebisu', id: 'ebisu' }, { name: 'Roppongi', id: 'roppongi' },
-      { name: 'Ginza', id: 'ginza' }, { name: 'Akihabara', id: 'akihabara' }, { name: 'Ueno', id: 'ueno' }
-    ]
-  },
-  { 
-    name: 'Tozai Line', id: 'tozai', color: '#009BBF', letter: 'T',
-    stations: [
-      { name: 'Nakano', id: 'nakano' }, { name: 'Takadanobaba', id: 'takadanobaba' }, { name: 'Iidabashi', id: 'iidabashi' },
-      { name: 'Otemachi', id: 'otemachi' }, { name: 'Nihombashi', id: 'nihombashi' }
-    ]
-  }
-];
 
 // --- Activity Modal ---
 interface ActivityModalProps {
@@ -171,6 +140,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
                 <option value="shopping">Shopping</option>
                 <option value="relaxation">Relaxation</option>
                 <option value="travel">Transit/Flight</option>
+                <option value="drive">Driving/Car</option>
                 <option value="stay">Hotel/Stay</option>
                 <option value="other">Other Activity</option>
               </select>
@@ -229,7 +199,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
 const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean, onClose: () => void, trip: Trip, exchangeRate: number }) => {
   if (!isOpen) return null;
   let total = 0;
-  const categoryTotals: Record<string, number> = { food: 0, sightseeing: 0, relaxation: 0, travel: 0, stay: 0, shopping: 0, other: 0 };
+  const categoryTotals: Record<string, number> = { food: 0, sightseeing: 0, relaxation: 0, travel: 0, stay: 0, shopping: 0, drive: 0, other: 0 };
   trip.dailyPlans.forEach(plan => plan.activities.forEach(act => {
     const c = act.cost ?? 0;
     total += c;
@@ -273,6 +243,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
                         cat === 'food' ? 'bg-orange-400' : 
                         cat === 'stay' ? 'bg-emerald-400' :
                         cat === 'travel' ? 'bg-sky-400' : 
+                        cat === 'drive' ? 'bg-indigo-400' :
                         cat === 'shopping' ? 'bg-purple-400' :
                         'bg-rose-400'
                       }`} style={{ width: `${(cost / maxCost) * 100}%` }}></div>
@@ -288,186 +259,109 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
   );
 };
 
-// --- Metro Assistant Modal ---
-const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [expandedLine, setExpandedLine] = useState<string | null>('ginza');
-  const [activeTab, setActiveTab] = useState<'directory' | 'map'>('map');
-
-  const filteredLines = useMemo(() => {
-    if (!searchTerm) return METRO_LINES;
-    return METRO_LINES.map(line => ({
-      ...line,
-      stations: line.stations.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    })).filter(line => line.stations.length > 0);
-  }, [searchTerm]);
-
+// --- Subway Map Viewer Modal (Updated) ---
+const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
-        <div className="flex justify-between items-center mb-6">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
+      <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl z-10 p-6 flex flex-col h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
+        <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <div className="flex items-center space-x-3 text-rose-600">
-            <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
+            <div className="p-2.5 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
-              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Guide</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Tokyo Subway Access</p>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Subway Map</h3>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Tokyo Subway Route Map</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex bg-rose-50/50 p-1 rounded-2xl mb-6">
-          <button 
-            onClick={() => setActiveTab('directory')}
-            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'directory' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
-          >
-            Lines & Stations
-          </button>
-          <button 
-            onClick={() => setActiveTab('map')}
-            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'map' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
-          >
-            Route Map
-          </button>
-        </div>
-
-        {activeTab === 'directory' ? (
-          <>
-            <div className="mb-6">
-              <div className="relative">
-                <input 
-                  type="text" 
-                  placeholder="Search station (e.g., Shibuya)..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full p-4 pl-12 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-400 transition-all font-medium text-rose-900" 
-                />
-                <div className="absolute left-4 top-4.5 text-rose-300">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
+        <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-100 relative group flex flex-col">
+           <div className="flex-1 overflow-auto p-2 scrollbar-thin scrollbar-thumb-rose-200 cursor-grab active:cursor-grabbing">
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Tokyo_Metro_Subway_Map.svg/2560px-Tokyo_Metro_Subway_Map.svg.png" 
+                alt="Tokyo Subway Route Map" 
+                className="max-w-none w-[350%] md:w-[150%] h-auto rounded-lg shadow-2xl"
+              />
+           </div>
+           <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center pointer-events-none">
+              <div className="bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-lg border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                 Scroll or Pinch to Zoom
               </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-4">
-              {filteredLines.map(line => (
-                <div key={line.id} className="border border-slate-100 rounded-[2rem] overflow-hidden bg-white shadow-sm transition-all">
-                  <button 
-                    onClick={() => setExpandedLine(expandedLine === line.id ? null : line.id)}
-                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm" style={{ backgroundColor: line.color }}>{line.letter}</div>
-                      <div className="text-left">
-                        <h4 className="font-serif font-bold text-slate-800">{line.name}</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{line.stations.length} Key Stations</p>
-                      </div>
-                    </div>
-                    <div className={`transform transition-transform ${expandedLine === line.id ? 'rotate-90' : ''}`}><ArrowRightIcon className="w-5 h-5 text-slate-300" /></div>
-                  </button>
-                  {expandedLine === line.id && (
-                    <div className="p-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fadeIn">
-                      {line.stations.map(station => (
-                        <a 
-                          key={station.id}
-                          href={`https://www.tokyometro.jp/lang_en/station/${station.id}/index.html`}
-                          target="_blank" rel="noreferrer"
-                          className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50/30 transition-all group"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: line.color }}></div>
-                            <span className="font-medium text-slate-700 text-sm">{station.name}</span>
-                          </div>
-                          <ArrowRightIcon className="w-3.5 h-3.5 text-slate-300 group-hover:text-rose-400" />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
-            <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-100 relative group">
-               <div className="absolute inset-0 overflow-auto scrollbar-thin scrollbar-thumb-rose-200 p-2 cursor-grab active:cursor-grabbing">
-                  <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Tokyo_Metro_Subway_Map.svg/2560px-Tokyo_Metro_Subway_Map.svg.png" 
-                    alt="Tokyo Subway Route Map" 
-                    className="max-w-none h-auto w-[250%] md:w-[150%] rounded-lg shadow-2xl"
-                  />
-               </div>
-               <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-lg border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600 pointer-events-none">
-                  Scroll / Pinch to Explore Map
-               </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-               <a 
+              <a 
                 href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
                 target="_blank" rel="noreferrer"
-                className="flex items-center justify-center gap-3 p-4 bg-rose-600 text-white rounded-2xl font-bold shadow-lg hover:bg-rose-700 transition-colors"
-               >
-                 <MapIcon className="w-5 h-5" />
-                 <span>High-Res PDF</span>
-               </a>
-               <a 
-                href="https://www.tokyometro.jp/en/subwaymap/index.html" 
-                target="_blank" rel="noreferrer"
-                className="flex items-center justify-center gap-3 p-4 bg-white text-rose-600 border border-rose-100 rounded-2xl font-bold hover:bg-rose-50 transition-colors"
-               >
-                 <span>Full Web Guide</span>
-                 <ArrowRightIcon className="w-4 h-4" />
-               </a>
-            </div>
-          </div>
-        )}
+                className="pointer-events-auto bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-2 hover:bg-rose-700 transition-colors"
+              >
+                <span>Full PDF</span>
+                <ArrowRightIcon className="w-3.5 h-3.5" />
+              </a>
+           </div>
+        </div>
         
-        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center gap-2">
-           <p className="text-[9px] text-slate-300 uppercase tracking-tighter text-center">Route Map provided by Tokyo Metro Co., Ltd. (Wikimedia Commons Resource)</p>
+        <div className="mt-3 flex-shrink-0 text-center">
+           <p className="text-[9px] text-slate-300 uppercase tracking-tighter">Route Map provided by Tokyo Metro Co., Ltd. (via Wikimedia Commons)</p>
         </div>
       </div>
     </div>
   );
 };
 
-// --- Chat Assistant Modal ---
-interface ChatMessageProps {
-  id: string;
-  role: 'user' | 'model';
-  text: string;
-}
-
-const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onClose: () => void, currentTrip: Trip | null }) => {
-  const [messages, setMessages] = useState<ChatMessageProps[]>([]);
+// --- Chat Assistant ---
+const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onClose: () => void, currentTrip?: Trip | null }) => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      setMessages([{ id: 'init', role: 'model', text: currentTrip ? `Hi! I'm ready to help with your trip to ${currentTrip.destination}. Ask me about anything!` : `Hi! I'm your travel assistant!` }]);
+      setMessages([{ 
+        id: 'init', 
+        role: 'model', 
+        text: currentTrip 
+          ? `Hi! I'm ready to help with your trip to ${currentTrip.destination}. Need suggestions for a specific day or help finding a restaurant nearby?`
+          : `Hi! I'm your travel assistant. Start by creating a trip!`
+      }]);
     }
-  }, [isOpen, currentTrip]);
+  }, [isOpen, currentTrip, messages.length]);
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages, isOpen]);
 
   const handleSend = async () => {
     if (!input.trim() || !currentTrip) return;
-    const userMsg: ChatMessageProps = { id: Date.now().toString(), role: 'user', text: input };
+
+    const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
+
     try {
-      const history = messages.filter(m => m.id !== 'init').map(m => ({ role: m.role, parts: [{ text: m.text }] }));
+      const history = messages.filter(m => m.id !== 'init').map(m => ({
+        role: m.role,
+        parts: [{ text: m.text }]
+      }));
+
       const result = await sendChatMessage(input, history, currentTrip);
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: result.text || "I found some info for you." }]);
+      
+      const groundingChunks = result.candidates?.[0]?.groundingMetadata?.groundingChunks;
+      const text = result.text || "I found some info for you.";
+
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'model',
+        text,
+        groundingMetadata: groundingChunks
+      }]);
     } catch (e) {
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Connection error." }]);
+      console.error(e);
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Sorry, connection error." }]);
     } finally {
       setIsTyping(false);
     }
@@ -476,27 +370,73 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center sm:p-6 pointer-events-none">
+    <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center sm:p-6 pointer-events-none">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={onClose}></div>
       <div className="bg-white/95 w-full h-[85vh] sm:h-[600px] sm:max-w-md sm:rounded-3xl shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-slideUp border border-white/50">
-        <div className="bg-rose-600 p-4 flex items-center justify-between text-white shadow-md">
-          <div className="flex items-center space-x-2"><SparklesIcon className="w-5 h-5" /><span className="font-bold">Trip Assistant</span></div>
-          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors"><CloseIcon className="w-6 h-6" /></button>
+        <div className="bg-gradient-to-r from-rose-500 to-pink-600 p-4 flex items-center justify-between text-white shadow-md">
+          <div className="flex items-center space-x-2">
+            <SparklesIcon className="w-5 h-5" />
+            <span className="font-bold">Trip Assistant</span>
+          </div>
+          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+            <BackIcon className="w-6 h-6 rotate-[-90deg] sm:rotate-0" />
+          </button>
         </div>
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 no-scrollbar">
+
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${msg.role === 'user' ? 'bg-rose-600 text-white rounded-br-none' : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'}`}>
+              <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
+                msg.role === 'user' 
+                  ? 'bg-gradient-to-br from-rose-500 to-pink-500 text-white rounded-br-none shadow-rose-200' 
+                  : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'
+              }`}>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</div>
+                {msg.groundingMetadata && (
+                   <div className="mt-2 space-y-1 border-t border-slate-100 pt-2">
+                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sources</div>
+                     {msg.groundingMetadata.map((chunk: any, i: number) => (
+                       chunk.web && (
+                         <a key={i} href={chunk.web.uri} target="_blank" rel="noopener noreferrer" className="block text-[10px] text-blue-500 hover:underline truncate">
+                           {chunk.web.title || chunk.web.uri}
+                         </a>
+                       )
+                     ))}
+                   </div>
+                )}
               </div>
             </div>
           ))}
-          {isTyping && <div className="flex justify-start"><div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-pulse">...</div></div>}
+          {isTyping && (
+             <div className="flex justify-start">
+               <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-slate-100 shadow-sm">
+                 <div className="flex space-x-1">
+                   <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce"></div>
+                   <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce delay-75"></div>
+                   <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce delay-150"></div>
+                 </div>
+               </div>
+             </div>
+          )}
         </div>
+
         <div className="p-4 bg-white border-t border-slate-100">
-          <div className="flex items-center space-x-2 bg-slate-50 rounded-full px-4 py-2 border border-slate-200">
-            <input type="text" placeholder="Ask about your trip..." className="flex-1 bg-transparent outline-none text-slate-700" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend()} />
-            <button onClick={handleSend} disabled={!input.trim() || isTyping} className="p-2 bg-rose-600 text-white rounded-full"><ArrowRightIcon className="w-4 h-4" /></button>
+          <div className="flex items-center space-x-2 bg-slate-50 rounded-full px-4 py-2 border border-slate-200 focus-within:border-rose-400 transition-all shadow-inner">
+            <input
+              type="text"
+              placeholder="Ask about your trip..."
+              className="flex-1 bg-transparent outline-none text-slate-700 placeholder-slate-400"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            />
+            <button 
+              onClick={handleSend}
+              disabled={!input.trim() || isTyping}
+              className="p-2 bg-rose-600 text-white rounded-full hover:bg-rose-700 disabled:opacity-50 transition-colors"
+            >
+              <ArrowRightIcon className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -613,7 +553,7 @@ const App = () => {
         </header>
         <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8">
            <section className="text-center py-4 space-y-3">
-              <h2 className="text-5xl font-serif font-bold text-slate-800 tracking-tight">{trip.destination}</h2>
+              <h2 className="text-5xl font-serif font-bold text-slate-800 tracking-tight leading-tight">{trip.destination}</h2>
               <p className="text-rose-400 font-bold tracking-[0.2em] uppercase text-xs">Journey for Vin & Dolly</p>
               {daysUntil !== null && (
                 <div className="mt-6">
@@ -625,17 +565,25 @@ const App = () => {
                 </div>
               )}
            </section>
-
-           {/* DASHBOARD CARDS REMOVED (DAYS & WALLET) */}
-           {/* QUICK ACTIONS REMOVED */}
            
            <div className="w-full max-w-sm pt-8">
               <button 
                 onClick={() => setView('itinerary')} 
-                className="w-full py-6 bg-rose-600 hover:bg-rose-700 text-white rounded-[2.5rem] font-bold shadow-xl shadow-rose-100 transition-all active:scale-[0.98] text-lg"
+                className="w-full py-6 bg-rose-600 hover:bg-rose-700 text-white rounded-[2.5rem] font-bold shadow-xl shadow-rose-100 transition-all active:scale-[0.98] text-lg mb-4"
               >
-                View Our Journey
+                Open Our Itinerary
               </button>
+              
+              <div className="grid grid-cols-2 gap-4">
+                 <button onClick={() => setIsMetroGuideOpen(true)} className="py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-[2rem] font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+                    <MapIcon className="w-4 h-4" /> 
+                    <span>Subway Map</span>
+                 </button>
+                 <button onClick={() => setIsBudgetOpen(true)} className="py-4 bg-white border border-rose-100 text-rose-600 hover:bg-rose-50 rounded-[2rem] font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+                    <WalletIcon className="w-4 h-4" /> 
+                    <span>Budget</span>
+                 </button>
+              </div>
            </div>
         </main>
 
@@ -652,6 +600,7 @@ const App = () => {
           </div>
         )}
         <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
+        <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
       </div>
     );
   }
@@ -681,7 +630,7 @@ const App = () => {
             </div>
             
             {/* DATE SELECTOR */}
-            <div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 select-none">
+            <div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 select-none touch-pan-x active:cursor-grabbing">
               <div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">
                  {trip.dailyPlans.map(p => (
                    <button 
@@ -710,7 +659,7 @@ const App = () => {
                     <h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate group cursor-pointer">Day {activeDay}: {currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200 group-hover:text-rose-400 transition-colors" /></h2>
                   )}
                 </div>
-                <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800">
+                <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800 shadow-sm">
                    <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic text-center">Daily Total</div>
                    <div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div>
                    <div className="text-[9px] font-bold text-rose-400 text-center">≈ RM {dayTotalMYR.toFixed(2)}</div>
@@ -741,6 +690,7 @@ const App = () => {
                               act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' :
                               act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                               act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' :
+                              act.type === 'drive' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
                               'bg-slate-50 text-slate-600 border-slate-100'
                             }`}>
                               <ActivityIcon type={act.type} className="w-3 h-3" />
@@ -773,7 +723,8 @@ const App = () => {
                  {t:'food', l:'Food', i:<CoffeeIcon className="w-5 h-5" />, c:'orange'}, 
                  {t:'stay', l:'Stay', i:<BedIcon className="w-5 h-5" />, c:'emerald'}, 
                  {t:'shopping', l:'Shop', i:<ShoppingBagIcon className="w-5 h-5" />, c:'rose'} ,
-                 {t:'travel', l:'Travel', i:<PlaneIcon className="w-5 h-5" />, c:'sky'}
+                 {t:'travel', l:'Travel', i:<PlaneIcon className="w-5 h-5" />, c:'sky'},
+                 {t:'drive', l:'Drive', i:<CarIcon className="w-5 h-5" />, c:'indigo'}
                ].map(btn => (
                  <button key={btn.t} onClick={() => { setEditingActivity(null); setAddingType(btn.t as ActivityType); setIsActivityModalOpen(true); }} className="flex flex-col items-center p-2 rounded-2xl hover:bg-rose-50 group min-w-[3.5rem] sm:min-w-[4rem]">
                     <div className={`w-10 h-10 rounded-2xl bg-${btn.c}-50 text-${btn.c}-500 flex items-center justify-center mb-1 shadow-sm transition-all group-active:scale-90 group-hover:scale-105`}>{btn.i}</div>
@@ -791,7 +742,7 @@ const App = () => {
 
        <ActivityModal isOpen={isActivityModalOpen} onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); setAddingType(undefined); }} onSave={handleSaveActivity} initialData={editingActivity} initialType={addingType} exchangeRate={exchangeRate} />
        <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
-       <MetroGuideModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
+       <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
        <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
     </div>
   );

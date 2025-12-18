@@ -1,3 +1,4 @@
+
 import { 
   Heart, 
   MapPin, 
@@ -24,7 +25,8 @@ import {
   BedDouble,
   Wallet,
   PieChart,
-  ShoppingBag
+  ShoppingBag,
+  Car
 } from 'lucide-react';
 
 export const HeartIcon = ({ className }: { className?: string }) => <Heart className={className} />;
@@ -53,6 +55,7 @@ export const BedIcon = ({ className }: { className?: string }) => <BedDouble cla
 export const WalletIcon = ({ className }: { className?: string }) => <Wallet className={className} />;
 export const PieChartIcon = ({ className }: { className?: string }) => <PieChart className={className} />;
 export const ShoppingBagIcon = ({ className }: { className?: string }) => <ShoppingBag className={className} />;
+export const CarIcon = ({ className }: { className?: string }) => <Car className={className} />;
 
 export const ActivityIcon = ({ type, className }: { type: string, className?: string }) => {
   switch (type) {
@@ -60,6 +63,7 @@ export const ActivityIcon = ({ type, className }: { type: string, className?: st
     case 'sightseeing': return <CameraIcon className={className} />;
     case 'relaxation': return <MoonIcon className={className} />;
     case 'travel': return <PlaneIcon className={className} />;
+    case 'drive': return <CarIcon className={className} />;
     case 'stay': return <BedIcon className={className} />;
     case 'shopping': return <ShoppingBagIcon className={className} />;
     default: return <MapPinIcon className={className} />;
