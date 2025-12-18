@@ -325,7 +325,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             onClick={() => setActiveTab('map')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${activeTab === 'map' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
           >
-            Route Map
+            Subway Map
           </button>
         </div>
 
@@ -386,19 +386,16 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           </>
         ) : (
           <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
-            <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-100 relative">
+            <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-slate-100 relative group">
                <div className="absolute inset-0 overflow-auto scrollbar-thin scrollbar-thumb-rose-200 p-2 cursor-grab active:cursor-grabbing">
                   <img 
-                    src="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map_l.png" 
-                    alt="Tokyo Subway Map" 
-                    className="max-w-none h-auto w-[250%] md:w-[150%] rounded-lg shadow-2xl"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Tokyo_Metro_Subway_Map.svg/2560px-Tokyo_Metro_Subway_Map.svg.png';
-                    }}
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Tokyo_Metro_Subway_Map.svg/2560px-Tokyo_Metro_Subway_Map.svg.png" 
+                    alt="Tokyo Subway Route Map" 
+                    className="max-w-none h-auto w-[200%] md:w-[120%] rounded-lg shadow-2xl"
                   />
                </div>
-               <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-xl shadow-lg border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600 pointer-events-none">
-                  Scroll / Pinch to Explore
+               <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-lg border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600 pointer-events-none">
+                  Scroll / Drag to View Details
                </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -408,14 +405,14 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                 className="flex items-center justify-center gap-3 p-4 bg-rose-600 text-white rounded-2xl font-bold shadow-lg hover:bg-rose-700 transition-colors"
                >
                  <MapIcon className="w-5 h-5" />
-                 <span>Open Official PDF</span>
+                 <span>High-Res PDF</span>
                </a>
                <a 
                 href="https://www.tokyometro.jp/en/subwaymap/index.html" 
                 target="_blank" rel="noreferrer"
                 className="flex items-center justify-center gap-3 p-4 bg-white text-rose-600 border border-rose-100 rounded-2xl font-bold hover:bg-rose-50 transition-colors"
                >
-                 <span>Full Web Guide</span>
+                 <span>Interactive Guide</span>
                  <ArrowRightIcon className="w-4 h-4" />
                </a>
             </div>
@@ -423,7 +420,7 @@ const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         )}
         
         <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center gap-2">
-           <p className="text-[9px] text-slate-300 uppercase tracking-tighter text-center">Images & Station Links provided by Tokyo Metro Co., Ltd.</p>
+           <p className="text-[9px] text-slate-300 uppercase tracking-tighter text-center">Route Map provided by Tokyo Metro Co., Ltd. (Wikimedia Commons Resource)</p>
         </div>
       </div>
     </div>
@@ -657,9 +654,9 @@ const App = () => {
                </div>
             </div>
             
-            {/* FIXED DAY SELECTOR SCROLL: Added scroll-smooth and ensured container allows horizontal scroll via flex-nowrap + w-max */}
+            {/* FIXED DAY SELECTOR SCROLL: Added w-full overflow-x-auto and ensured the inner flex box allows scrolling on desktop browsers */}
             <div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 touch-pan-x cursor-ew-resize">
-              <div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">
+              <div className="flex gap-2 w-max items-center flex-nowrap pr-12">
                  {trip.dailyPlans.map(p => (
                    <button 
                      key={p.id} 
