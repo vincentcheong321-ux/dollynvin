@@ -3,7 +3,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
-import { GoogleGenAI } from "@google/genai";
 import { 
   ActivityIcon,
   PlusIcon,
@@ -250,121 +249,106 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
 };
 
 // --- Metro Station Assistant Modal ---
+const TOKYO_METRO_STATIONS = [
+  { name: 'Shinjuku', id: 'shinjuku' },
+  { name: 'Tokyo', id: 'tokyo' },
+  { name: 'Shibuya', id: 'shibuya' },
+  { name: 'Ginza', id: 'ginza' },
+  { name: 'Asakusa', id: 'asakusa' },
+  { name: 'Ueno', id: 'ueno' },
+  { name: 'Roppongi', id: 'roppongi' },
+  { name: 'Akihabara', id: 'akihabara' },
+  { name: 'Ikebukuro', id: 'ikebukuro' },
+  { name: 'Omote-sando', id: 'omote-sando' },
+  { name: 'Nihombashi', id: 'nihombashi' },
+  { name: 'Kanda', id: 'kanda' },
+  { name: 'Ebisu', id: 'ebisu' }
+];
+
 const MetroGuideModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const [stationName, setStationName] = useState('');
-  const [guide, setGuide] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchGuide = async (nameOverride?: string) => {
-    const target = nameOverride || stationName;
-    if (!target.trim()) return;
-    setIsLoading(true);
-    setGuide('');
-    setImageUrl('');
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      // Step 1: Wayfinding Protocol Instructions
-      const textResponse = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Provide a point-by-point station navigation and transfer guide for ${target} station in Japan. 
-        Focus on:
-        1. High-traffic platform transfers (e.g. JR to Subway).
-        2. Exit guidance for tourists.
-        3. Strategic "meeting points" inside the station.
-        Make instructions clear and easy to follow while walking.`,
-        config: {
-          systemInstruction: "You are an expert station navigator. Provide bold, clear, and actionable wayfinding advice."
-        }
-      });
-      setGuide(textResponse.text || "Sorry, I couldn't find details for that station.");
-
-      // Step 2: 3D/2D Schematic Map Generation
-      const imgResponse = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: `Create a professional 3D isometric schematic diagram showing the main platform levels, escalators, and key exits for ${target} station in Japan. 
-        Style: Modern minimalist transit map, clean white background, high contrast, colored lines representing different train routes, clear exit numbering. 
-        Focus on showing the general layout levels (e.g., B1, Ground, 2F).`,
-      });
-      
-      if (imgResponse.candidates && imgResponse.candidates[0]?.content?.parts) {
-        for (const part of imgResponse.candidates[0].content.parts) {
-          if (part.inlineData) {
-            setImageUrl(`data:image/png;base64,${part.inlineData.data}`);
-          }
-        }
-      }
-
-    } catch (err) {
-      console.error('Metro Guide Error:', err);
-      setGuide("Navigation service briefly unavailable. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuickSelect = (name: string) => {
-    setStationName(name);
-    fetchGuide(name);
-  };
+  const filteredStations = useMemo(() => {
+    return TOKYO_METRO_STATIONS.filter(s => 
+      s.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[90vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
+      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp overflow-hidden border border-rose-100 text-slate-800">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-3 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
             <div>
-              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Assistant</h3>
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Platform Navigator</p>
+              <h3 className="text-2xl font-serif font-bold text-rose-950">Metro Guide</h3>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Official Tokyo Metro Info</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
         </div>
 
-        <div className="mb-6 flex gap-2">
-          <input type="text" placeholder="Enter station name..." value={stationName} onChange={(e) => setStationName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && fetchGuide()} className="flex-1 p-4 bg-rose-50 border border-rose-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-400 transition-all font-medium text-rose-900" />
-          <button onClick={() => fetchGuide()} disabled={isLoading || !stationName.trim()} className="p-4 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 disabled:opacity-50 transition-all shadow-md active:scale-95 flex items-center justify-center min-w-[3.5rem]">
-            {isLoading ? <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <ArrowRightIcon className="w-6 h-6" />}
-          </button>
+        <div className="mb-6">
+          <div className="relative">
+            <input 
+              type="text" 
+              placeholder="Search station (e.g., Shinjuku)..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-4 pl-12 bg-rose-50 border border-rose-100 rounded-2xl outline-none focus:ring-2 focus:ring-rose-400 transition-all font-medium text-rose-900" 
+            />
+            <div className="absolute left-4 top-4.5 text-rose-300">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-6">
-          {!guide && !isLoading && (
-            <div className="text-center py-6">
-               <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-4">Quick Select</p>
-               <div className="flex flex-wrap justify-center gap-2">
-                 {['Shinjuku', 'Tokyo', 'Shibuya', 'Kyoto', 'Osaka'].map(s => (
-                   <button key={s} onClick={() => handleQuickSelect(s)} className="px-4 py-2 bg-white border border-rose-100 rounded-full text-xs font-bold text-rose-400 hover:bg-rose-50 transition-colors shadow-sm">{s}</button>
-                 ))}
-               </div>
+        <div className="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-3">
+          <div className="bg-rose-600 p-4 rounded-2xl text-white mb-6 flex items-center justify-between shadow-lg">
+            <div>
+              <h4 className="font-bold">Full Station Directory</h4>
+              <p className="text-[10px] opacity-80 uppercase tracking-widest">Official Tokyo Metro Website</p>
             </div>
+            <a 
+              href="https://www.tokyometro.jp/en/route_station/index.html" 
+              target="_blank" 
+              rel="noreferrer"
+              className="p-3 bg-white text-rose-600 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition-all"
+            >
+              Open Site
+            </a>
+          </div>
+
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Quick Access Stations</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {filteredStations.map(station => (
+              <div key={station.id} className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex items-center justify-between hover:border-rose-200 transition-colors">
+                <span className="font-serif font-bold text-slate-800">{station.name}</span>
+                <a 
+                  href={`https://www.tokyometro.jp/en/route_station/index.html`} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="p-2 bg-white text-rose-500 rounded-lg shadow-sm hover:bg-rose-500 hover:text-white transition-all"
+                  title={`View ${station.name} layout`}
+                >
+                  <ArrowRightIcon className="w-4 h-4" />
+                </a>
+              </div>
+            ))}
+          </div>
+          
+          {filteredStations.length === 0 && (
+            <div className="text-center py-10 text-slate-400 italic">No stations matching "{searchTerm}"</div>
           )}
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 space-y-4">
-              <SparklesIcon className="w-8 h-8 text-rose-400 animate-pulse" />
-              <p className="text-rose-400 font-serif italic animate-pulse text-center">Sketching station layout...</p>
-            </div>
-          ) : (guide || imageUrl) && (
-            <div className="space-y-6 animate-fadeIn pb-8">
-               {imageUrl && (
-                 <div className="rounded-3xl overflow-hidden border border-slate-100 shadow-xl bg-white p-2">
-                   <img src={imageUrl} alt="Station Map" className="w-full h-auto object-cover rounded-2xl" />
-                   <p className="text-[10px] text-center text-slate-400 mt-2 font-bold uppercase tracking-widest">3D Isometric Schematic</p>
-                 </div>
-               )}
-               {guide && (
-                 <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 leading-relaxed animate-fadeIn whitespace-pre-wrap text-slate-700">
-                    <h4 className="font-serif font-bold text-xl text-rose-950 mb-4 border-b border-rose-100 pb-2">{stationName} Station Wayfinding</h4>
-                    {guide}
-                 </div>
-               )}
-            </div>
-          )}
+        </div>
+        
+        <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-center gap-2">
+          <SparklesIcon className="w-4 h-4 text-rose-300" />
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Always verify with official maps at stations</p>
         </div>
       </div>
     </div>
@@ -720,22 +704,24 @@ const App = () => {
                </div>
             </div>
             
-            {/* FIXED DAY SELECTOR SCROLL: Added -mx-4, px-4, and flex-nowrap to ensure items can exceed screen width and scroll correctly */}
-            <div className="w-full relative overflow-hidden">
-              <div className="flex gap-2 no-scrollbar overflow-x-auto pb-2 items-center -mx-4 px-4 flex-nowrap min-h-[48px] touch-pan-x">
-                 {trip.dailyPlans.map(p => (
-                   <button 
-                     key={p.id} 
-                     onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} 
-                     className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'min-w-[3rem] h-10' : 'min-w-[3.5rem] h-12'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}
-                   >
-                      <span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
-                      <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
+            {/* FIXED DAY SELECTOR SCROLL: Added w-full relative container with absolute-scrolling flex child */}
+            <div className="w-full relative py-1">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar items-center -mx-4 px-4 flex-nowrap touch-pan-x">
+                 <div className="flex gap-2 min-w-max">
+                   {trip.dailyPlans.map(p => (
+                     <button 
+                       key={p.id} 
+                       onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} 
+                       className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.2rem] h-10' : 'w-[3.8rem] h-12'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-white border-rose-100 text-rose-300'}`}
+                     >
+                        <span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span>
+                        <span className="text-xs font-bold">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span>
+                     </button>
+                   ))}
+                   <button onClick={addDay} className="w-[2.5rem] h-10 sm:h-12 flex items-center justify-center text-rose-200 flex-shrink-0 hover:text-rose-500 transition-colors">
+                     <PlusIcon className="w-5 h-5" />
                    </button>
-                 ))}
-                 <button onClick={addDay} className="p-2 text-rose-200 flex-shrink-0 hover:text-rose-500 transition-colors">
-                   <PlusIcon className="w-5 h-5" />
-                 </button>
+                 </div>
               </div>
             </div>
          </div>
