@@ -13,7 +13,6 @@ import {
   NoteIcon,
   CloseIcon,
   WalletIcon,
-  PlaneIcon,
   MapIcon,
   CoffeeIcon,
   CameraIcon,
@@ -548,7 +547,7 @@ const App = () => {
   }, [trip]);
   
   const dayTotalJPY = useMemo(() => sortedActivities.reduce((sum, act) => sum + (act.cost ?? 0), 0), [sortedActivities]);
-  const dayTotalMYR = dayTotalJPY * exchangeRate;
+  const dayTotalMYR = useMemo(() => dayTotalJPY * exchangeRate, [dayTotalJPY, exchangeRate]);
   const isSelectedDayToday = useMemo(() => isToday(trip?.startDate, activeDay), [trip?.startDate, activeDay]);
 
   if (!trip || isLoading) return <div className="min-h-screen flex items-center justify-center font-serif text-rose-400 animate-pulse text-xl italic">Setting up our romance...</div>;
@@ -686,6 +685,7 @@ const App = () => {
                 <div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800">
                    <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic">Total for Day</div>
                    <div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div>
+                   <div className="text-[9px] font-bold text-rose-400">≈ RM {dayTotalMYR.toFixed(2)}</div>
                 </div>
              </div>
 
