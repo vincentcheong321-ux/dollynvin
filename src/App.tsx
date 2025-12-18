@@ -293,25 +293,25 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
           </a>
 
           <a 
-            href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
+            href="https://www.tokyometro.jp/en/route_station/index.html" 
             target="_blank" rel="noreferrer"
             className="w-full flex items-center justify-between p-5 bg-white border border-rose-100 text-rose-600 rounded-[1.5rem] font-bold hover:bg-rose-50 transition-all active:scale-95 group"
           >
             <div className="flex items-center gap-3">
               <PlusIcon className="w-5 h-5 rotate-45" />
-              <span>Download High-Res PDF</span>
+              <span>Metro Stations & Route</span>
             </div>
             <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
           </a>
 
           <a 
-            href="https://www.tokyometro.jp/en/index.html" 
+            href="https://www.tokyometro.jp/en/subwaymap/pdf/en_tokyo_metro_route_map.pdf" 
             target="_blank" rel="noreferrer"
             className="w-full flex items-center justify-between p-5 bg-rose-50 text-rose-800 rounded-[1.5rem] font-bold hover:bg-rose-100 transition-all active:scale-95 group"
           >
             <div className="flex items-center gap-3">
-              <HomeIcon className="w-5 h-5 opacity-70" />
-              <span>Official Website</span>
+              <PlaneIcon className="w-5 h-5 opacity-70" />
+              <span>Download High-Res PDF</span>
             </div>
             <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
           </a>
@@ -561,22 +561,24 @@ const App = () => {
            </div>
         </header>
         <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8">
-           <section className="text-center py-4 space-y-6">
-              <div className="flex items-center justify-center gap-4">
-                 <h2 className="text-6xl font-serif font-bold text-slate-800 tracking-tight leading-tight">{trip.destination}</h2>
-                 <button 
-                  className="relative bg-white p-4 rounded-full shadow-lg border border-rose-100 group cursor-pointer active:scale-95 transition-all"
-                  onClick={() => setView('itinerary')}
-                 >
-                    <div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-10 group-hover:opacity-30"></div>
-                    <HeartIcon className="w-8 h-8 text-rose-500 relative" />
-                 </button>
-              </div>
+           <section className="text-center py-4 space-y-2">
+              <h2 className="text-6xl font-serif font-bold text-slate-800 tracking-tight leading-tight">{trip.destination}</h2>
               <p className="text-rose-400 font-bold tracking-[0.2em] uppercase text-xs">Journey for Vin & Dolly</p>
               
+              <div className="pt-6">
+                 <button 
+                  className="relative bg-white p-6 rounded-full shadow-2xl border border-rose-100 group cursor-pointer active:scale-95 transition-all transform hover:scale-110"
+                  onClick={() => setView('itinerary')}
+                 >
+                    <div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-20 group-hover:opacity-40"></div>
+                    <HeartIcon className="w-12 h-12 text-rose-500 relative" />
+                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-[10px] font-bold text-rose-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Open Itinerary</div>
+                 </button>
+              </div>
+              
               {daysUntil !== null && (
-                <div className="mt-8">
-                  <div className="bg-rose-50 inline-block px-10 py-4 rounded-full border border-rose-100 shadow-sm">
+                <div className="pt-12">
+                  <div className="bg-white/50 backdrop-blur inline-block px-10 py-4 rounded-full border border-rose-100 shadow-sm">
                     <span className="text-rose-600 font-bold text-base tracking-wide">
                       {daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}
                     </span>
@@ -584,16 +586,75 @@ const App = () => {
                 </div>
               )}
            </section>
+
+           {/* Quick Access Area */}
+           <div className="w-full max-w-lg mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <button 
+                onClick={() => setIsNotesOpen(true)}
+                className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"
+              >
+                 <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                    <PlaneIcon className="w-6 h-6" />
+                 </div>
+                 <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Passport &<br/>Flight Info</span>
+              </button>
+
+              <button 
+                onClick={() => setIsMetroGuideOpen(true)}
+                className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"
+              >
+                 <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                    <MapIcon className="w-6 h-6" />
+                 </div>
+                 <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Tokyo Metro<br/>Resources</span>
+              </button>
+
+              <a 
+                href="https://www.tokyodisneyresort.jp/en/tdl/map.html"
+                target="_blank"
+                rel="noreferrer"
+                className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"
+              >
+                 <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                    <SparklesIcon className="w-6 h-6" />
+                 </div>
+                 <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Disneyland<br/>Tokyo Map</span>
+              </a>
+           </div>
         </main>
 
         {isNotesOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsNotesOpen(false)}></div>
              <div className="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl z-10 animate-slideUp text-slate-800 max-h-[85vh] overflow-y-auto no-scrollbar">
-                <div className="flex justify-between items-center mb-6 border-b pb-4"><h3 className="font-serif font-bold text-2xl text-rose-950">Settings</h3><button onClick={() => setIsNotesOpen(false)}><CloseIcon className="w-6 h-6 text-slate-400" /></button></div>
+                <div className="flex justify-between items-center mb-6 border-b pb-4">
+                  <h3 className="font-serif font-bold text-2xl text-rose-950 flex items-center gap-2">
+                    <PlaneIcon className="w-6 h-6 text-rose-500" />
+                    Essential Info
+                  </h3>
+                  <button onClick={() => setIsNotesOpen(false)}><CloseIcon className="w-6 h-6 text-slate-400" /></button>
+                </div>
                 <div className="space-y-6">
-                  <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">Trip Start Date</label><input type="date" className="w-full p-4 bg-rose-50 rounded-2xl outline-none" value={trip.startDate || ''} onChange={e => handleUpdate({...trip, startDate: e.target.value})} /></div>
-                  <div><label className="block text-xs font-bold text-rose-400 uppercase mb-2">Exchange Rate (100 JPY to MYR)</label><div className="flex items-center gap-2 bg-rose-50 p-4 rounded-2xl"><input type="number" step="0.01" className="bg-transparent border-b border-rose-300 outline-none w-20 text-center font-bold" value={(exchangeRate * 100).toFixed(2)} onChange={e => setExchangeRate((parseFloat(e.target.value) || 0) / 100)} /><span className="text-xs font-bold">MYR</span></div></div>
+                  <div>
+                    <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Trip Start Date</label>
+                    <input type="date" className="w-full p-4 bg-rose-50 rounded-2xl outline-none" value={trip.startDate || ''} onChange={e => handleUpdate({...trip, startDate: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Exchange Rate (100 JPY to MYR)</label>
+                    <div className="flex items-center gap-2 bg-rose-50 p-4 rounded-2xl">
+                      <input type="number" step="0.01" className="bg-transparent border-b border-rose-300 outline-none w-20 text-center font-bold" value={(exchangeRate * 100).toFixed(2)} onChange={e => setExchangeRate((parseFloat(e.target.value) || 0) / 100)} />
+                      <span className="text-xs font-bold">MYR</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-rose-400 uppercase mb-2">Passport & Flight Details</label>
+                    <textarea 
+                      className="w-full h-48 p-4 bg-rose-50 rounded-2xl outline-none resize-none text-sm leading-relaxed" 
+                      placeholder="Enter passport numbers, flight bookings, etc..."
+                      value={trip.notes || ''}
+                      onChange={e => handleUpdate({...trip, notes: e.target.value})}
+                    />
+                  </div>
                 </div>
              </div>
           </div>
