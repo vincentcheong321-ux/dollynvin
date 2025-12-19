@@ -22,7 +22,8 @@ import {
   ShoppingBagIcon,
   PlaneIcon,
   CarIcon,
-  BackIcon
+  BackIcon,
+  PieChartIcon
 } from './components/Icons';
 import { sendChatMessage } from './services/geminiService';
 import { metroLines } from './data/metroData';
@@ -140,29 +141,49 @@ interface ActivityModalProps {
 const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, initialData, initialType, exchangeRate }) => {
   const [formData, setFormData] = useState<Activity>({
     id: '', time: '09:00', title: '', description: '', location: '',
-    customMapLink: '', wazeLink: '', type: 'sightseeing', cost: 0, notes: ''
+    customMapLink: '', wazeLink: '', type: 'sightseeing', cost: 0, notes: '',
+    flightNo: '', terminal: ''
   });
+
+  const [localMYR, setLocalMYR] = useState<string>('0');
 
   useEffect(() => {
     if (initialData) {
+      const jpy = initialData.cost ?? 0;
       setFormData({ 
         ...initialData, 
-        cost: initialData.cost ?? 0,
+        cost: jpy,
         customMapLink: initialData.customMapLink ?? '',
         wazeLink: initialData.wazeLink ?? '',
-        notes: initialData.notes ?? ''
+        notes: initialData.notes ?? '',
+        flightNo: initialData.flightNo ?? '',
+        terminal: initialData.terminal ?? ''
       });
+      setLocalMYR((jpy * exchangeRate).toFixed(2));
     } else {
       setFormData({
         id: generateId(), time: '09:00', title: '', description: '', location: '',
-        customMapLink: '', wazeLink: '', type: initialType || 'sightseeing', cost: 0, notes: ''
+        customMapLink: '', wazeLink: '', type: initialType || 'sightseeing', cost: 0, notes: '',
+        flightNo: '', terminal: ''
       });
+      setLocalMYR('0.00');
     }
-  }, [initialData, isOpen, initialType]);
+  }, [initialData, isOpen, initialType, exchangeRate]);
 
   if (!isOpen) return null;
 
-  const myrEquivalent = (formData.cost || 0) * exchangeRate;
+  const handleJPYChange = (val: string) => {
+    const jpyNum = parseFloat(val) || 0;
+    setFormData(prev => ({ ...prev, cost: jpyNum }));
+    setLocalMYR((jpyNum * exchangeRate).toFixed(2));
+  };
+
+  const handleMYRChange = (val: string) => {
+    setLocalMYR(val);
+    const myrNum = parseFloat(val) || 0;
+    const jpyEquivalent = Math.round(myrNum / (exchangeRate || 1));
+    setFormData(prev => ({ ...prev, cost: jpyEquivalent }));
+  };
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
@@ -205,18 +226,39 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
             <textarea rows={2} placeholder="Brief details about this activity..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none resize-none" />
           </div>
 
+          {formData.type === 'travel' && (
+            <div className="grid grid-cols-2 gap-4 animate-fadeIn">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Flight Number</label>
+                <input type="text" placeholder="e.g., MH123" value={formData.flightNo || ''} onChange={e => setFormData({...formData, flightNo: e.target.value})} className="w-full p-3 bg-sky-50/50 border border-sky-100 rounded-xl outline-none font-medium" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Terminal</label>
+                <input type="text" placeholder="e.g., T1" value={formData.terminal || ''} onChange={e => setFormData({...formData, terminal: e.target.value})} className="w-full p-3 bg-sky-50/50 border border-sky-100 rounded-xl outline-none font-medium" />
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Location</label>
                 <input type="text" placeholder="Address or Place" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Cost (JPY)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-3.5 text-slate-400 text-sm">¥</span>
-                  <input type="number" placeholder="0" value={formData.cost === undefined ? '' : formData.cost} onChange={e => setFormData({...formData, cost: parseFloat(e.target.value) || 0})} className="w-full p-3 pl-7 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" />
-                  <div className="mt-1 text-[10px] font-bold text-rose-400">≈ RM {myrEquivalent.toFixed(2)}</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Cost (JPY)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-3.5 text-slate-400 text-sm">¥</span>
+                    <input type="number" placeholder="0" value={formData.cost === 0 ? '' : formData.cost} onChange={e => handleJPYChange(e.target.value)} className="w-full p-3 pl-7 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Cost (MYR)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-3.5 text-slate-400 text-[10px] font-bold">RM</span>
+                    <input type="number" placeholder="0.00" value={localMYR === '0.00' ? '' : localMYR} onChange={e => handleMYRChange(e.target.value)} className="w-full p-3 pl-9 bg-rose-50/50 border border-rose-100 rounded-xl outline-none font-medium text-rose-700" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -617,7 +659,7 @@ const App = () => {
   const currentDayPlan = useMemo(() => trip?.dailyPlans.find(d => d.dayNumber === activeDay), [trip, activeDay]);
   const sortedActivities = useMemo(() => currentDayPlan ? [...currentDayPlan.activities].sort((a, b) => a.time.localeCompare(b.time)) : [], [currentDayPlan]);
   const dayTotalJPY = useMemo(() => sortedActivities.reduce((sum, act) => sum + (act.cost ?? 0), 0), [sortedActivities]);
-  const dayTotalMYR = useMemo(() => dayTotalJPY * exchangeRate, [dayTotalJPY, exchangeRate]);
+  const dayTotalMYR = dayTotalJPY * exchangeRate;
   const isSelectedDayToday = useMemo(() => isToday(trip?.startDate, activeDay), [trip?.startDate, activeDay]);
   const daysUntil = useMemo(() => getDaysUntil(trip?.startDate), [trip?.startDate]);
 
@@ -666,6 +708,73 @@ const App = () => {
     setActiveDay(newDayNum);
   };
 
+  const generateOfflineHTML = () => {
+    if (!trip) return;
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OFFLINE: ${trip.destination} Itinerary</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; color: #334155; max-width: 800px; margin: 0 auto; padding: 20px; background: #fdf2f2; }
+    h1 { color: #9f1239; font-size: 2.5rem; margin-bottom: 0; }
+    .subtitle { color: #f43f5e; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; margin-bottom: 30px; }
+    .day-container { background: white; border-radius: 20px; padding: 25px; margin-bottom: 40px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-left: 8px solid #be123c; }
+    .day-header { font-size: 1.5rem; font-weight: bold; color: #1e293b; border-bottom: 2px solid #fee2e2; padding-bottom: 10px; margin-bottom: 20px; }
+    .activity { margin-bottom: 25px; position: relative; padding-left: 20px; }
+    .activity::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #fecdd3; }
+    .time { font-weight: bold; color: #e11d48; font-size: 0.9rem; }
+    .title { font-weight: bold; font-size: 1.1rem; color: #0f172a; display: block; }
+    .location { font-size: 0.85rem; color: #64748b; font-style: italic; }
+    .desc { font-size: 0.95rem; margin-top: 5px; color: #475569; }
+    .cost { font-weight: bold; color: #be123c; font-size: 0.85rem; margin-top: 5px; display: block; }
+    .notes { background: #fffbeb; border: 1px solid #fde68a; padding: 10px; border-radius: 10px; font-size: 0.8rem; margin-top: 10px; color: #92400e; }
+    .general-notes { background: #fff; padding: 20px; border-radius: 20px; margin-top: 40px; border: 1px solid #e2e8f0; }
+    .footer { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 50px; }
+  </style>
+</head>
+<body>
+  <h1>${trip.destination}</h1>
+  <div class="subtitle">Itinerary for Vin & Dolly | Start: ${trip.startDate || 'TBD'}</div>
+  
+  <div class="general-notes">
+    <strong>Important Trip Notes:</strong><br/>
+    <pre style="white-space: pre-wrap; font-family: inherit;">${trip.notes}</pre>
+  </div>
+
+  ${trip.dailyPlans.map(day => day.activities.length > 0 ? `
+    <div class="day-container">
+      <div class="day-header">DAY ${day.dayNumber}: ${day.theme}</div>
+      ${day.activities.map(act => `
+        <div class="activity">
+          <span class="time">${act.time}</span>
+          <span class="title">${act.title}</span>
+          <span class="location">${act.location}</span>
+          <p class="desc">${act.description}</p>
+          <span class="cost">Est: ¥${act.cost?.toLocaleString()} | RM ${( (act.cost || 0) * exchangeRate).toFixed(2)}</span>
+          ${act.notes ? `<div class="notes">${act.notes}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  ` : '').join('')}
+
+  <div class="footer">Generated via OurJourney Offline Export</div>
+</body>
+</html>
+    `;
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Itinerary_${trip.destination.replace(/\s+/g, '_')}_Offline.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="relative min-h-screen">
       {/* Global Transition Overlay - Solid enough to hide content switches */}
@@ -710,16 +819,17 @@ const App = () => {
       ) : (
         <div className="min-h-screen flex flex-col sakura-bg transition-opacity duration-300">
            <SakuraRain />
-           <header className={`bg-white/95 backdrop-blur-md sticky top-0 z-[60] border-b border-rose-100 transition-all duration-300 ${isScrolled ? 'py-1 shadow-md' : 'py-3'}`}><div className="max-w-3xl mx-auto px-4"><div className="flex items-center justify-between gap-2 mb-2"><button onClick={() => setView('dashboard')} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full flex-shrink-0"><HomeIcon className="w-5 h-5" /></button><div className="flex-1 text-center min-w-0" onClick={() => setEditingTitle(true)}>{editingTitle ? (<input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center text-slate-800" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />) : (<div className="flex flex-col items-center"><h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>{trip.destination}</h2></div>)}</div><div className="flex items-center gap-1"><button onClick={() => setIsMetroGuideOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><MapIcon className="w-5 h-5" /></button><button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><WalletIcon className="w-5 h-5" /></button></div></div><div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 select-none touch-pan-x active:cursor-grabbing"><div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">{trip.dailyPlans.map(p => (<button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.4rem] h-11' : 'w-[4.2rem] h-13'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-900 border-rose-900 text-white shadow-md scale-105' : 'bg-white border-rose-100 text-rose-400 hover:border-rose-300'}`}><span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span><span className="text-xs font-bold leading-none mt-0.5">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span></button>))}<button onClick={addDay} className={`flex items-center justify-center text-rose-200 flex-shrink-0 bg-white border border-dashed border-rose-200 rounded-2xl hover:border-rose-400 hover:text-rose-400 transition-colors ${isScrolled ? 'w-[3rem] h-11' : 'w-[3.5rem] h-13'}`} title="Add Day"><PlusIcon className="w-5 h-5" /></button></div></div></div></header>
+           <header className={`bg-white/95 backdrop-blur-md sticky top-0 z-[60] border-b border-rose-100 transition-all duration-300 ${isScrolled ? 'py-1 shadow-md' : 'py-3'}`}><div className="max-w-3xl mx-auto px-4"><div className="flex items-center justify-between gap-2 mb-2"><button onClick={() => setView('dashboard')} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full flex-shrink-0"><HomeIcon className="w-5 h-5" /></button><div className="flex-1 text-center min-w-0" onClick={() => setEditingTitle(true)}>{editingTitle ? (<input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center text-slate-800" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />) : (<div className="flex flex-col items-center"><h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>{trip.destination}</h2></div>)}</div><div className="flex items-center gap-1"><button onClick={generateOfflineHTML} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors" title="Export Offline HTML"><PieChartIcon className="w-5 h-5" /></button><button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><WalletIcon className="w-5 h-5" /></button></div></div><div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 select-none touch-pan-x active:cursor-grabbing"><div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">{trip.dailyPlans.map(p => (<button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.4rem] h-11' : 'w-[4.2rem] h-13'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-900 border-rose-900 text-white shadow-md scale-105' : 'bg-white border-rose-100 text-rose-400 hover:border-rose-300'}`}><span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span><span className="text-xs font-bold leading-none mt-0.5">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span></button>))}<button onClick={addDay} className={`flex items-center justify-center text-rose-200 flex-shrink-0 bg-white border border-dashed border-rose-200 rounded-2xl hover:border-rose-400 hover:text-rose-400 transition-colors ${isScrolled ? 'w-[3rem] h-11' : 'w-[3.5rem] h-13'}`} title="Add Day"><PlusIcon className="w-5 h-5" /></button></div></div></div></header>
            <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 pb-40"><div className="space-y-6 animate-fadeIn"><div className="flex items-center justify-between px-1"><div onClick={() => setEditingTheme(true)} className="flex-1 min-w-0"><div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">{getFormattedDate(trip.startDate, activeDay - 1)}</div>{editingTheme ? (<input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} />) : (<h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate group cursor-pointer">Day {activeDay}: {currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200 group-hover:text-rose-400 transition-colors" /></h2>)}</div><div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800 shadow-sm"><div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic text-center">Daily Total</div><div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div><div className="text-[9px] font-bold text-rose-400 text-center">≈ RM {dayTotalMYR.toFixed(2)}</div></div></div><div className="relative border-l-2 border-rose-200/50 ml-4 sm:ml-6 space-y-6 pb-4 pl-6 sm:pl-10 text-slate-800">{sortedActivities.length === 0 && <div className="py-24 text-center border-2 border-dashed border-rose-100 rounded-[3rem] text-rose-300 italic ml-[-2rem]">Empty schedule for today.</div>}{sortedActivities.map((act, idx) => { 
             const ongoing = isSelectedDayToday && isActivityOngoing(act.time, sortedActivities[idx+1]?.time); 
             const isDrive = act.type === 'drive';
+            const isTravel = act.type === 'travel';
             const hasCustomMap = !!act.customMapLink;
             const hasWaze = !!act.wazeLink;
             const shouldShowMapBtn = hasCustomMap || (isDrive && act.location);
             const mapUrl = hasCustomMap ? act.customMapLink : (isDrive && act.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}` : undefined);
             
-            return (<div key={act.id} className="relative group"><div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : 'border-rose-300'}`}></div><div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 border-white hover:border-rose-100 shadow-rose-50/50`}><div className="flex justify-between items-start mb-2 gap-2 text-slate-800"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span><h4 className="font-bold text-sm truncate">{act.title}</h4></div><button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button></div><div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3"><div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${ act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' : act.type === 'sightseeing' ? 'bg-blue-50 text-blue-600 border-blue-100' : act.type === 'shopping' ? 'bg-purple-50 text-purple-600 border-purple-100' : act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' : act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' : act.type === 'drive' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-100' }`}><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>{(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-xl border border-rose-100">¥{(act.cost ?? 0).toLocaleString()}</span>}</div>
+            return (<div key={act.id} className="relative group"><div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : 'border-rose-300'}`}></div><div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 border-white hover:border-rose-100 shadow-rose-50/50`}><div className="flex justify-between items-start mb-2 gap-2 text-slate-800"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span><h4 className="font-bold text-sm truncate">{act.title}</h4></div><button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button></div><div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3"><div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${ act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' : act.type === 'sightseeing' ? 'bg-blue-50 text-blue-600 border-blue-100' : act.type === 'shopping' ? 'bg-purple-50 text-purple-600 border-purple-100' : act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' : act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' : act.type === 'drive' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-100' }`}><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>{(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-xl border border-rose-100 flex items-center gap-1">¥{(act.cost ?? 0).toLocaleString()} <span className="opacity-40 text-[9px] font-normal">|</span> RM {((act.cost || 0) * exchangeRate).toFixed(2)}</span>}{isTravel && (act.flightNo || act.terminal) && (<div className="flex items-center gap-2 font-bold text-sky-600 bg-sky-50 px-2 py-1 rounded-xl border border-sky-100">{act.flightNo && <span>Flight: {act.flightNo}</span>}{act.terminal && <span>Terminal: {act.terminal}</span>}</div>)}</div>
                    <div className="flex flex-col gap-2">
                      <div className="flex items-end justify-between gap-4">
                        <p className="text-xs text-slate-600 line-clamp-2 flex-1 leading-relaxed">{act.description}</p>

@@ -16,11 +16,10 @@ export interface Activity {
   description: string;
   location: string;
   customMapLink?: string; // specific google maps url
-  // Fix: Added wazeLink property to support Waze navigation for driving activities
-  wazeLink?: string;
-  cost?: number; // Changed to number
+  wazeLink?: string; // specific waze url
+  cost?: number; 
   type: ActivityType;
-  notes?: string; // For reservation numbers, booking refs, etc.
+  notes?: string; 
   isBooked?: boolean;
   flightNo?: string;
   terminal?: string;
@@ -29,7 +28,7 @@ export interface Activity {
 export interface DailyPlan {
   id: string;
   dayNumber: number;
-  date?: string; // Optional specific date string
+  date?: string; 
   theme?: string;
   activities: Activity[];
 }
@@ -42,7 +41,7 @@ export interface Trip {
   duration: number;
   vibe: TripVibe;
   coverImage?: string;
-  notes: string; // General trip notes (Flight #, Hotel Address)
+  notes: string; 
   dailyPlans: DailyPlan[];
   createdAt: number;
 }
