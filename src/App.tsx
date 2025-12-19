@@ -14,6 +14,7 @@ import {
   CloseIcon,
   WalletIcon,
   MapIcon,
+  MapPinIcon,
   CoffeeIcon,
   CameraIcon,
   BedIcon,
@@ -80,25 +81,26 @@ const isActivityOngoing = (activityTime: string, nextActivityTime?: string): boo
 };
 
 // --- Sakura Animation Component ---
-const SakuraRain = () => {
-  const petals = useMemo(() => Array.from({ length: 30 }).map((_, i) => ({
+const SakuraRain = ({ intensity = 30 }: { intensity?: number }) => {
+  const petals = useMemo(() => Array.from({ length: intensity }).map((_, i) => ({
     id: i,
     left: Math.random() * 100 + '%',
     animationDelay: '-' + (Math.random() * 10) + 's',
     animationDuration: (8 + Math.random() * 5) + 's'
-  })), []);
+  })), [intensity]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
       <style>{`
         @keyframes fall {
-          0% { opacity: 0; transform: translateY(-10vh) rotate(0deg); }
+          0% { opacity: 0; transform: translateY(-10vh) rotate(0deg) translateX(0); }
           10% { opacity: 0.8; }
-          100% { opacity: 0; transform: translateY(100vh) rotate(360deg); }
+          50% { transform: translateY(50vh) rotate(180deg) translateX(20px); }
+          100% { opacity: 0; transform: translateY(110vh) rotate(360deg) translateX(-20px); }
         }
         .petal {
           position: absolute;
-          top: -5%;
+          top: -10%;
           width: 14px;
           height: 14px;
           background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 0C7 0 9.5 2.5 9.5 7C9.5 11.5 7 14 7 14C7 14 4.5 11.5 4.5 7C4.5 2.5 7 0 7 0Z' fill='%23FECDD3'/%3E%3C/svg%3E");
@@ -404,22 +406,40 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
         </div>
-        <div className="space-y-4">
-          <p className="text-sm text-slate-600 mb-4 text-center">Plan your route through Tokyo with official tools and high-resolution maps.</p>
-          <a href="https://www.tokyometro.jp/en/subwaymap/index.html" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-5 bg-slate-900 text-white rounded-[1.5rem] font-bold shadow-lg hover:bg-slate-800 transition-all active:scale-95 group">
+        <div className="space-y-3 overflow-y-auto max-h-[60vh] pr-2 no-scrollbar">
+          <p className="text-sm text-slate-600 mb-2 text-center">Essential tools for navigating the Tokyo subway system.</p>
+          
+          <a href="https://www.tokyometro.jp/en/subwaymap/index.html" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-4 bg-slate-900 text-white rounded-[1.5rem] font-bold shadow-sm hover:bg-slate-800 transition-all group">
             <div className="flex items-center gap-3"><MapIcon className="w-5 h-5 text-rose-400" /><span>Official Route Search</span></div>
             <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
           </a>
-          <a href="https://www.tokyometro.jp/en/route_station/index.html" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-5 bg-white border border-rose-100 text-rose-600 rounded-[1.5rem] font-bold hover:bg-rose-50 transition-all active:scale-95 group">
-            <div className="flex items-center gap-3"><PlusIcon className="w-5 h-5 rotate-45" /><span>Metro Stations & Route</span></div>
+
+          <a href="https://www.tokyometro.jp/en/route_station/index.html" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-4 bg-white border border-rose-100 text-rose-600 rounded-[1.5rem] font-bold hover:bg-rose-50 transition-all group">
+            <div className="flex items-center gap-3"><MapPinIcon className="w-5 h-5 opacity-70" /><span>Stations & Route Map</span></div>
             <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
           </a>
-          <a href="https://www.tokyometro.jp/station/pdf/202305/202305_number_en.pdf" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-5 bg-rose-50 text-rose-800 rounded-[1.5rem] font-bold hover:bg-rose-100 transition-all active:scale-95 group">
-            <div className="flex items-center gap-3"><PlaneIcon className="w-5 h-5 opacity-70" /><span>Download High-Res PDF</span></div>
+
+          <a href="https://www.tokyometro.jp/station/pdf/202305/202305_number_en.pdf" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-4 bg-rose-50 text-rose-800 rounded-[1.5rem] font-bold hover:bg-rose-100 transition-all group">
+            <div className="flex items-center gap-3"><PlaneIcon className="w-5 h-5 opacity-70" /><span>High-Res PDF</span></div>
             <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
           </a>
+
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <a href="https://www.tokyometro.jp/en/ticket/index.html" target="_blank" rel="noreferrer" className="p-4 bg-slate-50 border border-slate-100 text-slate-700 rounded-[1.5rem] font-bold hover:bg-slate-100 text-center text-xs">
+              Tickets & Passes
+            </a>
+            <a href="https://www.tokyometro.jp/en/ride/guide/index.html" target="_blank" rel="noreferrer" className="p-4 bg-slate-50 border border-slate-100 text-slate-700 rounded-[1.5rem] font-bold hover:bg-slate-100 text-center text-xs">
+              How to Ride
+            </a>
+            <a href="https://www.tokyometro.jp/en/ride/facility/index.html" target="_blank" rel="noreferrer" className="p-4 bg-slate-50 border border-slate-100 text-slate-700 rounded-[1.5rem] font-bold hover:bg-slate-100 text-center text-xs">
+              Station Facilities
+            </a>
+            <a href="https://www.tokyometro.jp/en/ride/lost/index.html" target="_blank" rel="noreferrer" className="p-4 bg-slate-50 border border-slate-100 text-slate-700 rounded-[1.5rem] font-bold hover:bg-slate-100 text-center text-xs">
+              Lost & Found
+            </a>
+          </div>
         </div>
-        <div className="mt-8 text-center"><p className="text-[10px] text-slate-400 uppercase tracking-tighter">Information provided by Tokyo Metro Co., Ltd.</p></div>
+        <div className="mt-6 text-center"><p className="text-[10px] text-slate-400 uppercase tracking-tighter">Information provided by Tokyo Metro Co., Ltd.</p></div>
       </div>
     </div>
   );
@@ -507,6 +527,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [exchangeRate, setExchangeRate] = useState(0.03); 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 15);
@@ -540,6 +561,16 @@ const App = () => {
   if (!trip || isLoading) return <div className="min-h-screen flex items-center justify-center font-serif text-rose-400 animate-pulse text-xl italic">Setting up our romance...</div>;
 
   const handleUpdate = (t: Trip) => setTrip({ ...t });
+  
+  const handleLoveClick = () => {
+    setIsTransitioning(true);
+    // Let the animation play a bit before switching
+    setTimeout(() => {
+      setView('itinerary');
+      setTimeout(() => setIsTransitioning(false), 500);
+    }, 800);
+  };
+
   const handleSaveActivity = (activity: Activity) => {
     const sanitizedActivity = { ...activity, cost: (activity.cost && !isNaN(activity.cost)) ? activity.cost : 0 };
     const updatedPlans = trip.dailyPlans.map(plan => {
@@ -574,16 +605,29 @@ const App = () => {
   if (view === 'dashboard') {
     const daysUntil = getDaysUntil(trip.startDate);
     return (
-      <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn">
-        <SakuraRain />
-        <header className="bg-transparent p-4">
+      <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn overflow-hidden">
+        <SakuraRain intensity={isTransitioning ? 100 : 30} />
+        
+        {/* Full-screen Sakura Overlay for transition */}
+        <div className={`fixed inset-0 bg-white/40 backdrop-blur-sm z-[200] pointer-events-none transition-opacity duration-500 ${isTransitioning ? 'opacity-100' : 'opacity-0'}`}></div>
+
+        <header className="bg-transparent p-4 relative z-10">
            <div className="max-w-3xl mx-auto flex items-center justify-between"><div className="w-10"></div><div className="w-10"></div><div className="flex items-center gap-2"><button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><NoteIcon className="w-5 h-5" /></button></div></div>
         </header>
-        <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8">
+        <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8 relative z-10">
            <section className="text-center py-4 space-y-2">
               <h2 className="text-6xl font-serif font-bold text-slate-800 tracking-tight leading-tight">{trip.destination}</h2>
               <p className="text-rose-400 font-bold tracking-[0.2em] uppercase text-xs">Journey for Vin & Dolly</p>
-              <div className="pt-6"><button className="relative bg-white p-6 rounded-full shadow-2xl border border-rose-100 group cursor-pointer active:scale-95 transition-all transform hover:scale-110" onClick={() => setView('itinerary')}><div className="absolute inset-0 bg-rose-200 rounded-full animate-ping opacity-20 group-hover:opacity-40"></div><HeartIcon className="w-12 h-12 text-rose-500 relative" /><div className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-[10px] font-bold text-rose-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Open Itinerary</div></button></div>
+              <div className="pt-6">
+                <button 
+                  className="relative bg-white p-6 rounded-full shadow-2xl border border-rose-100 group cursor-pointer active:scale-95 transition-all transform hover:scale-110" 
+                  onClick={handleLoveClick}
+                >
+                  <div className={`absolute inset-0 bg-rose-200 rounded-full ${isTransitioning ? 'animate-ping' : ''} opacity-20 group-hover:opacity-40`}></div>
+                  <HeartIcon className="w-12 h-12 text-rose-500 relative" />
+                  <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-[10px] font-bold text-rose-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Open Itinerary</div>
+                </button>
+              </div>
               {daysUntil !== null && (<div className="pt-12"><div className="bg-white/50 backdrop-blur inline-block px-10 py-4 rounded-full border border-rose-100 shadow-sm"><span className="text-rose-600 font-bold text-base tracking-wide">{daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}</span></div></div>)}
            </section>
            <div className="w-full max-w-lg mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4">
