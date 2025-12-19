@@ -1,4 +1,3 @@
-
 export interface MetroStation {
   name: string;
   id: string;
@@ -72,9 +71,9 @@ export const metroLines: MetroLine[] = [
       { name: 'Myogadani', id: 'M23', urlName: 'myogadani' },
       { name: 'Shin-otsuka', id: 'M24', urlName: 'shin-otsuka' },
       { name: 'Ikebukuro', id: 'M25', urlName: 'ikebukuro' },
-      { name: 'Nakano-fujimicho', id: 'm04', urlName: 'nakano-fujimicho' },
       { name: 'Nakano-shimbashi', id: 'm03', urlName: 'nakano-shimbashi' },
-      { name: 'Hon-anancho', id: 'm05', urlName: 'hon-anancho' }
+      { name: 'Nakano-fujimicho', id: 'm04', urlName: 'nakano-fujimicho' },
+      { name: 'Honnancho', id: 'm05', urlName: 'honnancho' }
     ]
   },
   {
@@ -192,9 +191,9 @@ export const metroLines: MetroLine[] = [
       { name: 'Yurakucho', id: 'Y18', urlName: 'yurakucho' },
       { name: 'Ginza-itchome', id: 'Y19', urlName: 'ginza-itchome' },
       { name: 'Shintomicho', id: 'Y20', urlName: 'shintomicho' },
-      { name: 'Toyosu', id: 'Y21', urlName: 'toyosu' },
-      { name: 'Tsukishima', id: 'Y22', urlName: 'tsukishima' },
-      { name: 'Toyosu', id: 'Y23', urlName: 'toyosu' },
+      { name: 'Tsukishima', id: 'Y21', urlName: 'tsukishima' },
+      { name: 'Toyosu', id: 'Y22', urlName: 'toyosu' },
+      { name: 'Tatsumi', id: 'Y23', urlName: 'tatsumi' },
       { name: 'Shin-kiba', id: 'Y24', urlName: 'shin-kiba' }
     ]
   },
