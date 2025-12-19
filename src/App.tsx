@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan, ChatMessage } from './types';
 import { createBlankTrip } from './services/presetTrip';
@@ -498,7 +497,7 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
         </div>
         
         <div className="mt-6 text-center pt-2 border-t border-slate-50">
-          <p className="text-[10px] text-slate-400 uppercase tracking-tighter">Information provided by Tokyo Metro Co., Ltd.</p>
+          {/* Footer removed per user request */}
         </div>
       </div>
     </div>

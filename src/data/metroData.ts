@@ -71,9 +71,9 @@ export const metroLines: MetroLine[] = [
       { name: 'Myogadani', id: 'M23', urlName: 'myogadani' },
       { name: 'Shin-otsuka', id: 'M24', urlName: 'shin-otsuka' },
       { name: 'Ikebukuro', id: 'M25', urlName: 'ikebukuro' },
-      { name: 'Nakano-shimbashi', id: 'm03', urlName: 'nakano-shimbashi' },
-      { name: 'Nakano-fujimicho', id: 'm04', urlName: 'nakano-fujimicho' },
-      { name: 'Honnancho', id: 'm05', urlName: 'honnancho' }
+      { name: 'Nakano-shimbashi', id: 'MB03', urlName: 'nakano-shimbashi' },
+      { name: 'Nakano-fujimicho', id: 'MB04', urlName: 'nakano-fujimicho' },
+      { name: 'Honancho', id: 'MB05', urlName: 'honancho' }
     ]
   },
   {
@@ -91,7 +91,7 @@ export const metroLines: MetroLine[] = [
       { name: 'Kasumigaseki', id: 'H07', urlName: 'kasumigaseki' },
       { name: 'Hibiya', id: 'H08', urlName: 'hibiya' },
       { name: 'Ginza', id: 'H09', urlName: 'ginza' },
-      { name: 'Higashi-ginza', id: 'H10', urlName: 'higashi-ginza' },
+      { name: 'Higashi-ginza', id: 'H10', urlName: 'hibiya' },
       { name: 'Tsukiji', id: 'H11', urlName: 'tsukiji' },
       { name: 'Hatchobori', id: 'H12', urlName: 'hatchobori' },
       { name: 'Kayabacho', id: 'H13', urlName: 'kayabacho' },
