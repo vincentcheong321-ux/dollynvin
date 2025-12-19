@@ -14,7 +14,6 @@ import {
   CloseIcon,
   WalletIcon,
   MapIcon,
-  MapPinIcon,
   CoffeeIcon,
   CameraIcon,
   BedIcon,
@@ -86,7 +85,7 @@ const SakuraRain = ({ intensity = 30, isRamping = false }: { intensity?: number,
     id: i,
     left: Math.random() * 100 + '%',
     animationDelay: '-' + (Math.random() * 15) + 's',
-    animationDuration: (isRamping ? 4 + Math.random() * 2 : 6 + Math.random() * 6) + 's',
+    animationDuration: (isRamping ? 3 + Math.random() * 2 : 6 + Math.random() * 6) + 's',
     size: (8 + Math.random() * (isRamping ? 15 : 10)) + 'px',
     sway: (Math.random() * 40 - 20) + 'px'
   })), [intensity, isRamping]);
