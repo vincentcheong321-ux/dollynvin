@@ -85,8 +85,9 @@ const SakuraRain = ({ intensity = 30 }: { intensity?: number }) => {
   const petals = useMemo(() => Array.from({ length: intensity }).map((_, i) => ({
     id: i,
     left: Math.random() * 100 + '%',
-    animationDelay: '-' + (Math.random() * 10) + 's',
-    animationDuration: (8 + Math.random() * 5) + 's'
+    animationDelay: '-' + (Math.random() * 15) + 's',
+    animationDuration: (6 + Math.random() * 6) + 's',
+    size: (8 + Math.random() * 10) + 'px'
   })), [intensity]);
 
   return (
@@ -95,15 +96,13 @@ const SakuraRain = ({ intensity = 30 }: { intensity?: number }) => {
         @keyframes fall {
           0% { opacity: 0; transform: translateY(-10vh) rotate(0deg) translateX(0); }
           10% { opacity: 0.8; }
-          50% { transform: translateY(50vh) rotate(180deg) translateX(20px); }
+          50% { transform: translateY(50vh) rotate(180deg) translateX(40px); }
           100% { opacity: 0; transform: translateY(110vh) rotate(360deg) translateX(-20px); }
         }
         .petal {
           position: absolute;
           top: -10%;
-          width: 14px;
-          height: 14px;
-          background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 0C7 0 9.5 2.5 9.5 7C9.5 11.5 7 14 7 14C7 14 4.5 11.5 4.5 7C4.5 2.5 7 0 7 0Z' fill='%23FECDD3'/%3E%3C/svg%3E");
+          background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 0C7 0 11 3 11 7C11 11 7 14 7 14C7 14 3 11 3 7C3 3 7 0 7 0Z' fill='%23FECDD3'/%3E%3C/svg%3E");
           background-size: contain;
           background-repeat: no-repeat;
           animation-name: fall;
@@ -117,6 +116,8 @@ const SakuraRain = ({ intensity = 30 }: { intensity?: number }) => {
           className="petal"
           style={{
             left: p.left,
+            width: p.size,
+            height: p.size,
             animationDelay: p.animationDelay,
             animationDuration: p.animationDuration
           }}
@@ -392,10 +393,23 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
 // --- Subway Map / Metro Guide Modal ---
 const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   if (!isOpen) return null;
+
+  const metroLines = [
+    { name: 'Ginza Line', id: 'G', color: '#ff9500', url: 'https://www.tokyometro.jp/en/subwaymap/line_ginza/index.html' },
+    { name: 'Marunouchi Line', id: 'M', color: '#f32b2b', url: 'https://www.tokyometro.jp/en/subwaymap/line_marunouchi/index.html' },
+    { name: 'Hibiya Line', id: 'H', color: '#b5b5b5', url: 'https://www.tokyometro.jp/en/subwaymap/line_hibiya/index.html' },
+    { name: 'Tozai Line', id: 'T', color: '#009bbf', url: 'https://www.tokyometro.jp/en/subwaymap/line_tozai/index.html' },
+    { name: 'Chiyoda Line', id: 'C', color: '#00bb85', url: 'https://www.tokyometro.jp/en/subwaymap/line_chiyoda/index.html' },
+    { name: 'Yurakucho Line', id: 'Y', color: '#c1a470', url: 'https://www.tokyometro.jp/en/subwaymap/line_yurakucho/index.html' },
+    { name: 'Hanzomon Line', id: 'Z', color: '#8f76d6', url: 'https://www.tokyometro.jp/en/subwaymap/line_hanzomon/index.html' },
+    { name: 'Namboku Line', id: 'N', color: '#00ac9b', url: 'https://www.tokyometro.jp/en/subwaymap/line_namboku/index.html' },
+    { name: 'Fukutoshin Line', id: 'F', color: '#9c5e31', url: 'https://www.tokyometro.jp/en/subwaymap/line_fukutoshin/index.html' }
+  ];
+
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col animate-slideUp border border-rose-100 text-slate-800">
+      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col animate-slideUp border border-rose-100 text-slate-800 overflow-hidden max-h-[85vh]">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3 text-rose-600">
             <div className="p-2.5 bg-rose-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
@@ -406,40 +420,49 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
           </div>
           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
         </div>
-        <div className="space-y-3 overflow-y-auto max-h-[60vh] pr-2 no-scrollbar">
-          <p className="text-sm text-slate-600 mb-2 text-center">Essential tools for navigating the Tokyo subway system.</p>
-          
-          <a href="https://www.tokyometro.jp/en/subwaymap/index.html" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-4 bg-slate-900 text-white rounded-[1.5rem] font-bold shadow-sm hover:bg-slate-800 transition-all group">
-            <div className="flex items-center gap-3"><MapIcon className="w-5 h-5 text-rose-400" /><span>Official Route Search</span></div>
-            <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
-          </a>
-
-          <a href="https://www.tokyometro.jp/en/route_station/index.html" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-4 bg-white border border-rose-100 text-rose-600 rounded-[1.5rem] font-bold hover:bg-rose-50 transition-all group">
-            <div className="flex items-center gap-3"><MapPinIcon className="w-5 h-5 opacity-70" /><span>Stations & Route Map</span></div>
-            <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
-          </a>
-
-          <a href="https://www.tokyometro.jp/station/pdf/202305/202305_number_en.pdf" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-4 bg-rose-50 text-rose-800 rounded-[1.5rem] font-bold hover:bg-rose-100 transition-all group">
-            <div className="flex items-center gap-3"><PlaneIcon className="w-5 h-5 opacity-70" /><span>High-Res PDF</span></div>
-            <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
-          </a>
-
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <a href="https://www.tokyometro.jp/en/ticket/index.html" target="_blank" rel="noreferrer" className="p-4 bg-slate-50 border border-slate-100 text-slate-700 rounded-[1.5rem] font-bold hover:bg-slate-100 text-center text-xs">
-              Tickets & Passes
+        
+        <div className="space-y-4 overflow-y-auto pr-2 no-scrollbar">
+          <div className="space-y-2">
+            <a href="https://www.tokyometro.jp/en/subwaymap/index.html" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-4 bg-slate-900 text-white rounded-[1.5rem] font-bold shadow-sm hover:bg-slate-800 transition-all group">
+              <div className="flex items-center gap-3"><MapIcon className="w-5 h-5 text-rose-400" /><span>Official Route Search</span></div>
+              <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
             </a>
-            <a href="https://www.tokyometro.jp/en/ride/guide/index.html" target="_blank" rel="noreferrer" className="p-4 bg-slate-50 border border-slate-100 text-slate-700 rounded-[1.5rem] font-bold hover:bg-slate-100 text-center text-xs">
-              How to Ride
-            </a>
-            <a href="https://www.tokyometro.jp/en/ride/facility/index.html" target="_blank" rel="noreferrer" className="p-4 bg-slate-50 border border-slate-100 text-slate-700 rounded-[1.5rem] font-bold hover:bg-slate-100 text-center text-xs">
-              Station Facilities
-            </a>
-            <a href="https://www.tokyometro.jp/en/ride/lost/index.html" target="_blank" rel="noreferrer" className="p-4 bg-slate-50 border border-slate-100 text-slate-700 rounded-[1.5rem] font-bold hover:bg-slate-100 text-center text-xs">
-              Lost & Found
+            <a href="https://www.tokyometro.jp/station/pdf/202305/202305_number_en.pdf" target="_blank" rel="noreferrer" className="w-full flex items-center justify-between p-4 bg-rose-50 text-rose-800 rounded-[1.5rem] font-bold hover:bg-rose-100 transition-all group">
+              <div className="flex items-center gap-3"><PlaneIcon className="w-5 h-5 opacity-70" /><span>High-Res PDF</span></div>
+              <ArrowRightIcon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
             </a>
           </div>
+
+          <div className="pt-4">
+            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Line Specific Routes</h4>
+            <div className="grid grid-cols-1 gap-2">
+              {metroLines.map(line => (
+                <a 
+                  key={line.id} 
+                  href={line.url} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-2xl hover:bg-slate-50 hover:border-slate-200 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                      style={{ backgroundColor: line.color }}
+                    >
+                      {line.id}
+                    </div>
+                    <span className="text-sm font-bold text-slate-700">{line.name}</span>
+                  </div>
+                  <ArrowRightIcon className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="mt-6 text-center"><p className="text-[10px] text-slate-400 uppercase tracking-tighter">Information provided by Tokyo Metro Co., Ltd.</p></div>
+        
+        <div className="mt-6 text-center pt-2 border-t border-slate-50">
+          <p className="text-[10px] text-slate-400 uppercase tracking-tighter">Information provided by Tokyo Metro Co., Ltd.</p>
+        </div>
       </div>
     </div>
   );
@@ -564,11 +587,13 @@ const App = () => {
   
   const handleLoveClick = () => {
     setIsTransitioning(true);
-    // Let the animation play a bit before switching
+    // Smooth transition: Intensity ramp + fade
     setTimeout(() => {
       setView('itinerary');
-      setTimeout(() => setIsTransitioning(false), 500);
-    }, 800);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      // Keep transitioning state slightly longer for the fade-in effect on the new view
+      setTimeout(() => setIsTransitioning(false), 600);
+    }, 1000);
   };
 
   const handleSaveActivity = (activity: Activity) => {
@@ -606,15 +631,19 @@ const App = () => {
     const daysUntil = getDaysUntil(trip.startDate);
     return (
       <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn overflow-hidden">
-        <SakuraRain intensity={isTransitioning ? 100 : 30} />
+        <SakuraRain intensity={isTransitioning ? 150 : 35} />
         
-        {/* Full-screen Sakura Overlay for transition */}
-        <div className={`fixed inset-0 bg-white/40 backdrop-blur-sm z-[200] pointer-events-none transition-opacity duration-500 ${isTransitioning ? 'opacity-100' : 'opacity-0'}`}></div>
+        {/* Full-screen Transition Overlay */}
+        <div 
+          className={`fixed inset-0 z-[500] pointer-events-none transition-all duration-700 ${
+            isTransitioning ? 'bg-white/60 backdrop-blur-md opacity-100' : 'bg-transparent opacity-0'
+          }`}
+        />
 
         <header className="bg-transparent p-4 relative z-10">
            <div className="max-w-3xl mx-auto flex items-center justify-between"><div className="w-10"></div><div className="w-10"></div><div className="flex items-center gap-2"><button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><NoteIcon className="w-5 h-5" /></button></div></div>
         </header>
-        <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8 relative z-10">
+        <main className={`flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8 relative z-10 transition-transform duration-1000 ${isTransitioning ? 'scale-90 opacity-0 blur-sm' : 'scale-100 opacity-100'}`}>
            <section className="text-center py-4 space-y-2">
               <h2 className="text-6xl font-serif font-bold text-slate-800 tracking-tight leading-tight">{trip.destination}</h2>
               <p className="text-rose-400 font-bold tracking-[0.2em] uppercase text-xs">Journey for Vin & Dolly</p>
@@ -624,7 +653,7 @@ const App = () => {
                   onClick={handleLoveClick}
                 >
                   <div className={`absolute inset-0 bg-rose-200 rounded-full ${isTransitioning ? 'animate-ping' : ''} opacity-20 group-hover:opacity-40`}></div>
-                  <HeartIcon className="w-12 h-12 text-rose-500 relative" />
+                  <HeartIcon className={`w-12 h-12 text-rose-500 relative transition-transform duration-700 ${isTransitioning ? 'scale-[3] rotate-12' : 'scale-100'}`} />
                   <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-[10px] font-bold text-rose-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Open Itinerary</div>
                 </button>
               </div>
@@ -647,7 +676,7 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col sakura-bg">
+    <div className={`min-h-screen flex flex-col sakura-bg transition-opacity duration-700 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
        <SakuraRain />
        <header className={`bg-white/95 backdrop-blur-md sticky top-0 z-[60] border-b border-rose-100 transition-all duration-300 ${isScrolled ? 'py-1 shadow-md' : 'py-3'}`}><div className="max-w-3xl mx-auto px-4"><div className="flex items-center justify-between gap-2 mb-2"><button onClick={() => setView('dashboard')} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full flex-shrink-0"><HomeIcon className="w-5 h-5" /></button><div className="flex-1 text-center min-w-0" onClick={() => setEditingTitle(true)}>{editingTitle ? (<input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center text-slate-800" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />) : (<div className="flex flex-col items-center"><h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>{trip.destination}</h2></div>)}</div><div className="flex items-center gap-1"><button onClick={() => setIsMetroGuideOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><MapIcon className="w-5 h-5" /></button><button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><WalletIcon className="w-5 h-5" /></button></div></div><div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 select-none touch-pan-x active:cursor-grabbing"><div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">{trip.dailyPlans.map(p => (<button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.4rem] h-11' : 'w-[4.2rem] h-13'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-900 border-rose-900 text-white shadow-md scale-105' : 'bg-white border-rose-100 text-rose-400 hover:border-rose-300'}`}><span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span><span className="text-xs font-bold leading-none mt-0.5">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span></button>))}<button onClick={addDay} className={`flex items-center justify-center text-rose-200 flex-shrink-0 bg-white border border-dashed border-rose-200 rounded-2xl hover:border-rose-400 hover:text-rose-400 transition-colors ${isScrolled ? 'w-[3rem] h-11' : 'w-[3.5rem] h-13'}`} title="Add Day"><PlusIcon className="w-5 h-5" /></button></div></div></div></header>
        <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 pb-40"><div className="space-y-6 animate-fadeIn"><div className="flex items-center justify-between px-1"><div onClick={() => setEditingTheme(true)} className="flex-1 min-w-0"><div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">{getFormattedDate(trip.startDate, activeDay - 1)}</div>{editingTheme ? (<input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} />) : (<h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate group cursor-pointer">Day {activeDay}: {currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200 group-hover:text-rose-400 transition-colors" /></h2>)}</div><div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800 shadow-sm"><div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic text-center">Daily Total</div><div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div><div className="text-[9px] font-bold text-rose-400 text-center">≈ RM {dayTotalMYR.toFixed(2)}</div></div></div><div className="relative border-l-2 border-rose-200/50 ml-4 sm:ml-6 space-y-6 pb-4 pl-6 sm:pl-10 text-slate-800">{sortedActivities.length === 0 && <div className="py-24 text-center border-2 border-dashed border-rose-100 rounded-[3rem] text-rose-300 italic ml-[-2rem]">Empty schedule for today.</div>}{sortedActivities.map((act, idx) => { 
