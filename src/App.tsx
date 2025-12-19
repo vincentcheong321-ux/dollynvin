@@ -81,14 +81,15 @@ const isActivityOngoing = (activityTime: string, nextActivityTime?: string): boo
 };
 
 // --- Sakura Animation Component ---
-const SakuraRain = ({ intensity = 30 }: { intensity?: number }) => {
+const SakuraRain = ({ intensity = 30, isRamping = false }: { intensity?: number, isRamping?: boolean }) => {
   const petals = useMemo(() => Array.from({ length: intensity }).map((_, i) => ({
     id: i,
     left: Math.random() * 100 + '%',
     animationDelay: '-' + (Math.random() * 15) + 's',
-    animationDuration: (6 + Math.random() * 6) + 's',
-    size: (8 + Math.random() * 10) + 'px'
-  })), [intensity]);
+    animationDuration: (isRamping ? 4 + Math.random() * 2 : 6 + Math.random() * 6) + 's',
+    size: (8 + Math.random() * (isRamping ? 15 : 10)) + 'px',
+    sway: (Math.random() * 40 - 20) + 'px'
+  })), [intensity, isRamping]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -96,8 +97,8 @@ const SakuraRain = ({ intensity = 30 }: { intensity?: number }) => {
         @keyframes fall {
           0% { opacity: 0; transform: translateY(-10vh) rotate(0deg) translateX(0); }
           10% { opacity: 0.8; }
-          50% { transform: translateY(50vh) rotate(180deg) translateX(40px); }
-          100% { opacity: 0; transform: translateY(110vh) rotate(360deg) translateX(-20px); }
+          50% { transform: translateY(50vh) rotate(180deg) translateX(var(--sway)); }
+          100% { opacity: 0; transform: translateY(110vh) rotate(360deg) translateX(calc(-1 * var(--sway))); }
         }
         .petal {
           position: absolute;
@@ -119,8 +120,9 @@ const SakuraRain = ({ intensity = 30 }: { intensity?: number }) => {
             width: p.size,
             height: p.size,
             animationDelay: p.animationDelay,
-            animationDuration: p.animationDuration
-          }}
+            animationDuration: p.animationDuration,
+            '--sway': p.sway
+          } as React.CSSProperties}
         />
       ))}
     </div>
@@ -631,7 +633,7 @@ const App = () => {
     const daysUntil = getDaysUntil(trip.startDate);
     return (
       <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn overflow-hidden">
-        <SakuraRain intensity={isTransitioning ? 150 : 35} />
+        <SakuraRain intensity={isTransitioning ? 150 : 35} isRamping={isTransitioning} />
         
         {/* Full-screen Transition Overlay */}
         <div 
