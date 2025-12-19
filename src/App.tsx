@@ -468,7 +468,7 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
                   
                   {(expandedLine === line.id || searchTerm) && (
                     <div className="bg-slate-50 p-2 grid grid-cols-1 gap-1 animate-fadeIn">
-                       {!searchTerm && <a href={`https://www.tokyometro.jp/lang_en/station/line_${line.name.toLowerCase().split(' ')[0]}/index.html`} target="_blank" rel="noreferrer" className="text-[10px] text-rose-500 font-bold uppercase tracking-wider mb-2 block text-center border-b border-rose-100 pb-1">View Full Line Route →</a>}
+                       {!searchTerm && <a href={`https://www.tokyometro.jp/lang_en/station/line_${line.routeUrlName}/index.html`} target="_blank" rel="noreferrer" className="text-[10px] text-rose-500 font-bold uppercase tracking-wider mb-2 block text-center border-b border-rose-100 pb-1">View Full Line Route →</a>}
                        <div className="grid grid-cols-2 gap-1">
                           {line.stations.map(st => (
                             <a 
