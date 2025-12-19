@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan, ChatMessage } from './types';
 import { createBlankTrip } from './services/presetTrip';
@@ -145,44 +146,53 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
     flightNo: '', terminal: ''
   });
 
+  const [localJPY, setLocalJPY] = useState<string>('0');
   const [localMYR, setLocalMYR] = useState<string>('0');
 
   useEffect(() => {
-    if (initialData) {
-      const jpy = initialData.cost ?? 0;
-      setFormData({ 
-        ...initialData, 
-        cost: jpy,
-        customMapLink: initialData.customMapLink ?? '',
-        wazeLink: initialData.wazeLink ?? '',
-        notes: initialData.notes ?? '',
-        flightNo: initialData.flightNo ?? '',
-        terminal: initialData.terminal ?? ''
-      });
-      setLocalMYR((jpy * exchangeRate).toFixed(2));
-    } else {
-      setFormData({
-        id: generateId(), time: '09:00', title: '', description: '', location: '',
-        customMapLink: '', wazeLink: '', type: initialType || 'sightseeing', cost: 0, notes: '',
-        flightNo: '', terminal: ''
-      });
-      setLocalMYR('0.00');
+    if (isOpen) {
+      if (initialData) {
+        const jpyValue = initialData.cost ?? 0;
+        setFormData({ 
+          ...initialData, 
+          cost: jpyValue,
+          customMapLink: initialData.customMapLink ?? '',
+          wazeLink: initialData.wazeLink ?? '',
+          notes: initialData.notes ?? '',
+          flightNo: initialData.flightNo ?? '',
+          terminal: initialData.terminal ?? ''
+        });
+        setLocalJPY(jpyValue.toString());
+        setLocalMYR((jpyValue * exchangeRate).toFixed(2));
+      } else {
+        setFormData({
+          id: generateId(), time: '09:00', title: '', description: '', location: '',
+          customMapLink: '', wazeLink: '', type: initialType || 'sightseeing', cost: 0, notes: '',
+          flightNo: '', terminal: ''
+        });
+        setLocalJPY('0');
+        setLocalMYR('0.00');
+      }
     }
   }, [initialData, isOpen, initialType, exchangeRate]);
 
   if (!isOpen) return null;
 
   const handleJPYChange = (val: string) => {
+    setLocalJPY(val);
     const jpyNum = parseFloat(val) || 0;
     setFormData(prev => ({ ...prev, cost: jpyNum }));
+    // Update MYR as a derived preview
     setLocalMYR((jpyNum * exchangeRate).toFixed(2));
   };
 
   const handleMYRChange = (val: string) => {
     setLocalMYR(val);
     const myrNum = parseFloat(val) || 0;
+    // Update JPY as a derived primary value
     const jpyEquivalent = Math.round(myrNum / (exchangeRate || 1));
     setFormData(prev => ({ ...prev, cost: jpyEquivalent }));
+    setLocalJPY(jpyEquivalent.toString());
   };
 
   return (
@@ -250,7 +260,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Cost (JPY)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-3.5 text-slate-400 text-sm">¥</span>
-                    <input type="number" placeholder="0" value={formData.cost === 0 ? '' : formData.cost} onChange={e => handleJPYChange(e.target.value)} className="w-full p-3 pl-7 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" />
+                    <input type="number" placeholder="0" value={localJPY === '0' ? '' : localJPY} onChange={e => handleJPYChange(e.target.value)} className="w-full p-3 pl-7 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" />
                   </div>
                 </div>
                 <div>
