@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan, ChatMessage } from './types';
 import { createBlankTrip } from './services/presetTrip';
@@ -9,7 +8,6 @@ import {
   TrashIcon,
   EditIcon,
   SaveIcon,
-  CheckIcon,
   NoteIcon,
   CloseIcon,
   WalletIcon,
