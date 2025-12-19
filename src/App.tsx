@@ -468,7 +468,7 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
                   
                   {(expandedLine === line.id || searchTerm) && (
                     <div className="bg-slate-50 p-2 grid grid-cols-1 gap-1 animate-fadeIn">
-                       {!searchTerm && <a href={`https://www.tokyometro.jp/en/subwaymap/line_${line.name.toLowerCase().split(' ')[0]}/index.html`} target="_blank" rel="noreferrer" className="text-[10px] text-rose-500 font-bold uppercase tracking-wider mb-2 block text-center border-b border-rose-100 pb-1">View Full Line Route →</a>}
+                       {!searchTerm && <a href={`https://www.tokyometro.jp/lang_en/station/line_${line.name.toLowerCase().split(' ')[0]}/index.html`} target="_blank" rel="noreferrer" className="text-[10px] text-rose-500 font-bold uppercase tracking-wider mb-2 block text-center border-b border-rose-100 pb-1">View Full Line Route →</a>}
                        <div className="grid grid-cols-2 gap-1">
                           {line.stations.map(st => (
                             <a 
@@ -617,8 +617,6 @@ const App = () => {
   const dayTotalJPY = useMemo(() => sortedActivities.reduce((sum, act) => sum + (act.cost ?? 0), 0), [sortedActivities]);
   const dayTotalMYR = useMemo(() => dayTotalJPY * exchangeRate, [dayTotalJPY, exchangeRate]);
   const isSelectedDayToday = useMemo(() => isToday(trip?.startDate, activeDay), [trip?.startDate, activeDay]);
-
-  // Calculate days until trip start
   const daysUntil = useMemo(() => getDaysUntil(trip?.startDate), [trip?.startDate]);
 
   if (!trip || isLoading) return <div className="min-h-screen flex items-center justify-center font-serif text-rose-400 animate-pulse text-xl italic">Setting up our romance...</div>;
@@ -627,13 +625,12 @@ const App = () => {
   
   const handleLoveClick = () => {
     setIsTransitioning(true);
-    // Smooth transition: Heart zoom + phased background fade
     setTimeout(() => {
       setView('itinerary');
       window.scrollTo({ top: 0, behavior: 'instant' });
-      // Keep overlay a bit longer to hide the "snap" to itinerary view
-      setTimeout(() => setIsTransitioning(false), 900);
-    }, 1200);
+      // Shorten the final cleanup to reduce visible gap
+      setTimeout(() => setIsTransitioning(false), 300);
+    }, 1100);
   };
 
   const handleSaveActivity = (activity: Activity) => {
@@ -669,20 +666,20 @@ const App = () => {
 
   return (
     <div className="relative min-h-screen">
-      {/* Global Transition Overlay to prevent flashes */}
+      {/* Global Transition Overlay - Solid enough to hide content switches */}
       <div 
         className={`fixed inset-0 z-[1000] pointer-events-none transition-all duration-[1200ms] ease-in-out ${
-          isTransitioning ? 'bg-white/90 backdrop-blur-lg opacity-100' : 'bg-transparent opacity-0'
+          isTransitioning ? 'bg-white opacity-100' : 'bg-transparent opacity-0'
         }`}
       />
 
       {view === 'dashboard' ? (
-        <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn overflow-hidden">
+        <div className={`min-h-screen flex flex-col sakura-bg animate-fadeIn overflow-hidden transition-all duration-[1000ms] ${isTransitioning ? 'scale-[0.85] opacity-0 blur-md' : 'scale-100 opacity-100 blur-0'}`}>
           <SakuraRain intensity={isTransitioning ? 200 : 35} isRamping={isTransitioning} />
           <header className="bg-transparent p-4 relative z-10">
              <div className="max-w-3xl mx-auto flex items-center justify-between"><div className="w-10"></div><div className="w-10"></div><div className="flex items-center gap-2"><button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><NoteIcon className="w-5 h-5" /></button></div></div>
           </header>
-          <main className={`flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8 relative z-10 transition-all duration-[1000ms] ${isTransitioning ? 'scale-[0.85] opacity-0 blur-md' : 'scale-100 opacity-100 blur-0'}`}>
+          <main className="flex-1 max-w-3xl mx-auto w-full p-6 flex flex-col items-center justify-center space-y-8 relative z-10">
              <section className="text-center py-4 space-y-2">
                 <h2 className="text-6xl font-serif font-bold text-slate-800 tracking-tight leading-tight">{trip.destination}</h2>
                 <p className="text-rose-400 font-bold tracking-[0.2em] uppercase text-xs">Journey for Vin & Dolly</p>
@@ -709,7 +706,7 @@ const App = () => {
           )}
         </div>
       ) : (
-        <div className="min-h-screen flex flex-col sakura-bg">
+        <div className="min-h-screen flex flex-col sakura-bg transition-opacity duration-300">
            <SakuraRain />
            <header className={`bg-white/95 backdrop-blur-md sticky top-0 z-[60] border-b border-rose-100 transition-all duration-300 ${isScrolled ? 'py-1 shadow-md' : 'py-3'}`}><div className="max-w-3xl mx-auto px-4"><div className="flex items-center justify-between gap-2 mb-2"><button onClick={() => setView('dashboard')} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full flex-shrink-0"><HomeIcon className="w-5 h-5" /></button><div className="flex-1 text-center min-w-0" onClick={() => setEditingTitle(true)}>{editingTitle ? (<input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center text-slate-800" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />) : (<div className="flex flex-col items-center"><h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>{trip.destination}</h2></div>)}</div><div className="flex items-center gap-1"><button onClick={() => setIsMetroGuideOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><MapIcon className="w-5 h-5" /></button><button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><WalletIcon className="w-5 h-5" /></button></div></div><div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 select-none touch-pan-x active:cursor-grabbing"><div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">{trip.dailyPlans.map(p => (<button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.4rem] h-11' : 'w-[4.2rem] h-13'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-900 border-rose-900 text-white shadow-md scale-105' : 'bg-white border-rose-100 text-rose-400 hover:border-rose-300'}`}><span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span><span className="text-xs font-bold leading-none mt-0.5">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span></button>))}<button onClick={addDay} className={`flex items-center justify-center text-rose-200 flex-shrink-0 bg-white border border-dashed border-rose-200 rounded-2xl hover:border-rose-400 hover:text-rose-400 transition-colors ${isScrolled ? 'w-[3rem] h-11' : 'w-[3.5rem] h-13'}`} title="Add Day"><PlusIcon className="w-5 h-5" /></button></div></div></div></header>
            <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 pb-40"><div className="space-y-6 animate-fadeIn"><div className="flex items-center justify-between px-1"><div onClick={() => setEditingTheme(true)} className="flex-1 min-w-0"><div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">{getFormattedDate(trip.startDate, activeDay - 1)}</div>{editingTheme ? (<input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} />) : (<h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate group cursor-pointer">Day {activeDay}: {currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200 group-hover:text-rose-400 transition-colors" /></h2>)}</div><div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800 shadow-sm"><div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic text-center">Daily Total</div><div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div><div className="text-[9px] font-bold text-rose-400 text-center">≈ RM {dayTotalMYR.toFixed(2)}</div></div></div><div className="relative border-l-2 border-rose-200/50 ml-4 sm:ml-6 space-y-6 pb-4 pl-6 sm:pl-10 text-slate-800">{sortedActivities.length === 0 && <div className="py-24 text-center border-2 border-dashed border-rose-100 rounded-[3rem] text-rose-300 italic ml-[-2rem]">Empty schedule for today.</div>}{sortedActivities.map((act, idx) => { 
