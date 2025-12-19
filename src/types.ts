@@ -16,6 +16,8 @@ export interface Activity {
   description: string;
   location: string;
   customMapLink?: string; // specific google maps url
+  // Fix: Added wazeLink property to support Waze navigation for driving activities
+  wazeLink?: string;
   cost?: number; // Changed to number
   type: ActivityType;
   notes?: string; // For reservation numbers, booking refs, etc.

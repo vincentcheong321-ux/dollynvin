@@ -7,7 +7,7 @@ export enum TripVibe {
   CULTURAL = 'Cultural'
 }
 
-export type ActivityType = 'food' | 'sightseeing' | 'relaxation' | 'travel' | 'stay' | 'shopping' | 'other';
+export type ActivityType = 'food' | 'sightseeing' | 'relaxation' | 'travel' | 'stay' | 'shopping' | 'drive' | 'other';
 
 export interface Activity {
   id: string;
@@ -16,9 +16,11 @@ export interface Activity {
   description: string;
   location: string;
   customMapLink?: string; // specific google maps url
+  wazeLink?: string; // specific waze url
   cost?: number; // Changed to number
   type: ActivityType;
   notes?: string; // For reservation numbers, booking refs, etc.
+  // Fix: Added isBooked property to allow tracking activity booking status in the UI
   isBooked?: boolean;
 }
 
