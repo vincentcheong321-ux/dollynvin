@@ -79,6 +79,51 @@ const isActivityOngoing = (activityTime: string, nextActivityTime?: string): boo
   return currentMinutes >= startMinutes && currentMinutes < startMinutes + 120;
 };
 
+// --- Sakura Animation Component ---
+const SakuraRain = () => {
+  const petals = useMemo(() => Array.from({ length: 30 }).map((_, i) => ({
+    id: i,
+    left: Math.random() * 100 + '%',
+    animationDelay: '-' + (Math.random() * 10) + 's',
+    animationDuration: (8 + Math.random() * 5) + 's'
+  })), []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <style>{`
+        @keyframes fall {
+          0% { opacity: 0; transform: translateY(-10vh) rotate(0deg); }
+          10% { opacity: 0.8; }
+          100% { opacity: 0; transform: translateY(100vh) rotate(360deg); }
+        }
+        .petal {
+          position: absolute;
+          top: -5%;
+          width: 14px;
+          height: 14px;
+          background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 0C7 0 9.5 2.5 9.5 7C9.5 11.5 7 14 7 14C7 14 4.5 11.5 4.5 7C4.5 2.5 7 0 7 0Z' fill='%23FECDD3'/%3E%3C/svg%3E");
+          background-size: contain;
+          background-repeat: no-repeat;
+          animation-name: fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+      `}</style>
+      {petals.map(p => (
+        <div 
+          key={p.id}
+          className="petal"
+          style={{
+            left: p.left,
+            animationDelay: p.animationDelay,
+            animationDuration: p.animationDuration
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 // --- Activity Modal ---
 interface ActivityModalProps {
   isOpen: boolean;
@@ -530,6 +575,7 @@ const App = () => {
     const daysUntil = getDaysUntil(trip.startDate);
     return (
       <div className="min-h-screen flex flex-col sakura-bg animate-fadeIn">
+        <SakuraRain />
         <header className="bg-transparent p-4">
            <div className="max-w-3xl mx-auto flex items-center justify-between"><div className="w-10"></div><div className="w-10"></div><div className="flex items-center gap-2"><button onClick={() => setIsNotesOpen(!isNotesOpen)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><NoteIcon className="w-5 h-5" /></button></div></div>
         </header>
@@ -558,24 +604,34 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex flex-col sakura-bg">
+       <SakuraRain />
        <header className={`bg-white/95 backdrop-blur-md sticky top-0 z-[60] border-b border-rose-100 transition-all duration-300 ${isScrolled ? 'py-1 shadow-md' : 'py-3'}`}><div className="max-w-3xl mx-auto px-4"><div className="flex items-center justify-between gap-2 mb-2"><button onClick={() => setView('dashboard')} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full flex-shrink-0"><HomeIcon className="w-5 h-5" /></button><div className="flex-1 text-center min-w-0" onClick={() => setEditingTitle(true)}>{editingTitle ? (<input autoFocus className="font-serif font-bold text-lg outline-none w-full border-b-2 border-rose-200 bg-transparent text-center text-slate-800" defaultValue={trip.destination} onBlur={e => { handleUpdate({...trip, destination: e.target.value}); setEditingTitle(false); }} />) : (<div className="flex flex-col items-center"><h2 className={`font-serif font-bold text-rose-950 truncate transition-all ${isScrolled ? 'text-sm' : 'text-base'}`}>{trip.destination}</h2></div>)}</div><div className="flex items-center gap-1"><button onClick={() => setIsMetroGuideOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><MapIcon className="w-5 h-5" /></button><button onClick={() => setIsBudgetOpen(true)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-full transition-colors"><WalletIcon className="w-5 h-5" /></button></div></div><div className="overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4 py-2 select-none touch-pan-x active:cursor-grabbing"><div className="flex gap-2 w-max items-center flex-nowrap pr-12 min-w-full">{trip.dailyPlans.map(p => (<button key={p.id} onClick={() => { setActiveDay(p.dayNumber); setIsNotesOpen(false); }} className={`flex flex-col items-center justify-center rounded-2xl border transition-all flex-shrink-0 ${isScrolled ? 'w-[3.4rem] h-11' : 'w-[4.2rem] h-13'} ${activeDay === p.dayNumber && !isNotesOpen ? 'bg-rose-900 border-rose-900 text-white shadow-md scale-105' : 'bg-white border-rose-100 text-rose-400 hover:border-rose-300'}`}><span className="text-[8px] font-bold uppercase opacity-70">Day {p.dayNumber}</span><span className="text-xs font-bold leading-none mt-0.5">{getDayOfMonth(trip.startDate, p.dayNumber - 1) || p.dayNumber}</span></button>))}<button onClick={addDay} className={`flex items-center justify-center text-rose-200 flex-shrink-0 bg-white border border-dashed border-rose-200 rounded-2xl hover:border-rose-400 hover:text-rose-400 transition-colors ${isScrolled ? 'w-[3rem] h-11' : 'w-[3.5rem] h-13'}`} title="Add Day"><PlusIcon className="w-5 h-5" /></button></div></div></div></header>
-       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 pb-40"><div className="space-y-6 animate-fadeIn"><div className="flex items-center justify-between px-1"><div onClick={() => setEditingTheme(true)} className="flex-1 min-w-0"><div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">{getFormattedDate(trip.startDate, activeDay - 1)}</div>{editingTheme ? (<input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} />) : (<h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate group cursor-pointer">Day {activeDay}: {currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200 group-hover:text-rose-400 transition-colors" /></h2>)}</div><div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800 shadow-sm"><div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic text-center">Daily Total</div><div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div><div className="text-[9px] font-bold text-rose-400 text-center">≈ RM {dayTotalMYR.toFixed(2)}</div></div></div><div className="relative border-l-2 border-rose-200/50 ml-4 sm:ml-6 space-y-6 pb-4 pl-6 sm:pl-10 text-slate-800">{sortedActivities.length === 0 && <div className="py-24 text-center border-2 border-dashed border-rose-100 rounded-[3rem] text-rose-300 italic ml-[-2rem]">Empty schedule for today.</div>}{sortedActivities.map((act, idx) => { const ongoing = isSelectedDayToday && isActivityOngoing(act.time, sortedActivities[idx+1]?.time); return (<div key={act.id} className="relative group"><div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : (act.isBooked ? 'border-green-500' : 'border-rose-300')}`}></div><div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${act.isBooked ? 'border-l-8 border-l-green-400 shadow-green-50' : 'border-white hover:border-rose-100 shadow-rose-50/50'}`}><div className="flex justify-between items-start mb-2 gap-2 text-slate-800"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span><h4 className="font-bold text-sm truncate">{act.title}</h4></div><button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button></div><div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3"><div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${ act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' : act.type === 'sightseeing' ? 'bg-blue-50 text-blue-600 border-blue-100' : act.type === 'shopping' ? 'bg-purple-50 text-purple-600 border-purple-100' : act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' : act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' : act.type === 'drive' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-100' }`}><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>{(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-xl border border-rose-100">¥{(act.cost ?? 0).toLocaleString()}</span>}{act.isBooked && <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded-xl border border-green-100 flex items-center gap-1"><CheckIcon className="w-2.5 h-2.5" /> Booked</span>}</div>
+       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 pb-40"><div className="space-y-6 animate-fadeIn"><div className="flex items-center justify-between px-1"><div onClick={() => setEditingTheme(true)} className="flex-1 min-w-0"><div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">{getFormattedDate(trip.startDate, activeDay - 1)}</div>{editingTheme ? (<input autoFocus className="text-xl font-serif font-bold text-rose-950 border-b border-rose-100 outline-none bg-transparent w-full" defaultValue={currentDayPlan?.theme} onBlur={e => { handleUpdate({...trip, dailyPlans: trip.dailyPlans.map(p => p.dayNumber === activeDay ? {...p, theme: e.target.value} : p)}); setEditingTheme(false); }} />) : (<h2 className="text-xl font-serif font-bold text-rose-950 flex items-center gap-2 truncate group cursor-pointer">Day {activeDay}: {currentDayPlan?.theme} <EditIcon className="w-3 h-3 text-rose-200 group-hover:text-rose-400 transition-colors" /></h2>)}</div><div className="text-right ml-4 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-100 flex-shrink-0 text-slate-800 shadow-sm"><div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter italic text-center">Daily Total</div><div className="font-bold text-rose-950 text-sm">¥{dayTotalJPY.toLocaleString()}</div><div className="text-[9px] font-bold text-rose-400 text-center">≈ RM {dayTotalMYR.toFixed(2)}</div></div></div><div className="relative border-l-2 border-rose-200/50 ml-4 sm:ml-6 space-y-6 pb-4 pl-6 sm:pl-10 text-slate-800">{sortedActivities.length === 0 && <div className="py-24 text-center border-2 border-dashed border-rose-100 rounded-[3rem] text-rose-300 italic ml-[-2rem]">Empty schedule for today.</div>}{sortedActivities.map((act, idx) => { 
+        const ongoing = isSelectedDayToday && isActivityOngoing(act.time, sortedActivities[idx+1]?.time); 
+        
+        // Determine Map URL
+        const isDrive = act.type === 'drive' && act.location;
+        const hasCustomMap = !!act.customMapLink;
+        const shouldShowMapBtn = hasCustomMap || isDrive;
+        const mapUrl = (isDrive && !hasCustomMap) 
+          ? `https://waze.com/ul?q=${encodeURIComponent(act.location)}` 
+          : act.customMapLink;
+
+        return (<div key={act.id} className="relative group"><div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : (act.isBooked ? 'border-green-500' : 'border-rose-300')}`}></div><div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${act.isBooked ? 'border-l-8 border-l-green-400 shadow-green-50' : 'border-white hover:border-rose-100 shadow-rose-50/50'}`}><div className="flex justify-between items-start mb-2 gap-2 text-slate-800"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span><h4 className="font-bold text-sm truncate">{act.title}</h4></div><button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button></div><div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3"><div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${ act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' : act.type === 'sightseeing' ? 'bg-blue-50 text-blue-600 border-blue-100' : act.type === 'shopping' ? 'bg-purple-50 text-purple-600 border-purple-100' : act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' : act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' : act.type === 'drive' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-100' }`}><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>{(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-xl border border-rose-100">¥{(act.cost ?? 0).toLocaleString()}</span>}{act.isBooked && <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded-xl border border-green-100 flex items-center gap-1"><CheckIcon className="w-2.5 h-2.5" /> Booked</span>}</div>
                <div className="flex flex-col gap-2">
                  <div className="flex items-end justify-between gap-4">
                    <p className="text-xs text-slate-600 line-clamp-2 flex-1 leading-relaxed">{act.description}</p>
-                   <a 
-                      href={
-                        act.type === 'drive' && !act.customMapLink
-                          ? `https://waze.com/ul?q=${encodeURIComponent(act.location)}`
-                          : (act.customMapLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`)
-                      }
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="p-2 bg-rose-50 rounded-full hover:bg-rose-100 transition-colors flex-shrink-0 z-20"
-                   >
-                     <MapIcon className="w-3.5 h-3.5 text-rose-400" />
-                   </a>
+                   {shouldShowMapBtn && mapUrl && (
+                     <a 
+                        href={mapUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-2 bg-rose-50 rounded-full hover:bg-rose-100 transition-colors flex-shrink-0 z-20"
+                     >
+                       <MapIcon className="w-3.5 h-3.5 text-rose-400" />
+                     </a>
+                   )}
                  </div>
                  {act.notes && (
                    <div className="flex items-start gap-2 p-2 bg-amber-50/50 rounded-lg border border-amber-100/50">
