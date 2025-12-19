@@ -1,4 +1,3 @@
-
 export enum TripVibe {
   ROMANTIC = 'Romantic',
   ADVENTURE = 'Adventure',
@@ -17,7 +16,8 @@ export interface Activity {
   location: string;
   customMapLink?: string; // specific google maps url
   wazeLink?: string; // specific waze url
-  cost?: number; 
+  cost?: number; // JPY
+  myrCost?: number; // Exact MYR
   type: ActivityType;
   notes?: string; 
   isBooked?: boolean;

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trip, Activity, ActivityType, DailyPlan, ChatMessage } from './types';
 import { createBlankTrip } from './services/presetTrip';
@@ -142,36 +141,38 @@ interface ActivityModalProps {
 const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, initialData, initialType, exchangeRate }) => {
   const [formData, setFormData] = useState<Activity>({
     id: '', time: '09:00', title: '', description: '', location: '',
-    customMapLink: '', wazeLink: '', type: 'sightseeing', cost: 0, notes: '',
+    customMapLink: '', wazeLink: '', type: 'sightseeing', cost: 0, myrCost: 0, notes: '',
     flightNo: '', terminal: ''
   });
 
-  const [localJPY, setLocalJPY] = useState<string>('0');
-  const [localMYR, setLocalMYR] = useState<string>('0');
+  const [localJPY, setLocalJPY] = useState<string>('');
+  const [localMYR, setLocalMYR] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
-        const jpyValue = initialData.cost ?? 0;
+        const jpyVal = initialData.cost ?? 0;
+        const myrVal = initialData.myrCost ?? (jpyVal * exchangeRate);
         setFormData({ 
           ...initialData, 
-          cost: jpyValue,
+          cost: jpyVal,
+          myrCost: myrVal,
           customMapLink: initialData.customMapLink ?? '',
           wazeLink: initialData.wazeLink ?? '',
           notes: initialData.notes ?? '',
           flightNo: initialData.flightNo ?? '',
           terminal: initialData.terminal ?? ''
         });
-        setLocalJPY(jpyValue.toString());
-        setLocalMYR((jpyValue * exchangeRate).toFixed(2));
+        setLocalJPY(jpyVal === 0 ? '' : jpyVal.toString());
+        setLocalMYR(myrVal === 0 ? '' : myrVal.toString());
       } else {
         setFormData({
           id: generateId(), time: '09:00', title: '', description: '', location: '',
-          customMapLink: '', wazeLink: '', type: initialType || 'sightseeing', cost: 0, notes: '',
+          customMapLink: '', wazeLink: '', type: initialType || 'sightseeing', cost: 0, myrCost: 0, notes: '',
           flightNo: '', terminal: ''
         });
-        setLocalJPY('0');
-        setLocalMYR('0.00');
+        setLocalJPY('');
+        setLocalMYR('');
       }
     }
   }, [initialData, isOpen, initialType, exchangeRate]);
@@ -181,18 +182,17 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
   const handleJPYChange = (val: string) => {
     setLocalJPY(val);
     const jpyNum = parseFloat(val) || 0;
-    setFormData(prev => ({ ...prev, cost: jpyNum }));
-    // Update MYR as a derived preview
-    setLocalMYR((jpyNum * exchangeRate).toFixed(2));
+    const myrDerived = jpyNum * exchangeRate;
+    setFormData(prev => ({ ...prev, cost: jpyNum, myrCost: myrDerived }));
+    setLocalMYR(myrDerived === 0 ? '' : myrDerived.toFixed(2));
   };
 
   const handleMYRChange = (val: string) => {
     setLocalMYR(val);
     const myrNum = parseFloat(val) || 0;
-    // Update JPY as a derived primary value
-    const jpyEquivalent = Math.round(myrNum / (exchangeRate || 1));
-    setFormData(prev => ({ ...prev, cost: jpyEquivalent }));
-    setLocalJPY(jpyEquivalent.toString());
+    const jpyDerived = parseFloat((myrNum / (exchangeRate || 1)).toFixed(2));
+    setFormData(prev => ({ ...prev, myrCost: myrNum, cost: jpyDerived }));
+    setLocalJPY(jpyDerived === 0 ? '' : jpyDerived.toString());
   };
 
   return (
@@ -260,14 +260,14 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Cost (JPY)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-3.5 text-slate-400 text-sm">¥</span>
-                    <input type="number" placeholder="0" value={localJPY === '0' ? '' : localJPY} onChange={e => handleJPYChange(e.target.value)} className="w-full p-3 pl-7 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" />
+                    <input type="number" placeholder="0" value={localJPY} onChange={e => handleJPYChange(e.target.value)} className="w-full p-3 pl-7 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Cost (MYR)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-3.5 text-slate-400 text-[10px] font-bold">RM</span>
-                    <input type="number" placeholder="0.00" value={localMYR === '0.00' ? '' : localMYR} onChange={e => handleMYRChange(e.target.value)} className="w-full p-3 pl-9 bg-rose-50/50 border border-rose-100 rounded-xl outline-none font-medium text-rose-700" />
+                    <input type="number" placeholder="0.00" value={localMYR} onChange={e => handleMYRChange(e.target.value)} className="w-full p-3 pl-9 bg-rose-50/50 border border-rose-100 rounded-xl outline-none font-medium text-rose-700" />
                   </div>
                 </div>
               </div>
@@ -394,15 +394,15 @@ const BoardingPassModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
 // --- Budget Modal ---
 const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean, onClose: () => void, trip: Trip, exchangeRate: number }) => {
   if (!isOpen) return null;
-  let total = 0;
+  let totalJPY = 0;
+  let totalMYR = 0;
   const categoryTotals: Record<string, number> = { food: 0, sightseeing: 0, relaxation: 0, travel: 0, stay: 0, shopping: 0, drive: 0, other: 0 };
   trip.dailyPlans.forEach(plan => plan.activities.forEach(act => {
-    const c = act.cost ?? 0;
-    total += c;
-    if (categoryTotals[act.type] !== undefined) categoryTotals[act.type] += c; else categoryTotals['other'] += c;
+    totalJPY += (act.cost ?? 0);
+    totalMYR += (act.myrCost ?? 0);
+    if (categoryTotals[act.type] !== undefined) categoryTotals[act.type] += (act.cost ?? 0); else categoryTotals['other'] += (act.cost ?? 0);
   }));
   const maxCost = Math.max(...Object.values(categoryTotals), 1);
-  const totalMYR = total * exchangeRate;
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
        <div className="absolute inset-0 bg-rose-900/40 backdrop-blur-md transition-opacity" onClick={onClose}></div>
@@ -417,18 +417,18 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
          <div className="overflow-y-auto pr-2 space-y-8 flex-1 no-scrollbar">
             <div className="bg-rose-600 rounded-[2rem] p-8 text-white text-center shadow-lg relative overflow-hidden">
                <p className="text-white/80 font-bold uppercase tracking-widest text-xs mb-2">Estimated Total Cost</p>
-               <h2 className="text-5xl font-serif font-bold mb-1">¥ {total.toLocaleString()}</h2>
+               <h2 className="text-5xl font-serif font-bold mb-1">¥ {totalJPY.toLocaleString()}</h2>
                <div className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-bold">≈ RM {totalMYR.toFixed(2)}</div>
             </div>
             <div className="space-y-4">
-              <h4 className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">By Category</h4>
+              <h4 className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">By Category (JPY)</h4>
               {Object.entries(categoryTotals).map(([cat, cost]) => {
                 if (cost === 0) return null;
                 return (
                   <div key={cat}>
                     <div className="flex justify-between text-sm font-medium mb-1">
                       <span className="capitalize">{cat}</span>
-                      <div className="text-right"><span>¥{cost.toLocaleString()}</span><span className="ml-2 text-rose-300 text-xs">RM {(cost * exchangeRate).toFixed(2)}</span></div>
+                      <div className="text-right"><span>¥{cost.toLocaleString()}</span></div>
                     </div>
                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                       <div className={`h-full rounded-full transition-all duration-1000 ${
@@ -438,7 +438,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
                   </div>
                 );
               })}
-              {total === 0 && <p className="text-center text-slate-400 italic py-8">No costs recorded yet.</p>}
+              {totalJPY === 0 && <p className="text-center text-slate-400 italic py-8">No costs recorded yet.</p>}
             </div>
          </div>
        </div>
@@ -549,10 +549,6 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
               {filteredLines.length === 0 && <div className="text-center py-10 text-slate-400 italic text-sm">No stations found...</div>}
             </div>
           </div>
-        </div>
-        
-        <div className="mt-6 text-center pt-2 border-t border-slate-50">
-          {/* Footer removed per user request */}
         </div>
       </div>
     </div>
@@ -669,7 +665,7 @@ const App = () => {
   const currentDayPlan = useMemo(() => trip?.dailyPlans.find(d => d.dayNumber === activeDay), [trip, activeDay]);
   const sortedActivities = useMemo(() => currentDayPlan ? [...currentDayPlan.activities].sort((a, b) => a.time.localeCompare(b.time)) : [], [currentDayPlan]);
   const dayTotalJPY = useMemo(() => sortedActivities.reduce((sum, act) => sum + (act.cost ?? 0), 0), [sortedActivities]);
-  const dayTotalMYR = dayTotalJPY * exchangeRate;
+  const dayTotalMYR = useMemo(() => sortedActivities.reduce((sum, act) => sum + (act.myrCost ?? (act.cost ?? 0) * exchangeRate), 0), [sortedActivities, exchangeRate]);
   const isSelectedDayToday = useMemo(() => isToday(trip?.startDate, activeDay), [trip?.startDate, activeDay]);
   const daysUntil = useMemo(() => getDaysUntil(trip?.startDate), [trip?.startDate]);
 
@@ -682,16 +678,14 @@ const App = () => {
     setTimeout(() => {
       setView('itinerary');
       window.scrollTo({ top: 0, behavior: 'instant' });
-      // Shorten the final cleanup to reduce visible gap
       setTimeout(() => setIsTransitioning(false), 300);
     }, 1100);
   };
 
   const handleSaveActivity = (activity: Activity) => {
-    const sanitizedActivity = { ...activity, cost: (activity.cost && !isNaN(activity.cost)) ? activity.cost : 0 };
     const updatedPlans = trip.dailyPlans.map(plan => {
       if (plan.dayNumber === activeDay) {
-        const activities = editingActivity ? plan.activities.map(a => a.id === sanitizedActivity.id ? sanitizedActivity : a) : [...plan.activities, sanitizedActivity];
+        const activities = editingActivity ? plan.activities.map(a => a.id === activity.id ? activity : a) : [...plan.activities, activity];
         return { ...plan, activities };
       }
       return plan;
@@ -763,7 +757,7 @@ const App = () => {
           <span class="title">${act.title}</span>
           <span class="location">${act.location}</span>
           <p class="desc">${act.description}</p>
-          <span class="cost">Est: ¥${act.cost?.toLocaleString()} | RM ${( (act.cost || 0) * exchangeRate).toFixed(2)}</span>
+          <span class="cost">Est: ¥${act.cost?.toLocaleString()} | RM ${ (act.myrCost ?? (act.cost || 0) * exchangeRate).toFixed(2) }</span>
           ${act.notes ? `<div class="notes">${act.notes}</div>` : ''}
         </div>
       `).join('')}
@@ -787,7 +781,7 @@ const App = () => {
 
   return (
     <div className="relative min-h-screen">
-      {/* Global Transition Overlay - Solid enough to hide content switches */}
+      {/* Global Transition Overlay */}
       <div 
         className={`fixed inset-0 z-[1000] pointer-events-none transition-all duration-[1200ms] ease-in-out ${
           isTransitioning ? 'bg-white opacity-100' : 'bg-transparent opacity-0'
@@ -839,7 +833,7 @@ const App = () => {
             const shouldShowMapBtn = hasCustomMap || (isDrive && act.location);
             const mapUrl = hasCustomMap ? act.customMapLink : (isDrive && act.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}` : undefined);
             
-            return (<div key={act.id} className="relative group"><div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : 'border-rose-300'}`}></div><div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 border-white hover:border-rose-100 shadow-rose-50/50`}><div className="flex justify-between items-start mb-2 gap-2 text-slate-800"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span><h4 className="font-bold text-sm truncate">{act.title}</h4></div><button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button></div><div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3"><div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${ act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' : act.type === 'sightseeing' ? 'bg-blue-50 text-blue-600 border-blue-100' : act.type === 'shopping' ? 'bg-purple-50 text-purple-600 border-purple-100' : act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' : act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' : act.type === 'drive' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-100' }`}><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>{(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-xl border border-rose-100 flex items-center gap-1">¥{(act.cost ?? 0).toLocaleString()} <span className="opacity-40 text-[9px] font-normal">|</span> RM {((act.cost || 0) * exchangeRate).toFixed(2)}</span>}{isTravel && (act.flightNo || act.terminal) && (<div className="flex items-center gap-2 font-bold text-sky-600 bg-sky-50 px-2 py-1 rounded-xl border border-sky-100">{act.flightNo && <span>Flight: {act.flightNo}</span>}{act.terminal && <span>Terminal: {act.terminal}</span>}</div>)}</div>
+            return (<div key={act.id} className="relative group"><div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : 'border-rose-300'}`}></div><div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 border-white hover:border-rose-100 shadow-rose-50/50`}><div className="flex justify-between items-start mb-2 gap-2 text-slate-800"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span><h4 className="font-bold text-sm truncate">{act.title}</h4></div><button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button></div><div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3"><div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${ act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' : act.type === 'sightseeing' ? 'bg-blue-50 text-blue-600 border-blue-100' : act.type === 'shopping' ? 'bg-purple-50 text-purple-600 border-purple-100' : act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' : act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' : act.type === 'drive' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-100' }`}><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>{(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-xl border border-rose-100 flex items-center gap-1">¥{(act.cost ?? 0).toLocaleString()} <span className="opacity-40 text-[9px] font-normal">|</span> RM {(act.myrCost ?? (act.cost || 0) * exchangeRate).toFixed(2)}</span>}{isTravel && (act.flightNo || act.terminal) && (<div className="flex items-center gap-2 font-bold text-sky-600 bg-sky-50 px-2 py-1 rounded-xl border border-sky-100">{act.flightNo && <span>Flight: {act.flightNo}</span>}{act.terminal && <span>Terminal: {act.terminal}</span>}</div>)}</div>
                    <div className="flex flex-col gap-2">
                      <div className="flex items-end justify-between gap-4">
                        <p className="text-xs text-slate-600 line-clamp-2 flex-1 leading-relaxed">{act.description}</p>
