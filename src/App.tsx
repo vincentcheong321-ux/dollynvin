@@ -182,9 +182,9 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
   const handleJPYChange = (val: string) => {
     setLocalJPY(val);
     const jpyNum = parseFloat(val) || 0;
-    const myrDerived = jpyNum * exchangeRate;
+    const myrDerived = parseFloat((jpyNum * exchangeRate).toFixed(2));
     setFormData(prev => ({ ...prev, cost: jpyNum, myrCost: myrDerived }));
-    setLocalMYR(myrDerived === 0 ? '' : myrDerived.toFixed(2));
+    setLocalMYR(myrDerived === 0 ? '' : myrDerived.toString());
   };
 
   const handleMYRChange = (val: string) => {
@@ -399,7 +399,7 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
   const categoryTotals: Record<string, number> = { food: 0, sightseeing: 0, relaxation: 0, travel: 0, stay: 0, shopping: 0, drive: 0, other: 0 };
   trip.dailyPlans.forEach(plan => plan.activities.forEach(act => {
     totalJPY += (act.cost ?? 0);
-    totalMYR += (act.myrCost ?? 0);
+    totalMYR += (act.myrCost ?? (act.cost || 0) * exchangeRate);
     if (categoryTotals[act.type] !== undefined) categoryTotals[act.type] += (act.cost ?? 0); else categoryTotals['other'] += (act.cost ?? 0);
   }));
   const maxCost = Math.max(...Object.values(categoryTotals), 1);
@@ -757,7 +757,7 @@ const App = () => {
           <span class="title">${act.title}</span>
           <span class="location">${act.location}</span>
           <p class="desc">${act.description}</p>
-          <span class="cost">Est: ¥${act.cost?.toLocaleString()} | RM ${ (act.myrCost ?? (act.cost || 0) * exchangeRate).toFixed(2) }</span>
+          <span class="cost">¥${act.cost?.toLocaleString()} | RM ${ (act.myrCost ?? (act.cost || 0) * exchangeRate).toFixed(2) }</span>
           ${act.notes ? `<div class="notes">${act.notes}</div>` : ''}
         </div>
       `).join('')}
