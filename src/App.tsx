@@ -8,6 +8,7 @@ import {
   TrashIcon,
   EditIcon,
   SaveIcon,
+  CheckIcon,
   NoteIcon,
   CloseIcon,
   WalletIcon,
@@ -625,6 +626,8 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
 const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boolean, onClose: () => void, trip: Trip, onUpdateTrip: (t: Trip) => void }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
+  const [editingDocId, setEditingDocId] = useState<string | null>(null);
+  const [editingDocName, setEditingDocName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -703,6 +706,16 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
     });
   };
 
+  const handleRename = (docId: string) => {
+    if (!editingDocName.trim()) return;
+    const currentDocs = trip.documents || [];
+    onUpdateTrip({
+      ...trip,
+      documents: currentDocs.map(d => d.id === docId ? { ...d, name: editingDocName.trim() } : d)
+    });
+    setEditingDocId(null);
+  };
+
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -741,8 +754,35 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
                       <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center flex-shrink-0">
                         <FileIcon className="w-5 h-5" />
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-sm text-slate-700 truncate">{doc.name}</p>
+                      <div className="min-w-0 flex-1">
+                        {editingDocId === doc.id ? (
+                          <div className="flex items-center gap-2 mb-1">
+                            <input
+                              type="text"
+                              value={editingDocName}
+                              onChange={(e) => setEditingDocName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleRename(doc.id);
+                                if (e.key === 'Escape') setEditingDocId(null);
+                              }}
+                              className="w-full p-1 text-sm font-bold text-slate-700 border border-rose-300 rounded outline-none focus:ring-2 focus:ring-rose-200"
+                              autoFocus
+                            />
+                            <button onClick={() => handleRename(doc.id)} className="p-1 text-emerald-500 hover:bg-emerald-50 rounded"><CheckIcon className="w-4 h-4" /></button>
+                            <button onClick={() => setEditingDocId(null)} className="p-1 text-slate-400 hover:bg-slate-100 rounded"><CloseIcon className="w-4 h-4" /></button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 group/title">
+                            <p className="font-bold text-sm text-slate-700 truncate">{doc.name}</p>
+                            <button 
+                              onClick={() => { setEditingDocId(doc.id); setEditingDocName(doc.name); }}
+                              className="opacity-0 group-hover/title:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-opacity"
+                              title="Rename"
+                            >
+                              <EditIcon className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
                         <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{formatSize(doc.size)} • {new Date(doc.uploadedAt).toLocaleDateString()}</p>
                       </div>
                     </div>
