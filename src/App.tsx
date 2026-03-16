@@ -624,9 +624,31 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
 // --- Documents Modal ---
 const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boolean, onClose: () => void, trip: Trip, onUpdateTrip: (t: Trip) => void }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
+
+  if (viewingDoc) {
+    return (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4">
+        <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-md transition-opacity" onClick={() => setViewingDoc(null)}></div>
+        <div className="bg-white w-full max-w-5xl h-[90vh] rounded-3xl shadow-2xl z-10 flex flex-col animate-slideUp overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b border-slate-100">
+            <h3 className="text-lg font-bold text-slate-800 truncate pr-4">{viewingDoc.name}</h3>
+            <button onClick={() => setViewingDoc(null)} className="p-2 hover:bg-slate-100 rounded-full"><CloseIcon className="w-6 h-6" /></button>
+          </div>
+          <div className="flex-1 bg-slate-100 overflow-hidden flex items-center justify-center">
+            {viewingDoc.type.includes('pdf') ? (
+              <iframe src={viewingDoc.url} className="w-full h-full border-none" title={viewingDoc.name} />
+            ) : (
+              <img src={viewingDoc.url} alt={viewingDoc.name} className="max-w-full max-h-full object-contain" />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -725,6 +747,13 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      <button 
+                        onClick={() => setViewingDoc(doc)}
+                        className="px-3 py-1.5 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                        title="View Document"
+                      >
+                        View
+                      </button>
                       <a 
                         href={doc.url} 
                         download={doc.name}
