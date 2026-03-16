@@ -33,6 +33,15 @@ export interface DailyPlan {
   activities: Activity[];
 }
 
+export interface Document {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+  uploadedAt: number;
+}
+
 export interface Trip {
   id: string;
   title: string;
@@ -43,6 +52,7 @@ export interface Trip {
   coverImage?: string;
   notes: string; 
   dailyPlans: DailyPlan[];
+  documents?: Document[];
   createdAt: number;
 }
 

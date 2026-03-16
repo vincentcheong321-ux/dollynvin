@@ -26,7 +26,9 @@ import {
   Wallet,
   PieChart,
   ShoppingBag,
-  Car
+  Car,
+  Upload,
+  File
 } from 'lucide-react';
 
 export const HeartIcon = ({ className }: { className?: string }) => <Heart className={className} />;
@@ -56,6 +58,8 @@ export const WalletIcon = ({ className }: { className?: string }) => <Wallet cla
 export const PieChartIcon = ({ className }: { className?: string }) => <PieChart className={className} />;
 export const ShoppingBagIcon = ({ className }: { className?: string }) => <ShoppingBag className={className} />;
 export const CarIcon = ({ className }: { className?: string }) => <Car className={className} />;
+export const UploadIcon = ({ className }: { className?: string }) => <Upload className={className} />;
+export const FileIcon = ({ className }: { className?: string }) => <File className={className} />;
 
 export const ActivityIcon = ({ type, className }: { type: string, className?: string }) => {
   switch (type) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Trip, Activity, ActivityType, DailyPlan, ChatMessage } from './types';
+import { Trip, Activity, ActivityType, DailyPlan, ChatMessage, Document } from './types';
 import { createBlankTrip } from './services/presetTrip';
 import { supabase } from './lib/supabase';
 import { 
@@ -23,7 +23,9 @@ import {
   PlaneIcon,
   CarIcon,
   BackIcon,
-  PieChartIcon
+  PieChartIcon,
+  FileIcon,
+  UploadIcon
 } from './components/Icons';
 import { sendChatMessage } from './services/geminiService';
 import { metroLines } from './data/metroData';
@@ -619,6 +621,159 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
   );
 };
 
+// --- Documents Modal ---
+const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boolean, onClose: () => void, trip: Trip, onUpdateTrip: (t: Trip) => void }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  if (!isOpen) return null;
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Only allow PDF and images
+    if (!file.type.includes('pdf') && !file.type.includes('image')) {
+      alert('Please upload a PDF or image file.');
+      return;
+    }
+
+    // Limit size to 2MB to avoid huge JSON payloads
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File is too large. Please upload a file smaller than 2MB.');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Data = reader.result as string;
+        const newDoc: Document = {
+          id: generateId(),
+          name: file.name,
+          url: base64Data,
+          type: file.type,
+          size: file.size,
+          uploadedAt: Date.now()
+        };
+        
+        const currentDocs = trip.documents || [];
+        onUpdateTrip({
+          ...trip,
+          documents: [...currentDocs, newDoc]
+        });
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Error uploading file:', err);
+      setIsUploading(false);
+    }
+  };
+
+  const handleDelete = (docId: string) => {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+    const currentDocs = trip.documents || [];
+    onUpdateTrip({
+      ...trip,
+      documents: currentDocs.filter(d => d.id !== docId)
+    });
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const documents = trip.documents || [];
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
+       <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col max-h-[85vh] animate-slideUp text-slate-800">
+         <div className="flex justify-between items-center mb-6">
+           <div className="flex items-center space-x-3 text-rose-600">
+             <div className="p-2.5 bg-rose-50 rounded-2xl"><FileIcon className="w-6 h-6" /></div>
+             <div>
+               <h3 className="text-2xl font-serif font-bold text-rose-950">Documents</h3>
+               <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Hotel & Travel Docs</p>
+             </div>
+           </div>
+           <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full"><CloseIcon className="w-6 h-6" /></button>
+         </div>
+         
+         <div className="overflow-y-auto pr-2 space-y-4 flex-1 no-scrollbar">
+            {documents.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-3xl">
+                <FileIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 font-medium">No documents uploaded yet.</p>
+                <p className="text-xs text-slate-400 mt-1">Upload hotel bookings, tickets, or PDFs (Max 2MB)</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {documents.map(doc => (
+                  <div key={doc.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl group hover:border-rose-200 transition-colors">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center flex-shrink-0">
+                        <FileIcon className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm text-slate-700 truncate">{doc.name}</p>
+                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{formatSize(doc.size)} • {new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      <a 
+                        href={doc.url} 
+                        download={doc.name}
+                        className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors"
+                        title="Download"
+                      >
+                        <ArrowRightIcon className="w-4 h-4 rotate-90" />
+                      </a>
+                      <button 
+                        onClick={() => handleDelete(doc.id)}
+                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                        title="Delete"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+         </div>
+         
+         <div className="mt-6 pt-4 border-t border-slate-100">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+              accept=".pdf,image/*" 
+              className="hidden" 
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()} 
+              disabled={isUploading}
+              className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-bold text-lg shadow-lg disabled:opacity-50 transition-all flex items-center justify-center space-x-2"
+            >
+              {isUploading ? (
+                <div className="flex space-x-1"><div className="w-2 h-2 bg-white rounded-full animate-bounce"></div><div className="w-2 h-2 bg-white rounded-full animate-bounce delay-75"></div><div className="w-2 h-2 bg-white rounded-full animate-bounce delay-150"></div></div>
+              ) : (
+                <>
+                  <UploadIcon className="w-5 h-5" /> <span>Upload Document</span>
+                </>
+              )}
+            </button>
+         </div>
+       </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 const App = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -631,6 +786,7 @@ const App = () => {
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
   const [isMetroGuideOpen, setIsMetroGuideOpen] = useState(false);
   const [isBoardingPassOpen, setIsBoardingPassOpen] = useState(false);
+  const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingTheme, setEditingTheme] = useState(false);
@@ -810,10 +966,11 @@ const App = () => {
                 </div>
                 {daysUntil !== null && (<div className="pt-12"><div className="bg-white/50 backdrop-blur inline-block px-10 py-4 rounded-full border border-rose-100 shadow-sm"><span className="text-rose-600 font-bold text-base tracking-wide">{daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}</span></div></div>)}
              </section>
-             <div className="w-full max-w-lg mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4">
+             <div className="w-full max-w-lg mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <button onClick={() => setIsBoardingPassOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors"><PlaneIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Passport &<br/>Flight Info</span></button>
                 <button onClick={() => setIsMetroGuideOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors"><MapIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Tokyo Metro<br/>Resources</span></button>
                 <a href="https://media2.tokyodisneyresort.jp/home/download/map/TDL_map_en.pdf" target="_blank" rel="noreferrer" className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-100 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors"><SparklesIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Disneyland<br/>Tokyo Map</span></a>
+                <button onClick={() => setIsDocumentsOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors"><FileIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Hotel &<br/>Documents</span></button>
              </div>
           </main>
           {isNotesOpen && (
@@ -866,6 +1023,7 @@ const App = () => {
       <ActivityModal isOpen={isActivityModalOpen} onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); setAddingType(undefined); }} onSave={handleSaveActivity} initialData={editingActivity} initialType={addingType} exchangeRate={exchangeRate} />
       <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
       <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
+      <DocumentsModal isOpen={isDocumentsOpen} onClose={() => setIsDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} />
       <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
       <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} />
     </div>
