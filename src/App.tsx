@@ -623,12 +623,39 @@ const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onCl
 };
 
 // --- Documents Modal ---
+const createBlobUrl = (dataUri: string) => {
+  try {
+    const byteString = atob(dataUri.split(',')[1]);
+    const mimeString = dataUri.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([ab], { type: mimeString });
+    return URL.createObjectURL(blob);
+  } catch (e) {
+    return dataUri;
+  }
+};
+
 const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boolean, onClose: () => void, trip: Trip, onUpdateTrip: (t: Trip) => void }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [editingDocId, setEditingDocId] = useState<string | null>(null);
   const [editingDocName, setEditingDocName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (viewingDoc && viewingDoc.type.includes('pdf')) {
+      const url = createBlobUrl(viewingDoc.url);
+      setBlobUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setBlobUrl(null);
+    }
+  }, [viewingDoc]);
 
   if (!isOpen) return null;
 
@@ -637,13 +664,32 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
       <div className="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4">
         <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-md transition-opacity" onClick={() => setViewingDoc(null)}></div>
         <div className="bg-white w-full max-w-5xl h-[90vh] rounded-3xl shadow-2xl z-10 flex flex-col animate-slideUp overflow-hidden">
-          <div className="flex justify-between items-center p-4 border-b border-slate-100">
-            <h3 className="text-lg font-bold text-slate-800 truncate pr-4">{viewingDoc.name}</h3>
-            <button onClick={() => setViewingDoc(null)} className="p-2 hover:bg-slate-100 rounded-full"><CloseIcon className="w-6 h-6" /></button>
+          <div className="flex justify-between items-start p-4 border-b border-slate-100 gap-4">
+            <h3 className="text-lg font-bold text-slate-800 break-words whitespace-normal flex-1">{viewingDoc.name}</h3>
+            <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+              {viewingDoc.type.includes('pdf') && (
+                <a 
+                  href={blobUrl || viewingDoc.url} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="px-3 py-1.5 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Open Fullscreen
+                </a>
+              )}
+              <button onClick={() => setViewingDoc(null)} className="p-2 hover:bg-slate-100 rounded-full"><CloseIcon className="w-6 h-6" /></button>
+            </div>
           </div>
           <div className="flex-1 bg-slate-100 overflow-hidden flex items-center justify-center">
             {viewingDoc.type.includes('pdf') ? (
-              <iframe src={viewingDoc.url} className="w-full h-full border-none" title={viewingDoc.name} />
+              blobUrl ? (
+                <iframe src={blobUrl} className="w-full h-full border-none" title={viewingDoc.name} />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-slate-400">
+                  <div className="w-8 h-8 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin mb-4"></div>
+                  <p className="font-medium">Loading PDF...</p>
+                </div>
+              )
             ) : (
               <img src={viewingDoc.url} alt={viewingDoc.name} className="max-w-full max-h-full object-contain" />
             )}
@@ -749,14 +795,14 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
             ) : (
               <div className="space-y-3">
                 {documents.map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl group hover:border-rose-200 transition-colors">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center flex-shrink-0">
+                  <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-2xl group hover:border-rose-200 transition-colors gap-3">
+                    <div className="flex items-start sm:items-center gap-3 overflow-hidden w-full cursor-pointer" onClick={() => setViewingDoc(doc)}>
+                      <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center flex-shrink-0 mt-1 sm:mt-0">
                         <FileIcon className="w-5 h-5" />
                       </div>
                       <div className="min-w-0 flex-1">
                         {editingDocId === doc.id ? (
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1" onClick={e => e.stopPropagation()}>
                             <input
                               type="text"
                               value={editingDocName}
@@ -768,27 +814,27 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
                               className="w-full p-1 text-sm font-bold text-slate-700 border border-rose-300 rounded outline-none focus:ring-2 focus:ring-rose-200"
                               autoFocus
                             />
-                            <button onClick={() => handleRename(doc.id)} className="p-1 text-emerald-500 hover:bg-emerald-50 rounded"><CheckIcon className="w-4 h-4" /></button>
-                            <button onClick={() => setEditingDocId(null)} className="p-1 text-slate-400 hover:bg-slate-100 rounded"><CloseIcon className="w-4 h-4" /></button>
+                            <button onClick={(e) => { e.stopPropagation(); handleRename(doc.id); }} className="p-1 text-emerald-500 hover:bg-emerald-50 rounded"><CheckIcon className="w-4 h-4" /></button>
+                            <button onClick={(e) => { e.stopPropagation(); setEditingDocId(null); }} className="p-1 text-slate-400 hover:bg-slate-100 rounded"><CloseIcon className="w-4 h-4" /></button>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 group/title">
-                            <p className="font-bold text-sm text-slate-700 truncate">{doc.name}</p>
+                          <div className="flex items-start sm:items-center gap-2 group/title">
+                            <p className="font-bold text-sm text-slate-700 break-words whitespace-normal">{doc.name}</p>
                             <button 
-                              onClick={() => { setEditingDocId(doc.id); setEditingDocName(doc.name); }}
-                              className="opacity-0 group-hover/title:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-opacity"
+                              onClick={(e) => { e.stopPropagation(); setEditingDocId(doc.id); setEditingDocName(doc.name); }}
+                              className="opacity-100 sm:opacity-0 group-hover/title:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-opacity flex-shrink-0 mt-0.5 sm:mt-0"
                               title="Rename"
                             >
                               <EditIcon className="w-3 h-3" />
                             </button>
                           </div>
                         )}
-                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{formatSize(doc.size)} • {new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">{formatSize(doc.size)} • {new Date(doc.uploadedAt).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                    <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto border-t sm:border-t-0 border-slate-200 pt-2 sm:pt-0 w-full sm:w-auto justify-end">
                       <button 
-                        onClick={() => setViewingDoc(doc)}
+                        onClick={(e) => { e.stopPropagation(); setViewingDoc(doc); }}
                         className="px-3 py-1.5 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                         title="View Document"
                       >
@@ -797,13 +843,14 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
                       <a 
                         href={doc.url} 
                         download={doc.name}
+                        onClick={(e) => e.stopPropagation()}
                         className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors"
                         title="Download"
                       >
                         <ArrowRightIcon className="w-4 h-4 rotate-90" />
                       </a>
                       <button 
-                        onClick={() => handleDelete(doc.id)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(doc.id); }}
                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                         title="Delete"
                       >
