@@ -53,6 +53,7 @@ export interface Trip {
   notes: string; 
   dailyPlans: DailyPlan[];
   documents?: Document[];
+  klookDocuments?: Document[];
   createdAt: number;
 }
 

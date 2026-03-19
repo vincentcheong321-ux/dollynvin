@@ -639,7 +639,7 @@ const createBlobUrl = (dataUri: string) => {
   }
 };
 
-const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boolean, onClose: () => void, trip: Trip, onUpdateTrip: (t: Trip) => void }) => {
+const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip, docType = 'documents' }: { isOpen: boolean, onClose: () => void, trip: Trip, onUpdateTrip: (t: Trip) => void, docType?: 'documents' | 'klookDocuments' }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -729,10 +729,10 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
           uploadedAt: Date.now()
         };
         
-        const currentDocs = trip.documents || [];
+        const currentDocs = trip[docType] || [];
         onUpdateTrip({
           ...trip,
-          documents: [...currentDocs, newDoc]
+          [docType]: [...currentDocs, newDoc]
         });
         setIsUploading(false);
       };
@@ -745,19 +745,19 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
 
   const handleDelete = (docId: string) => {
     if (!confirm('Are you sure you want to delete this document?')) return;
-    const currentDocs = trip.documents || [];
+    const currentDocs = trip[docType] || [];
     onUpdateTrip({
       ...trip,
-      documents: currentDocs.filter(d => d.id !== docId)
+      [docType]: currentDocs.filter(d => d.id !== docId)
     });
   };
 
   const handleRename = (docId: string) => {
     if (!editingDocName.trim()) return;
-    const currentDocs = trip.documents || [];
+    const currentDocs = trip[docType] || [];
     onUpdateTrip({
       ...trip,
-      documents: currentDocs.map(d => d.id === docId ? { ...d, name: editingDocName.trim() } : d)
+      [docType]: currentDocs.map(d => d.id === docId ? { ...d, name: editingDocName.trim() } : d)
     });
     setEditingDocId(null);
   };
@@ -768,7 +768,16 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const documents = trip.documents || [];
+  const handleView = (doc: Document) => {
+    if (doc.type.includes('pdf')) {
+      const url = createBlobUrl(doc.url);
+      window.open(url, '_blank');
+    } else {
+      setViewingDoc(doc);
+    }
+  };
+
+  const documents = trip[docType] || [];
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -778,8 +787,8 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
            <div className="flex items-center space-x-3 text-rose-600">
              <div className="p-2.5 bg-rose-50 rounded-2xl"><FileIcon className="w-6 h-6" /></div>
              <div>
-               <h3 className="text-2xl font-serif font-bold text-rose-950">Documents</h3>
-               <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">Hotel & Travel Docs</p>
+               <h3 className="text-2xl font-serif font-bold text-rose-950">{docType === 'klookDocuments' ? 'Klook Docs' : 'Documents'}</h3>
+               <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">{docType === 'klookDocuments' ? 'Vouchers & Tickets' : 'Hotel & Travel Docs'}</p>
              </div>
            </div>
            <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full"><CloseIcon className="w-6 h-6" /></button>
@@ -790,13 +799,13 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
               <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-3xl">
                 <FileIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500 font-medium">No documents uploaded yet.</p>
-                <p className="text-xs text-slate-400 mt-1">Upload hotel bookings, tickets, or PDFs (Max 2MB)</p>
+                <p className="text-xs text-slate-400 mt-1">Upload {docType === 'klookDocuments' ? 'Klook vouchers' : 'hotel bookings'}, tickets, or PDFs (Max 2MB)</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {documents.map(doc => (
                   <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-2xl group hover:border-rose-200 transition-colors gap-3">
-                    <div className="flex items-start sm:items-center gap-3 overflow-hidden w-full cursor-pointer" onClick={() => setViewingDoc(doc)}>
+                    <div className="flex items-start sm:items-center gap-3 overflow-hidden w-full cursor-pointer" onClick={() => handleView(doc)}>
                       <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center flex-shrink-0 mt-1 sm:mt-0">
                         <FileIcon className="w-5 h-5" />
                       </div>
@@ -834,7 +843,7 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip }: { isOpen: boole
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto border-t sm:border-t-0 border-slate-200 pt-2 sm:pt-0 w-full sm:w-auto justify-end">
                       <button 
-                        onClick={(e) => { e.stopPropagation(); setViewingDoc(doc); }}
+                        onClick={(e) => { e.stopPropagation(); handleView(doc); }}
                         className="px-3 py-1.5 text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                         title="View Document"
                       >
@@ -903,6 +912,7 @@ const App = () => {
   const [isMetroGuideOpen, setIsMetroGuideOpen] = useState(false);
   const [isBoardingPassOpen, setIsBoardingPassOpen] = useState(false);
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
+  const [isKlookDocumentsOpen, setIsKlookDocumentsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingTheme, setEditingTheme] = useState(false);
@@ -1082,11 +1092,12 @@ const App = () => {
                 </div>
                 {daysUntil !== null && (<div className="pt-12"><div className="bg-white/50 backdrop-blur inline-block px-10 py-4 rounded-full border border-rose-100 shadow-sm"><span className="text-rose-600 font-bold text-base tracking-wide">{daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}</span></div></div>)}
              </section>
-             <div className="w-full max-w-lg mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
+             <div className="w-full max-w-lg mt-12 grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <button onClick={() => setIsBoardingPassOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors"><PlaneIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Passport &<br/>Flight Info</span></button>
                 <button onClick={() => setIsMetroGuideOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors"><MapIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Tokyo Metro<br/>Resources</span></button>
                 <a href="https://media2.tokyodisneyresort.jp/home/download/map/TDL_map_en.pdf" target="_blank" rel="noreferrer" className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-100 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors"><SparklesIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Disneyland<br/>Tokyo Map</span></a>
                 <button onClick={() => setIsDocumentsOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors"><FileIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Hotel &<br/>Documents</span></button>
+                <button onClick={() => setIsKlookDocumentsOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors"><FileIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Klook<br/>Documents</span></button>
              </div>
           </main>
           {isNotesOpen && (
@@ -1139,7 +1150,8 @@ const App = () => {
       <ActivityModal isOpen={isActivityModalOpen} onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); setAddingType(undefined); }} onSave={handleSaveActivity} initialData={editingActivity} initialType={addingType} exchangeRate={exchangeRate} />
       <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
       <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
-      <DocumentsModal isOpen={isDocumentsOpen} onClose={() => setIsDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} />
+      <DocumentsModal isOpen={isDocumentsOpen} onClose={() => setIsDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="documents" />
+      <DocumentsModal isOpen={isKlookDocumentsOpen} onClose={() => setIsKlookDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="klookDocuments" />
       <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
       <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} />
     </div>
