@@ -920,6 +920,8 @@ const App = () => {
   const [exchangeRate, setExchangeRate] = useState(0.03); 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 15);
@@ -985,6 +987,33 @@ const App = () => {
       return plan;
     });
     handleUpdate({ ...trip, dailyPlans: updatedPlans });
+    setSelectedActivities(prev => prev.filter(actId => actId !== id));
+  };
+
+  const handleMoveActivities = (targetDay: number) => {
+    if (!trip) return;
+    
+    const sourcePlan = trip.dailyPlans.find(p => p.dayNumber === activeDay);
+    const targetPlan = trip.dailyPlans.find(p => p.dayNumber === targetDay);
+    
+    if (!sourcePlan || !targetPlan) return;
+
+    const activitiesToMove = sourcePlan.activities.filter(a => selectedActivities.includes(a.id));
+    const remainingActivities = sourcePlan.activities.filter(a => !selectedActivities.includes(a.id));
+
+    const updatedPlans = trip.dailyPlans.map(p => {
+      if (p.dayNumber === activeDay) {
+        return { ...p, activities: remainingActivities };
+      }
+      if (p.dayNumber === targetDay) {
+        return { ...p, activities: [...p.activities, ...activitiesToMove] };
+      }
+      return p;
+    });
+
+    handleUpdate({ ...trip, dailyPlans: updatedPlans });
+    setSelectedActivities([]);
+    setIsMoveModalOpen(false);
   };
 
   const addDay = () => {
@@ -992,6 +1021,7 @@ const App = () => {
     const newDay: DailyPlan = { id: generateId(), dayNumber: newDayNum, activities: [], theme: `New Adventure` };
     handleUpdate({ ...trip, duration: newDayNum, dailyPlans: [...trip.dailyPlans, newDay] });
     setActiveDay(newDayNum);
+    setSelectedActivities([]);
   };
 
   const generateOfflineHTML = () => {
@@ -1117,7 +1147,9 @@ const App = () => {
             const shouldShowMapBtn = hasCustomMap || (isDrive && act.location);
             const mapUrl = hasCustomMap ? act.customMapLink : (isDrive && act.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}` : undefined);
             
-            return (<div key={act.id} className="relative group"><div className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 bg-white z-10 transition-all ${ongoing ? 'border-rose-500 ring-8 ring-rose-100 scale-125' : 'border-rose-300'}`}></div><div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 border-white hover:border-rose-100 shadow-rose-50/50`}><div className="flex justify-between items-start mb-2 gap-2 text-slate-800"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span><h4 className="font-bold text-sm truncate">{act.title}</h4></div><button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button></div><div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3"><div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${ act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' : act.type === 'sightseeing' ? 'bg-blue-50 text-blue-600 border-blue-100' : act.type === 'shopping' ? 'bg-purple-50 text-purple-600 border-purple-100' : act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' : act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' : act.type === 'drive' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-100' }`}><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>{(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-xl border border-rose-100 flex items-center gap-1">¥{(act.cost ?? 0).toLocaleString()} <span className="opacity-40 text-[9px] font-normal">|</span> RM {(act.myrCost ?? (act.cost || 0) * exchangeRate).toFixed(2)}</span>}{isTravel && (act.flightNo || act.terminal) && (<div className="flex items-center gap-2 font-bold text-sky-600 bg-sky-50 px-2 py-1 rounded-xl border border-sky-100">{act.flightNo && <span>Flight: {act.flightNo}</span>}{act.terminal && <span>Terminal: {act.terminal}</span>}</div>)}</div>
+            const isSelected = selectedActivities.includes(act.id);
+            
+            return (<div key={act.id} className="relative group"><div onClick={(e) => { e.stopPropagation(); if (isSelected) { setSelectedActivities(prev => prev.filter(id => id !== act.id)); } else { setSelectedActivities(prev => [...prev, act.id]); } }} className={`absolute -left-[33px] sm:-left-[49px] top-6 w-4 h-4 rounded-full border-2 z-10 transition-all cursor-pointer hover:scale-125 flex items-center justify-center ${isSelected ? 'bg-rose-500 border-rose-500 ring-4 ring-rose-200' : ongoing ? 'bg-white border-rose-500 ring-8 ring-rose-100 scale-125' : 'bg-white border-rose-300 hover:border-rose-400'}`}>{isSelected && <CheckIcon className="w-3 h-3 text-white" />}</div><div onClick={() => { setEditingActivity(act); setIsActivityModalOpen(true); }} className={`group bg-white/95 backdrop-blur-sm p-4 rounded-[2rem] shadow-sm border transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 ${isSelected ? 'border-rose-300 shadow-rose-100' : 'border-white hover:border-rose-100 shadow-rose-50/50'}`}><div className="flex justify-between items-start mb-2 gap-2 text-slate-800"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] font-bold px-2 py-1 bg-rose-50 text-rose-600 rounded-xl flex-shrink-0">{act.time}</span><h4 className="font-bold text-sm truncate">{act.title}</h4></div><button onClick={e => { e.stopPropagation(); handleDeleteActivity(act.id); }} className="p-1 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"><TrashIcon className="w-3.5 h-3.5" /></button></div><div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mb-3"><div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${ act.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100' : act.type === 'sightseeing' ? 'bg-blue-50 text-blue-600 border-blue-100' : act.type === 'shopping' ? 'bg-purple-50 text-purple-600 border-purple-100' : act.type === 'relaxation' ? 'bg-pink-50 text-pink-600 border-pink-100' : act.type === 'stay' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : act.type === 'travel' ? 'bg-sky-50 text-sky-600 border-sky-100' : act.type === 'drive' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-100' }`}><ActivityIcon type={act.type} className="w-3 h-3" /><span className="uppercase font-bold tracking-widest">{act.type}</span></div>{(act.cost ?? 0) > 0 && <span className="text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded-xl border border-rose-100 flex items-center gap-1">¥{(act.cost ?? 0).toLocaleString()} <span className="opacity-40 text-[9px] font-normal">|</span> RM {(act.myrCost ?? (act.cost || 0) * exchangeRate).toFixed(2)}</span>}{isTravel && (act.flightNo || act.terminal) && (<div className="flex items-center gap-2 font-bold text-sky-600 bg-sky-50 px-2 py-1 rounded-xl border border-sky-100">{act.flightNo && <span>Flight: {act.flightNo}</span>}{act.terminal && <span>Terminal: {act.terminal}</span>}</div>)}</div>
                    <div className="flex flex-col gap-2">
                      <div className="flex items-end justify-between gap-4">
                        <p className="text-xs text-slate-600 line-clamp-2 flex-1 leading-relaxed">{act.description}</p>
@@ -1154,6 +1186,45 @@ const App = () => {
       <DocumentsModal isOpen={isKlookDocumentsOpen} onClose={() => setIsKlookDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="klookDocuments" />
       <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
       <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} />
+
+      {selectedActivities.length > 0 && view === 'itinerary' && (
+        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl z-[100] flex items-center gap-4 animate-slideUp">
+          <span className="text-sm font-bold">{selectedActivities.length} selected</span>
+          <div className="w-px h-4 bg-slate-700"></div>
+          <button onClick={() => setIsMoveModalOpen(true)} className="text-sm font-bold text-rose-400 hover:text-rose-300 transition-colors">Move</button>
+          <button onClick={() => setSelectedActivities([])} className="text-sm font-bold text-slate-400 hover:text-slate-300 transition-colors">Cancel</button>
+        </div>
+      )}
+
+      {isMoveModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={() => setIsMoveModalOpen(false)}></div>
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col animate-slideUp">
+            <h3 className="text-xl font-serif font-bold text-rose-950 mb-2">Move Activities</h3>
+            <p className="text-sm text-slate-600 mb-6">Are you sure you want to move {selectedActivities.length} selected {selectedActivities.length === 1 ? 'activity' : 'activities'}? Select the destination day below.</p>
+            
+            <select 
+              defaultValue=""
+              onChange={e => {
+                const targetDay = Number(e.target.value);
+                handleMoveActivities(targetDay);
+              }}
+              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium mb-6"
+            >
+              <option value="" disabled>Select destination day...</option>
+              {trip.dailyPlans.map(p => (
+                <option key={p.dayNumber} value={p.dayNumber} disabled={p.dayNumber === activeDay}>
+                  Day {p.dayNumber} {p.theme ? `- ${p.theme}` : ''}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex gap-3">
+              <button onClick={() => setIsMoveModalOpen(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
