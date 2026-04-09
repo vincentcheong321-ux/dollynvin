@@ -1063,7 +1063,7 @@ const App = () => {
   ${trip.dailyPlans.map(day => day.activities.length > 0 ? `
     <div class="day-container">
       <div class="day-header">DAY ${day.dayNumber}: ${day.theme}</div>
-      ${day.activities.map(act => {
+      ${[...day.activities].sort((a, b) => a.time.localeCompare(b.time)).map(act => {
         const mapUrl = act.customMapLink || (act.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}` : '');
         return `
         <div class="activity">
