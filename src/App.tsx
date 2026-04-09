@@ -1043,9 +1043,9 @@ const App = () => {
     .activity::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #fecdd3; }
     .time { font-weight: bold; color: #e11d48; font-size: 0.9rem; }
     .title { font-weight: bold; font-size: 1.1rem; color: #0f172a; display: block; }
-    .location { font-size: 0.85rem; color: #64748b; font-style: italic; }
+    .location { font-size: 0.85rem; color: #64748b; font-style: italic; text-decoration: none; }
+    .location:hover { text-decoration: underline; color: #3b82f6; }
     .desc { font-size: 0.95rem; margin-top: 5px; color: #475569; }
-    .cost { font-weight: bold; color: #be123c; font-size: 0.85rem; margin-top: 5px; display: block; }
     .notes { background: #fffbeb; border: 1px solid #fde68a; padding: 10px; border-radius: 10px; font-size: 0.8rem; margin-top: 10px; color: #92400e; }
     .general-notes { background: #fff; padding: 20px; border-radius: 20px; margin-top: 40px; border: 1px solid #e2e8f0; }
     .footer { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 50px; }
@@ -1063,16 +1063,17 @@ const App = () => {
   ${trip.dailyPlans.map(day => day.activities.length > 0 ? `
     <div class="day-container">
       <div class="day-header">DAY ${day.dayNumber}: ${day.theme}</div>
-      ${day.activities.map(act => `
+      ${day.activities.map(act => {
+        const mapUrl = act.customMapLink || (act.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}` : '');
+        return `
         <div class="activity">
           <span class="time">${act.time}</span>
           <span class="title">${act.title}</span>
-          <span class="location">${act.location}</span>
+          ${act.location ? `<a class="location" href="${mapUrl}" target="_blank" rel="noreferrer">${act.location}</a>` : ''}
           <p class="desc">${act.description}</p>
-          <span class="cost">¥${act.cost?.toLocaleString()} | RM ${ (act.myrCost ?? (act.cost || 0) * exchangeRate).toFixed(2) }</span>
           ${act.notes ? `<div class="notes">${act.notes}</div>` : ''}
         </div>
-      `).join('')}
+      `}).join('')}
     </div>
   ` : '').join('')}
 
