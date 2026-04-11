@@ -28,7 +28,8 @@ import {
   ShoppingBag,
   Car,
   Upload,
-  File
+  File,
+  CloudSun
 } from 'lucide-react';
 
 export const HeartIcon = ({ className }: { className?: string }) => <Heart className={className} />;
@@ -60,6 +61,7 @@ export const ShoppingBagIcon = ({ className }: { className?: string }) => <Shopp
 export const CarIcon = ({ className }: { className?: string }) => <Car className={className} />;
 export const UploadIcon = ({ className }: { className?: string }) => <Upload className={className} />;
 export const FileIcon = ({ className }: { className?: string }) => <File className={className} />;
+export const WeatherIcon = ({ className }: { className?: string }) => <CloudSun className={className} />;
 
 export const ActivityIcon = ({ type, className }: { type: string, className?: string }) => {
   switch (type) {

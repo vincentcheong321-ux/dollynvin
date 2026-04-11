@@ -26,7 +26,8 @@ import {
   BackIcon,
   PieChartIcon,
   FileIcon,
-  UploadIcon
+  UploadIcon,
+  WeatherIcon
 } from './components/Icons';
 import { sendChatMessage } from './services/geminiService';
 import { metroLines } from './data/metroData';
@@ -445,6 +446,46 @@ const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean,
             </div>
          </div>
        </div>
+    </div>
+  );
+};
+
+// --- Weather Modal ---
+const WeatherModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
+      <div className="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col animate-slideUp border border-rose-100 text-slate-800">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-3 text-sky-600">
+            <div className="p-2.5 bg-sky-50 rounded-2xl"><WeatherIcon className="w-6 h-6" /></div>
+            <h3 className="font-serif font-bold text-2xl">Weather Forecast</h3>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+            <CloseIcon className="w-5 h-5 text-slate-400" />
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <a href="https://tenki.jp/forecast/3/16/4410/13104/" target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-2xl transition-colors group">
+            <div className="flex flex-col">
+              <span className="font-bold text-sky-900">Shinjuku</span>
+              <span className="text-xs text-sky-600">tenki.jp forecast</span>
+            </div>
+            <ArrowRightIcon className="w-5 h-5 text-sky-400 group-hover:translate-x-1 transition-transform" />
+          </a>
+          
+          <a href="https://tenki.jp/forecast/1/" target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-2xl transition-colors group">
+            <div className="flex flex-col">
+              <span className="font-bold text-sky-900">Hokkaido</span>
+              <span className="text-xs text-sky-600">tenki.jp forecast</span>
+            </div>
+            <ArrowRightIcon className="w-5 h-5 text-sky-400 group-hover:translate-x-1 transition-transform" />
+          </a>
+        </div>
+      </div>
     </div>
   );
 };
@@ -910,6 +951,7 @@ const App = () => {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
   const [isMetroGuideOpen, setIsMetroGuideOpen] = useState(false);
+  const [isWeatherOpen, setIsWeatherOpen] = useState(false);
   const [isBoardingPassOpen, setIsBoardingPassOpen] = useState(false);
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
   const [isKlookDocumentsOpen, setIsKlookDocumentsOpen] = useState(false);
@@ -1123,12 +1165,13 @@ const App = () => {
                 </div>
                 {daysUntil !== null && (<div className="pt-12"><div className="bg-white/50 backdrop-blur inline-block px-10 py-4 rounded-full border border-rose-100 shadow-sm"><span className="text-rose-600 font-bold text-base tracking-wide">{daysUntil > 0 ? `${daysUntil} Days To Go! ❤️` : daysUntil === 0 ? "It's Travel Day! ✈️" : "Memories made!"}</span></div></div>)}
              </section>
-             <div className="w-full max-w-lg mt-12 grid grid-cols-2 sm:grid-cols-5 gap-4">
+             <div className="w-full max-w-2xl mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <button onClick={() => setIsBoardingPassOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors"><PlaneIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Passport &<br/>Flight Info</span></button>
                 <button onClick={() => setIsMetroGuideOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors"><MapIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Tokyo Metro<br/>Resources</span></button>
                 <a href="https://media2.tokyodisneyresort.jp/home/download/map/TDL_map_en.pdf" target="_blank" rel="noreferrer" className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-100 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors"><SparklesIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Disneyland<br/>Tokyo Map</span></a>
                 <button onClick={() => setIsDocumentsOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors"><FileIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Hotel &<br/>Documents</span></button>
                 <button onClick={() => setIsKlookDocumentsOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors"><FileIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Klook<br/>Documents</span></button>
+                <button onClick={() => setIsWeatherOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors"><WeatherIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Weather<br/>Forecast</span></button>
              </div>
           </main>
           {isNotesOpen && (
@@ -1183,6 +1226,7 @@ const App = () => {
       <ActivityModal isOpen={isActivityModalOpen} onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); setAddingType(undefined); }} onSave={handleSaveActivity} initialData={editingActivity} initialType={addingType} exchangeRate={exchangeRate} />
       <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
       <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
+      <WeatherModal isOpen={isWeatherOpen} onClose={() => setIsWeatherOpen(false)} />
       <DocumentsModal isOpen={isDocumentsOpen} onClose={() => setIsDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="documents" />
       <DocumentsModal isOpen={isKlookDocumentsOpen} onClose={() => setIsKlookDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="klookDocuments" />
       <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
