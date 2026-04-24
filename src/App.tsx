@@ -520,6 +520,58 @@ const SubwayMapModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
   );
 };
 
+// --- Hokkaido Subway Modal ---
+const HokkaidoSubwayModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
+      <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl z-10 p-8 flex flex-col animate-slideUp border border-teal-100 text-slate-800 overflow-hidden max-h-[95vh] h-full">
+        <div className="flex justify-between items-center mb-6 shrink-0">
+          <div className="flex items-center space-x-3 text-teal-600">
+            <div className="p-2.5 bg-teal-50 rounded-2xl"><MapIcon className="w-6 h-6" /></div>
+            <div>
+              <h3 className="text-2xl font-serif font-bold text-teal-950">Hokkaido Trains</h3>
+              <p className="text-xs font-bold text-teal-400 uppercase tracking-widest">Network Maps</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-teal-50 rounded-full transition-colors"><CloseIcon className="w-6 h-6 text-slate-400" /></button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto no-scrollbar space-y-8 pb-8">
+           <div className="space-y-4">
+             <h4 className="text-sm font-bold text-slate-700 bg-slate-100 p-3 rounded-xl inline-block">1. Sapporo Subway Map</h4>
+             <div className="rounded-2xl overflow-hidden border-2 border-slate-200">
+               <img src="https://uu-nippon.com/hokkaido/wp/wp-content/uploads/2021/03/map_sw_sapporo1_en-1536x1229.png" alt="Sapporo Subway Map" className="w-full object-contain bg-white" />
+             </div>
+           </div>
+
+           <div className="space-y-4 text-center">
+             <h4 className="text-sm font-bold text-slate-700 bg-slate-100 p-3 rounded-xl inline-block text-left w-full">2. Hokkaido Railway Network Map</h4>
+             <div className="rounded-2xl overflow-hidden border-2 border-slate-200 min-h-[400px] flex items-center justify-center bg-slate-50 relative">
+               {/* Embed local map if uploaded */}
+               <img src="/hokkaido-train-map.jpg" alt="Upload map" className="w-full object-contain absolute inset-0 h-full bg-white opacity-0 transition-opacity" onError={(e) => {
+                 (e.target as HTMLElement).style.opacity = '0';
+                 const next = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                 if(next) next.style.display = 'flex';
+               }} onLoad={(e) => {
+                 (e.target as HTMLElement).style.opacity = '1';
+                 const next = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                 if(next) next.style.display = 'none';
+               }} />
+               <div className="flex flex-col items-center justify-center text-slate-400 p-8 z-10 pointer-events-none">
+                  <MapIcon className="w-12 h-12 mb-4 text-slate-300" />
+                  <p className="font-bold text-lg text-slate-700 mb-2">Upload your Train Map</p>
+                  <p className="text-sm text-slate-500">Please place your attached map image in the <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-700">public</code> folder and name it <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-700">hokkaido-train-map.jpg</code>.</p>
+               </div>
+             </div>
+           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Chat Assistant ---
 const ChatAssistant = ({ isOpen, onClose, currentTrip }: { isOpen: boolean, onClose: () => void, currentTrip?: Trip | null }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -872,6 +924,7 @@ const App = () => {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
   const [isMetroGuideOpen, setIsMetroGuideOpen] = useState(false);
+  const [isHokkaidoSubwayOpen, setIsHokkaidoSubwayOpen] = useState(false);
   const [isWeatherOpen, setIsWeatherOpen] = useState(false);
   const [isBoardingPassOpen, setIsBoardingPassOpen] = useState(false);
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
@@ -1089,7 +1142,7 @@ const App = () => {
              <div className="w-full max-w-2xl mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <button onClick={() => setIsBoardingPassOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors"><PlaneIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Passport &<br/>Flight Info</span></button>
                 <button onClick={() => setIsMetroGuideOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors"><MapIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Tokyo Metro<br/>Resources</span></button>
-                <a href="https://uu-nippon.com/hokkaido/wp/wp-content/uploads/2021/03/map_sw_sapporo1_en-1536x1229.png" target="_blank" rel="noreferrer" className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-500 flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors"><MapIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Hokkaido<br/>Subway Map</span></a>
+                <button onClick={() => setIsHokkaidoSubwayOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-500 flex items-center justify-center group-hover:bg-teal-500 group-hover:text-white transition-colors"><MapIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Hokkaido<br/>Subway Map</span></button>
                 <a href="https://media2.tokyodisneyresort.jp/home/download/map/TDL_map_en.pdf" target="_blank" rel="noreferrer" className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-100 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors"><SparklesIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Disneyland<br/>Tokyo Map</span></a>
                 <button onClick={() => setIsDocumentsOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors"><FileIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Hotel &<br/>Documents</span></button>
                 <button onClick={() => setIsKlookDocumentsOpen(true)} className="bg-white/90 p-5 rounded-[2.5rem] shadow-sm border border-rose-50 flex flex-col items-center gap-3 group hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-1 transition-all"><div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors"><FileIcon className="w-6 h-6" /></div><span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center leading-tight">Klook<br/>Documents</span></button>
@@ -1148,6 +1201,7 @@ const App = () => {
       <ActivityModal isOpen={isActivityModalOpen} onClose={() => { setIsActivityModalOpen(false); setEditingActivity(null); setAddingType(undefined); }} onSave={handleSaveActivity} initialData={editingActivity} initialType={addingType} exchangeRate={exchangeRate} />
       <BudgetModal isOpen={isBudgetOpen} onClose={() => setIsBudgetOpen(false)} trip={trip} exchangeRate={exchangeRate} />
       <SubwayMapModal isOpen={isMetroGuideOpen} onClose={() => setIsMetroGuideOpen(false)} />
+      <HokkaidoSubwayModal isOpen={isHokkaidoSubwayOpen} onClose={() => setIsHokkaidoSubwayOpen(false)} />
       <WeatherModal isOpen={isWeatherOpen} onClose={() => setIsWeatherOpen(false)} />
       <DocumentsModal isOpen={isDocumentsOpen} onClose={() => setIsDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="documents" />
       <DocumentsModal isOpen={isKlookDocumentsOpen} onClose={() => setIsKlookDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="klookDocuments" />
