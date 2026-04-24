@@ -54,6 +54,7 @@ export interface Trip {
   dailyPlans: DailyPlan[];
   documents?: Document[];
   klookDocuments?: Document[];
+  boardingPasses?: Document[];
   createdAt: number;
 }
 

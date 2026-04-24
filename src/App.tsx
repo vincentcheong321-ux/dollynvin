@@ -316,85 +316,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, onSave, 
   );
 };
 
-// --- Boarding Pass / Itinerary Modal ---
-const BoardingPassModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  if (!isOpen) return null;
-
-  const flights = [
-    { id: "1", departure: "KUALA LUMPUR", arrival: "TOKYO (HANEDA)", terminal: "1", arrivalTerminal: "0", flightNo: "NH886", date: "25APR2026", day: "SAT", time: "1415", arrivalTime: "2215", seat: "30A", fare: "KFA9TYOK", status: "OK", baggage: "1PC" },
-    { id: "2", departure: "TOKYO (HANEDA)", arrival: "SAPPORO (NEW CHITOSE D)", terminal: "2", arrivalTerminal: "", flightNo: "NH987", date: "01MAY2026", day: "FRI", time: "0620", arrivalTime: "0750", seat: "8K", fare: "KFA9TYOK", status: "OK", baggage: "1PC" },
-    { id: "3", departure: "SAPPORO (NEW CHITOSE D)", arrival: "TOKYO (HANEDA)", terminal: "", arrivalTerminal: "2", flightNo: "NH82", date: "07MAY2026", day: "THU", time: "2030", arrivalTime: "2210", seat: "18K", fare: "KFA9TYOK", status: "OK", baggage: "1PC" },
-    { id: "4", departure: "TOKYO (HANEDA)", arrival: "KUALA LUMPUR", terminal: "0", arrivalTerminal: "1", flightNo: "NH885", date: "07MAY2026", day: "THU", time: "2330", arrivalTime: "0600 (08MAY)", seat: "29K", fare: "KFA9TYOK", status: "OK", baggage: "1PC" }
-  ];
-
-  return (
-    <div className="fixed inset-0 z-[160] flex items-center justify-center p-2 sm:p-4">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose}></div>
-      <div className="bg-[#f2f2f2] w-full max-w-4xl rounded-lg shadow-2xl z-10 overflow-hidden flex flex-col animate-slideUp border border-slate-300 font-mono text-[10px] sm:text-xs">
-        <div className="bg-white p-4 border-b border-slate-300 flex justify-between items-center">
-          <div className="flex items-center gap-2 text-slate-800">
-            <PlaneIcon className="w-5 h-5" />
-            <span className="font-bold text-lg tracking-widest">ITINERARY</span>
-          </div>
-          <div className="text-right text-slate-500">
-            <div className="font-bold">ALL NIPPON AIRWAYS</div>
-            <div className="text-[10px]">ISSUED FOR: CHEONG WAN SHENG / CHAN ZI XUAN</div>
-          </div>
-        </div>
-        <div className="flex-1 p-2 sm:p-6 overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-slate-400 text-left uppercase text-slate-500">
-                <th className="py-2 pr-2">City/Airport</th>
-                <th className="py-2 px-1">Terminal</th>
-                <th className="py-2 px-1">Flight No.</th>
-                <th className="py-2 px-1">Date</th>
-                <th className="py-2 px-1">Day</th>
-                <th className="py-2 px-1">Time</th>
-                <th className="py-2 px-1">Status</th>
-                <th className="py-2 px-1">Seat</th>
-                <th className="py-2 pl-2">Baggage</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-900">
-              {flights.map((f, idx) => (
-                <React.Fragment key={f.id}>
-                  <tr className="border-t border-slate-200">
-                    <td className="py-3 pr-2 font-bold">[{idx + 1}] {f.departure}</td>
-                    <td className="py-3 px-1">{f.terminal}</td>
-                    <td className="py-3 px-1 font-bold">{f.flightNo}</td>
-                    <td className="py-3 px-1">{f.date}</td>
-                    <td className="py-3 px-1">{f.day}</td>
-                    <td className="py-3 px-1">{f.time}</td>
-                    <td className="py-3 px-1">{f.status}</td>
-                    <td className="py-3 px-1">-</td>
-                    <td className="py-3 pl-2">{f.baggage}</td>
-                  </tr>
-                  <tr className="bg-slate-100/50">
-                    <td className="py-2 pr-2 italic pl-4">ARRIVAL: {f.arrival}</td>
-                    <td className="py-2 px-1">{f.arrivalTerminal}</td>
-                    <td className="py-2 px-1"></td>
-                    <td className="py-2 px-1"></td>
-                    <td className="py-2 px-1"></td>
-                    <td className="py-2 px-1 italic">{f.arrivalTime}</td>
-                    <td className="py-2 px-1"></td>
-                    <td className="py-2 px-1 font-bold">{f.seat}</td>
-                    <td className="py-2 pl-2"></td>
-                  </tr>
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="bg-white p-4 border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-500">
-          <div>* ALL TIMES ARE LOCAL. FARE BASIS: KFA9TYOK</div>
-          <button onClick={onClose} className="px-4 py-2 bg-slate-900 text-white rounded hover:bg-slate-800 transition-colors uppercase font-bold">Close</button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // --- Budget Modal ---
 const BudgetModal = ({ isOpen, onClose, trip, exchangeRate }: { isOpen: boolean, onClose: () => void, trip: Trip, exchangeRate: number }) => {
   if (!isOpen) return null;
@@ -680,7 +601,7 @@ const createBlobUrl = (dataUri: string) => {
   }
 };
 
-const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip, docType = 'documents' }: { isOpen: boolean, onClose: () => void, trip: Trip, onUpdateTrip: (t: Trip) => void, docType?: 'documents' | 'klookDocuments' }) => {
+const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip, docType = 'documents' }: { isOpen: boolean, onClose: () => void, trip: Trip, onUpdateTrip: (t: Trip) => void, docType?: 'documents' | 'klookDocuments' | 'boardingPasses' }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -828,8 +749,8 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip, docType = 'docume
            <div className="flex items-center space-x-3 text-rose-600">
              <div className="p-2.5 bg-rose-50 rounded-2xl"><FileIcon className="w-6 h-6" /></div>
              <div>
-               <h3 className="text-2xl font-serif font-bold text-rose-950">{docType === 'klookDocuments' ? 'Klook Docs' : 'Documents'}</h3>
-               <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">{docType === 'klookDocuments' ? 'Vouchers & Tickets' : 'Hotel & Travel Docs'}</p>
+               <h3 className="text-2xl font-serif font-bold text-rose-950">{docType === 'klookDocuments' ? 'Klook Docs' : docType === 'boardingPasses' ? 'Boarding Passes' : 'Documents'}</h3>
+               <p className="text-xs font-bold text-rose-400 uppercase tracking-widest">{docType === 'klookDocuments' ? 'Vouchers & Tickets' : docType === 'boardingPasses' ? 'Flight Check-in Docs' : 'Hotel & Travel Docs'}</p>
              </div>
            </div>
            <button onClick={onClose} className="p-2 hover:bg-rose-50 rounded-full"><CloseIcon className="w-6 h-6" /></button>
@@ -840,7 +761,7 @@ const DocumentsModal = ({ isOpen, onClose, trip, onUpdateTrip, docType = 'docume
               <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-3xl">
                 <FileIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500 font-medium">No documents uploaded yet.</p>
-                <p className="text-xs text-slate-400 mt-1">Upload {docType === 'klookDocuments' ? 'Klook vouchers' : 'hotel bookings'}, tickets, or PDFs (Max 2MB)</p>
+                <p className="text-xs text-slate-400 mt-1">Upload {docType === 'klookDocuments' ? 'Klook vouchers' : docType === 'boardingPasses' ? 'boarding passes' : 'hotel bookings'}, tickets, or PDFs (Max 2MB)</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1229,8 +1150,8 @@ const App = () => {
       <WeatherModal isOpen={isWeatherOpen} onClose={() => setIsWeatherOpen(false)} />
       <DocumentsModal isOpen={isDocumentsOpen} onClose={() => setIsDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="documents" />
       <DocumentsModal isOpen={isKlookDocumentsOpen} onClose={() => setIsKlookDocumentsOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="klookDocuments" />
+      <DocumentsModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} trip={trip} onUpdateTrip={handleUpdate} docType="boardingPasses" />
       <ChatAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} currentTrip={trip} />
-      <BoardingPassModal isOpen={isBoardingPassOpen} onClose={() => setIsBoardingPassOpen(false)} />
 
       {selectedActivities.length > 0 && view === 'itinerary' && (
         <div className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl z-[100] flex items-center gap-4 animate-slideUp">
