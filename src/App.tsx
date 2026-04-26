@@ -550,7 +550,7 @@ const HokkaidoSubwayModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
              <h4 className="text-sm font-bold text-slate-700 bg-slate-100 p-3 rounded-xl inline-block text-left w-full">2. Hokkaido Railway Network Map</h4>
              <div className="rounded-2xl overflow-hidden border-2 border-slate-200 min-h-[400px] flex items-center justify-center bg-slate-50 relative">
                {/* Embed local map if uploaded */}
-               <img src="/hokkaido-train-map.jpg" alt="Upload map" className="w-full object-contain absolute inset-0 h-full bg-white opacity-0 transition-opacity" onError={(e) => {
+               <img src="/hokkaido-train-map.jpg?v=1" alt="Upload map" className="w-full object-contain absolute inset-0 h-full bg-white opacity-0 transition-opacity" onError={(e) => {
                  (e.target as HTMLElement).style.opacity = '0';
                  const next = (e.target as HTMLElement).nextElementSibling as HTMLElement;
                  if(next) next.style.display = 'flex';
@@ -933,7 +933,7 @@ const App = () => {
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingTheme, setEditingTheme] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [exchangeRate, setExchangeRate] = useState(0.03); 
+  const [exchangeRate, setExchangeRate] = useState(0.025); 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
